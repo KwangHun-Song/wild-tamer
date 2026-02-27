@@ -53,34 +53,35 @@
 
 ```
 Assets/Docs/
-├── Convention/              # 컨벤션 문서
-├── Phase1_Base/             # 프로젝트 베이스
-│   ├── 1.1_project_structure/
-│   ├── 1.2_data_management/
-│   ├── 1.3_ui_framework/
-│   ├── 1.4_sound/
-│   ├── 1.5_object_pooling/
-│   ├── 1.6_event_system/
-│   └── 1.7_resource_loading/
-├── Phase2_Core/             # 코어 시스템
-│   ├── 2.1_player_movement/
-│   ├── 2.2_squad_system/
-│   ├── 2.3_world_map/
-│   ├── 2.4_monster/
-│   ├── 2.5_auto_combat/
-│   ├── 2.6_taming/
-│   ├── 2.7_combat_vfx/
-│   ├── 2.8_fog_of_war/
-│   └── 2.9_minimap/
-├── Phase3_Additional/       # 추가 시스템
-│   ├── 3.1_animal_codex/
-│   ├── 3.2_roguelike_upgrade/
-│   └── 3.3_game_flow/
-├── Phase4_Polish/           # 폴리싱 및 제출
-│   ├── 4.1_balance/
-│   └── 4.2_submission/
-├── concept.md               # 게임 컨셉 문서
-└── milestone.md             # 마일스톤
+├── Convention/                        # 컨벤션 문서
+├── System/                            # 시스템별 문서
+│   ├── Phase1_Base/                   #   프로젝트 베이스
+│   │   ├── 1.1_project_structure/
+│   │   ├── 1.2_data_management/
+│   │   ├── 1.3_ui_framework/
+│   │   ├── 1.4_sound/
+│   │   ├── 1.5_object_pooling/
+│   │   ├── 1.6_event_system/
+│   │   └── 1.7_resource_loading/
+│   ├── Phase2_Core/                   #   코어 시스템
+│   │   ├── 2.1_player_movement/
+│   │   ├── 2.2_squad_system/
+│   │   ├── 2.3_world_map/
+│   │   ├── 2.4_monster/
+│   │   ├── 2.5_auto_combat/
+│   │   ├── 2.6_taming/
+│   │   ├── 2.7_combat_vfx/
+│   │   ├── 2.8_fog_of_war/
+│   │   └── 2.9_minimap/
+│   ├── Phase3_Additional/             #   추가 시스템
+│   │   ├── 3.1_animal_codex/
+│   │   ├── 3.2_roguelike_upgrade/
+│   │   └── 3.3_game_flow/
+│   └── Phase4_Polish/                 #   폴리싱 및 제출
+│       ├── 4.1_balance/
+│       └── 4.2_submission/
+├── concept.md                         # 게임 컨셉 문서
+└── milestone.md                       # 마일스톤
 ```
 
 각 시스템 폴더 내부에 워크플로우에 따라 문서가 쌓인다:
