@@ -16,10 +16,10 @@ public class Monster : Character
     {
         Data = data;
         monsterView = view;
-        view.Health.Initialize(data.maxHp);
+        Health.Initialize(data.maxHp);
         view.Movement.MoveSpeed = data.moveSpeed;
-        view.Health.OnDamaged += _ => monsterView.PlayHitEffect();
-        view.Health.OnDeath += monsterView.PlayDeathEffect;
+        Health.OnDamaged += _ => monsterView.PlayHitEffect();
+        Health.OnDeath += monsterView.PlayDeathEffect;
         view.Subscribe(this);
 
         ai = new MonsterAI(this, unitGrid);

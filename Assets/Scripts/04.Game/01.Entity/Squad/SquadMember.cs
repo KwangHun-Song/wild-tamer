@@ -11,7 +11,7 @@ public class SquadMember : Character
     {
         Data = data;
         view.Subscribe(this);
-        view.Health.Initialize(data.maxHp);
+        Health.Initialize(data.maxHp);
         view.Movement.MoveSpeed = data.moveSpeed;
     }
 

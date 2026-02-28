@@ -1,7 +1,6 @@
 using System;
-using UnityEngine;
 
-public class UnitHealth : MonoBehaviour
+public class UnitHealth
 {
     public int MaxHp { get; private set; }
     public int CurrentHp { get; private set; }
@@ -20,7 +19,7 @@ public class UnitHealth : MonoBehaviour
     {
         if (!IsAlive || damage <= 0) return;
 
-        CurrentHp = Mathf.Max(0, CurrentHp - damage);
+        CurrentHp = Math.Max(0, CurrentHp - damage);
         OnDamaged?.Invoke(damage);
 
         if (!IsAlive)

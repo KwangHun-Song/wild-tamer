@@ -37,7 +37,7 @@ public class GameController
 
         // 개체 생성
         var playerCombat = new UnitCombat(10, 1.5f, 5f, 1f);
-        Player = new Player(playerView, playerCombat);
+        Player = new Player(playerView, playerCombat, 100);
         Squad  = new Squad();
 
         // 시스템 생성

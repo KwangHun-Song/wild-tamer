@@ -4,9 +4,9 @@ public abstract class Character : IUnit
 {
     public abstract UnitTeam Team { get; }
     public Transform Transform => View.transform;
-    public UnitHealth Health => View.Health;
+    public UnitHealth Health { get; }
     public UnitCombat Combat { get; }
-    public bool IsAlive => View.Health.IsAlive;
+    public bool IsAlive => Health.IsAlive;
 
     protected CharacterView View { get; }
 
@@ -14,6 +14,7 @@ public abstract class Character : IUnit
     {
         View = view;
         Combat = combat;
+        Health = new UnitHealth();
     }
 
     /// <summary>

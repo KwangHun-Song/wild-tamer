@@ -7,8 +7,9 @@ public class Player : Character
 
     public event Action<Vector2> OnMoveRequested;
 
-    public Player(PlayerView view, UnitCombat combat) : base(view, combat)
+    public Player(PlayerView view, UnitCombat combat, int maxHp) : base(view, combat)
     {
+        Health.Initialize(maxHp);
         view.Subscribe(this);
     }
 
