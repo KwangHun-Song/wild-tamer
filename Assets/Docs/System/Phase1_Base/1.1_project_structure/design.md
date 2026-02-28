@@ -23,7 +23,8 @@ Modules/
         │   │   │   ├── IJsonSerializer.cs
         │   │   │   ├── IDatabase.cs
         │   │   │   └── ICoroutineRunner.cs
-        │   │   └── Facade.cs
+        │   │   ├── Facade.cs
+        │   │   └── Bootstrapper.cs
         │   ├── PageChanger/
         │   │   ├── IPage.cs
         │   │   └── IPageChanger.cs
@@ -31,12 +32,55 @@ Modules/
         │   │   ├── IPopup.cs
         │   │   └── IPopupManager.cs
         │   ├── Notifier/
+        │   │   └── INotifier.cs
         │   ├── FSM/
+        │   │   ├── IState.cs
+        │   │   └── IStateMachine.cs
         │   ├── Utility/
         │   │   └── EnumLike.cs
         │   └── Extensions/
         └── Base.Runtime.asmdef
 ```
+
+---
+
+## Facade 초기화
+
+### Bootstrapper
+
+`Bootstrapper`는 게임 시작 시 Facade의 모든 서비스를 초기화하는 MonoBehaviour이다. 첫 번째 씬에 배치하여 `[RuntimeInitializeOnLoadMethod]` 또는 `Awake()`에서 실행한다.
+
+```csharp
+public class Bootstrapper : MonoBehaviour
+{
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Initialize()
+    {
+        // 1. 다른 서비스에서 사용하는 기반 서비스 우선 초기화
+        Facade.Logger = new DefaultLogger();
+        Facade.Json = new DefaultJsonSerializer();
+        Facade.Coroutine = CreateCoroutineRunner();
+
+        // 2. 기반 서비스에 의존하는 서비스 초기화
+        Facade.Data = new DefaultDataStore();
+        Facade.DB = new DefaultDatabase();
+        Facade.Time = new DefaultTimeProvider();
+
+        // 3. Unity 씬/오브젝트 관련 서비스 초기화
+        Facade.Pool = new DefaultObjectPool();
+        Facade.Sound = new DefaultSoundManager();
+        Facade.Scene = new DefaultSceneChanger();
+        Facade.Transition = new DefaultSceneTransition();
+    }
+}
+```
+
+**초기화 순서 규칙:**
+1. Logger, Json, Coroutine — 다른 서비스가 의존하는 기반 서비스
+2. Data, DB, Time — 기반 서비스만 의존하는 서비스
+3. Pool, Sound, Scene, Transition — Unity 오브젝트와 상호작용하는 서비스
+
+---
 
 ## Facade 클래스
 
@@ -56,8 +100,21 @@ public static class Facade
 }
 ```
 
-- 각 프로퍼티에 **기본 구현체**를 할당하여 즉시 사용 가능하게 한다.
+- Bootstrapper가 게임 시작 시 **기본 구현체**를 할당한다.
 - 테스트나 특수 상황에서 구현체를 교체(Mock 주입 등)할 수 있다.
+
+---
+
+## 비동기 처리 기준
+
+프로젝트 내 비동기 처리 방식은 다음 기준으로 통일한다.
+
+| 방식 | 사용 기준 |
+|------|----------|
+| **UniTask** | 비동기 흐름의 **기본 방식**. 씬 전환, 페이지/팝업 전환, 페이드 연출 등 |
+| **Coroutine** | UniTask를 사용할 수 없는 레거시 연동, 또는 MonoBehaviour 생명주기와 밀접한 반복 처리 |
+
+`ICoroutineRunner`는 UniTask를 사용할 수 없는 상황과 간단한 지연 호출(`DoSecondsAfter`, `DoFramesAfter`)을 위해 유지한다.
 
 ---
 
@@ -80,7 +137,7 @@ public interface IDataStore
 
 ### ISceneChanger
 
-Unity Scene 변경.
+Unity Scene 변경. 내부적으로 `ISceneTransition`을 활용하여 전환 연출을 자동으로 수행한다.
 
 ```csharp
 public interface ISceneChanger
@@ -88,6 +145,35 @@ public interface ISceneChanger
     UniTask ChangeSceneAsync(string sceneName);
     string CurrentScene { get; }
 }
+```
+
+### ISceneTransition
+
+화면 전환 연출만 담당. `ISceneChanger`가 내부에서 호출하거나, 페이지 전환 등에서 독립적으로도 사용 가능.
+
+```csharp
+public interface ISceneTransition
+{
+    UniTask TransitionInAsync();
+    UniTask TransitionOutAsync();
+}
+```
+
+**SceneChanger ↔ SceneTransition 관계:**
+
+```csharp
+// ISceneChanger 구현체 내부 흐름
+public async UniTask ChangeSceneAsync(string sceneName)
+{
+    await Facade.Transition.TransitionInAsync();   // 화면 가림
+    await SceneManager.LoadSceneAsync(sceneName);  // 씬 로드
+    await Facade.Transition.TransitionOutAsync();  // 화면 열림
+}
+
+// ISceneTransition 단독 사용 (페이지 전환 등)
+await Facade.Transition.TransitionInAsync();
+await pageChanger.ChangePageAsync("InventoryPage");
+await Facade.Transition.TransitionOutAsync();
 ```
 
 ### IObjectPool
@@ -168,18 +254,6 @@ public interface ITimeProvider
 }
 ```
 
-### ISceneTransition
-
-페이지나 씬 전환 시 화면 전환 연출.
-
-```csharp
-public interface ISceneTransition
-{
-    UniTask TransitionInAsync();
-    UniTask TransitionOutAsync();
-}
-```
-
 ### IJsonSerializer
 
 JSON 직렬화/역직렬화. DataStore 등 내부에서도 활용.
@@ -196,6 +270,8 @@ public interface IJsonSerializer
 
 빌드 전 정적으로 정의된 데이터를 제네릭 타입으로 조회하는 읽기 전용 데이터베이스. 런타임 저장/로드를 담당하는 IDataStore와 달리, 기획 데이터(몬스터 스탯, 아이템 정보 등)를 조회하는 용도.
 
+데이터 소스는 **ScriptableObject** 기반으로 구현한다. 각 데이터 타입마다 ScriptableObject 에셋을 만들고, IDatabase 구현체가 타입별로 로드하여 관리한다.
+
 ```csharp
 public interface IDatabase
 {
@@ -204,6 +280,15 @@ public interface IDatabase
     bool TryGet<T>(string id, out T result) where T : class;
 }
 ```
+
+**IDataStore vs IDatabase:**
+
+| | IDataStore | IDatabase |
+|--|-----------|-----------|
+| 용도 | 런타임 저장/로드 (유저 데이터) | 정적 기획 데이터 조회 |
+| 읽기/쓰기 | 읽기 + 쓰기 | 읽기 전용 |
+| 데이터 소스 | PlayerPrefs / JSON 파일 | ScriptableObject |
+| 예시 | 플레이어 진행 상황, 설정값 | 몬스터 스탯, 아이템 정보 |
 
 ### ICoroutineRunner
 
@@ -224,9 +309,11 @@ public interface ICoroutineRunner
 
 ## 독립 시스템 설계
 
+PageChanger, PopupManager, Notifier, FSM은 Facade에 포함하지 않는다. 이들은 **상태를 가지는 복합 시스템**으로, 정적 프로퍼티 하나로 노출하기보다 사용처에서 직접 인스턴스를 참조하는 것이 적합하다. (e.g., 특정 Canvas에 종속된 PageChanger, 씬마다 다른 Notifier 등)
+
 ### PageChanger
 
-Page(UI 단위 화면) 전환 시스템. Facade에 포함하지 않고 별도로 관리한다.
+Page(UI 단위 화면) 전환 시스템.
 
 ```csharp
 public interface IPage
@@ -270,7 +357,6 @@ public interface IPopupManager
 **사용 예시:**
 
 ```csharp
-// 팝업을 열고 닫힐 때까지 대기, 결과값 수신
 var result = await popupManager.ShowAsync<ConfirmResult>("ConfirmPopup", new ConfirmParam
 {
     Title = "정말 삭제하시겠습니까?"
@@ -284,35 +370,66 @@ if (result.IsConfirmed)
 
 ### Notifier
 
-이벤트 버스 역할. 시스템 간 느슨한 결합을 위한 발행/구독 패턴.
+이벤트 버스 역할. 시스템 간 느슨한 결합을 위한 발행/구독 패턴. Subscribe는 `IDisposable`을 반환하여 구독 해제 누락을 방지한다.
 
 ```csharp
 public interface INotifier
 {
-    void Subscribe<T>(Action<T> handler);
-    void Unsubscribe<T>(Action<T> handler);
+    IDisposable Subscribe<T>(Action<T> handler);
     void Publish<T>(T eventData);
+}
+```
+
+**사용 예시:**
+
+```csharp
+// 구독 - IDisposable로 수명 관리
+private IDisposable _subscription;
+
+private void OnEnable()
+{
+    _subscription = notifier.Subscribe<MonsterDefeatedEvent>(OnMonsterDefeated);
+}
+
+private void OnDisable()
+{
+    _subscription?.Dispose();
 }
 ```
 
 ### FSM (Finite State Machine)
 
-상태 기계 프레임워크. 게임 흐름 제어, AI 등에 범용적으로 활용.
+상태 기계 프레임워크. 제네릭으로 Owner 타입을 받아 상태에서 소유자에 접근 가능.
 
 ```csharp
-public interface IState
+public interface IState<T>
 {
-    void Enter();
-    void Update();
-    void Exit();
+    void Enter(T owner);
+    void Update(T owner);
+    void Exit(T owner);
 }
 
-public interface IStateMachine
+public interface IStateMachine<T>
 {
-    void ChangeState(IState newState);
+    void ChangeState(IState<T> newState);
     void Update();
-    IState CurrentState { get; }
+    IState<T> CurrentState { get; }
 }
+```
+
+**사용 예시:**
+
+```csharp
+// 몬스터 AI에서의 활용
+public class IdleState : IState<Monster>
+{
+    public void Enter(Monster owner) { /* 대기 애니메이션 */ }
+    public void Update(Monster owner) { /* 적 감지 시 전투 상태로 전환 */ }
+    public void Exit(Monster owner) { }
+}
+
+var fsm = new StateMachine<Monster>(this);
+fsm.ChangeState(new IdleState());
 ```
 
 ---
@@ -323,7 +440,8 @@ public interface IStateMachine
 Game Scripts (Scripts/)
     └──→ Base Module (Modules/Base/)
              ├── Facade (정적 접근점)
-             │   └── Interfaces (계약 정의)
+             │   ├── Interfaces (계약 정의)
+             │   └── Bootstrapper (초기화)
              ├── PageChanger (페이지 전환)
              ├── PopupManager (팝업 관리)
              ├── Notifier (이벤트 버스)
@@ -333,7 +451,7 @@ Game Scripts (Scripts/)
 ```
 
 - **Game Scripts**는 `Facade`를 통해서 베이스 서비스에 접근한다.
-- PageChanger, PopupManager, Notifier, FSM은 직접 참조하여 사용한다.
+- PageChanger, PopupManager, Notifier, FSM은 사용처에서 **직접 인스턴스를 참조**하여 사용한다.
 - 인터페이스와 구현체가 분리되어 있어 구현체 교체가 자유롭다.
 - Base 모듈은 게임 로직(Scripts)에 의존하지 않는다.
 
@@ -379,13 +497,6 @@ public class MonsterType : EnumLike<MonsterType>
     public static readonly MonsterType Snake = new(2, "Snake");
 
     private MonsterType(int value, string name) : base(value, name) { }
-}
-
-// 외부에서 확장
-public class BossMonsterType : MonsterType
-{
-    public static readonly MonsterType Dragon = new BossMonsterType(100, "Dragon");
-    // ...
 }
 ```
 
