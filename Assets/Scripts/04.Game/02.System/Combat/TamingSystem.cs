@@ -22,7 +22,7 @@ public class TamingSystem : IOnUnitDeathListener, IDisposable
     {
         if (killer.Team != UnitTeam.Player) return;
         if (deadUnit is not Monster monster) return;
-        if (Random.value > monster.Data.tamingChance) return;
+        if (UnityEngine.Random.value > monster.Data.tamingChance) return;
 
         var member = spawner.SpawnSquadMember(monster.Data, monster.Transform.position);
         squad.AddMember(member);
