@@ -57,6 +57,22 @@ void TakeDamage(int amount) { }
 ### 중괄호
 
 - 중괄호 추가 규칙은 **자율**로 하되, 추후 가독성이 좋은 규칙을 논의할 여지를 남긴다.
+- `if`, `for`, `foreach`, `while` 등의 본문이 **한 줄**이면 중괄호를 생략할 수 있다.
+
+```csharp
+// 허용 - 한 줄 본문은 중괄호 생략 가능
+if (other is null)
+    return false;
+
+if (!isValid)
+    continue;
+
+// 허용 - 중괄호를 넣어도 무방
+if (other is null)
+{
+    return false;
+}
+```
 
 ## 명명 규칙
 

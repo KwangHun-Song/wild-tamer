@@ -10,7 +10,7 @@
 Assets/
 ├── Docs/                # 문서 (컨벤션, 마일스톤, 시스템별 문서)
 ├── Plugins/             # 서드파티 라이브러리 (DOTween, UniTask 등)
-├── Modules/             # asmdef 기반 독립 모듈 (Base 시스템)
+├── Modules/             # asmdef 기반 독립 모듈 (Base, FiniteStateMachine 등)
 ├── Scripts/             # 게임 로직 스크립트
 ├── Prefabs/             # 프리팹
 ├── Graphic/             # 그래픽 리소스
@@ -36,6 +36,8 @@ Assets/
 - Phase 1에서 구현하는 **베이스 시스템**들이 위치한다.
 - 각 모듈은 **asmdef로 의존성을 분리**하여 독립적으로 관리한다.
 - 데이터 관리, UI 프레임워크, 사운드, 오브젝트 풀링, 이벤트 시스템 등이 해당한다.
+- **Base**: 핵심 서비스(Facade), Notifier, PageChanger, PopupManager, Utility 등
+- **FiniteStateMachine**: 상태 기계 프레임워크 (Base.Runtime에 의존)
 
 #### 모듈 폴더 구조
 

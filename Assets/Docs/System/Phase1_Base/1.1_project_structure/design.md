@@ -2,7 +2,7 @@
 
 ## Base 모듈 개요
 
-Base 모듈은 프로젝트의 기반 기능을 제공한다. 핵심 서비스는 **Facade 패턴**으로 정적 접근하고, 독립적인 시스템(PageChanger, PopupManager, Notifier, FSM)은 별도 폴더로 분리하여 관리한다.
+Base 모듈은 프로젝트의 기반 기능을 제공한다. 핵심 서비스는 **Facade 패턴**으로 정적 접근하고, 독립적인 시스템(PageChanger, PopupManager, Notifier)은 Base 내 별도 폴더로 분리하여 관리한다. FSM(FiniteStateMachine)은 **별도 모듈**로 분리되어 Base.Runtime에 의존한다.
 
 ## 폴더 구조
 
@@ -22,7 +22,8 @@ Modules/
         │   │   │   ├── ISceneTransition.cs
         │   │   │   ├── IJsonSerializer.cs
         │   │   │   ├── IDatabase.cs
-        │   │   │   └── ICoroutineRunner.cs
+        │   │   │   ├── ICoroutineRunner.cs
+        │   │   │   └── IInstanceLoader.cs
         │   │   ├── Facade.cs
         │   │   └── Bootstrapper.cs
         │   ├── PageChanger/
@@ -32,10 +33,8 @@ Modules/
         │   │   ├── IPopup.cs
         │   │   └── IPopupManager.cs
         │   ├── Notifier/
-        │   │   └── INotifier.cs
-        │   ├── FSM/
-        │   │   ├── IState.cs
-        │   │   └── IStateMachine.cs
+        │   │   ├── IListener.cs
+        │   │   └── Notifier.cs
         │   ├── Utility/
         │   │   └── EnumLike.cs
         │   └── Extensions/
@@ -71,6 +70,7 @@ public class Bootstrapper : MonoBehaviour
         Facade.Sound = new DefaultSoundManager();
         Facade.Scene = new DefaultSceneChanger();
         Facade.Transition = new DefaultSceneTransition();
+        Facade.Loader = new DefaultInstanceLoader();
     }
 }
 ```
@@ -97,6 +97,7 @@ public static class Facade
     public static IJsonSerializer Json { get; set; }
     public static IDatabase DB { get; set; }
     public static ICoroutineRunner Coroutine { get; set; }
+    public static IInstanceLoader Loader { get; set; }
 }
 ```
 
@@ -290,6 +291,18 @@ public interface IDatabase
 | 데이터 소스 | PlayerPrefs / JSON 파일 | ScriptableObject |
 | 예시 | 플레이어 진행 상황, 설정값 | 몬스터 스탯, 아이템 정보 |
 
+### IInstanceLoader
+
+Unity 인스턴스(GameObject) 로드/언로드. 구현체에 따라 Instantiate, 오브젝트 풀링, 활성화/비활성화 등 다양한 방식으로 교체 가능하다. 기본 구현은 Instantiate/Destroy 방식.
+
+```csharp
+public interface IInstanceLoader
+{
+    GameObject Load(GameObject prefab, Transform parent = null);
+    void Unload(GameObject instance);
+}
+```
+
 ### ICoroutineRunner
 
 MonoBehaviour를 상속하지 않는 클래스에서 코루틴 실행 및 지연 호출.
@@ -370,66 +383,135 @@ if (result.IsConfirmed)
 
 ### Notifier
 
-이벤트 버스 역할. 시스템 간 느슨한 결합을 위한 발행/구독 패턴. Subscribe는 `IDisposable`을 반환하여 구독 해제 누락을 방지한다.
+이벤트 버스 역할. 시스템 간 느슨한 결합을 위한 발행/구독 패턴. `IListener` 마커 인터페이스를 상속한 이벤트 인터페이스를 정의하고, 해당 인터페이스를 구현한 객체를 Subscribe/Unsubscribe하여 사용한다.
 
 ```csharp
-public interface INotifier
+public interface IListener { }
+
+public class Notifier
 {
-    IDisposable Subscribe<T>(Action<T> handler);
-    void Publish<T>(T eventData);
+    public void Subscribe<T>(T listener) where T : IListener;
+    public void Unsubscribe<T>(T listener) where T : IListener;
+    public void Notify<T>(Action<T> action) where T : IListener;
 }
 ```
 
 **사용 예시:**
 
 ```csharp
-// 구독 - IDisposable로 수명 관리
-private IDisposable _subscription;
-
-private void OnEnable()
+// 이벤트 인터페이스 정의
+public interface IMonsterDefeatedListener : IListener
 {
-    _subscription = notifier.Subscribe<MonsterDefeatedEvent>(OnMonsterDefeated);
+    void OnMonsterDefeated(Monster monster);
 }
 
-private void OnDisable()
+// 구독자 구현
+public class QuestTracker : MonoBehaviour, IMonsterDefeatedListener
 {
-    _subscription?.Dispose();
+    private Notifier _notifier;
+
+    private void OnEnable()
+    {
+        _notifier.Subscribe(this);
+    }
+
+    private void OnDisable()
+    {
+        _notifier.Unsubscribe(this);
+    }
+
+    public void OnMonsterDefeated(Monster monster)
+    {
+        // 퀘스트 진행 처리
+    }
 }
+
+// 발행
+_notifier.Notify<IMonsterDefeatedListener>(l => l.OnMonsterDefeated(monster));
 ```
 
-### FSM (Finite State Machine)
+---
 
-상태 기계 프레임워크. 제네릭으로 Owner 타입을 받아 상태에서 소유자에 접근 가능.
+## FiniteStateMachine 모듈 (별도 모듈)
+
+FSM은 **별도 모듈** (`Modules/FiniteStateMachine/`)로 분리되어 있으며, `Base.Runtime`에 의존한다. 제네릭으로 Entity 타입과 Enum 기반 Trigger를 받아, 조건/커맨드 기반 상태 전이를 지원한다. 내부적으로 `Base.Notifier`를 사용하여 상태 변경 이벤트를 발행한다.
+
+```
+Modules/
+└── FiniteStateMachine/
+    └── Runtime/
+        ├── StateMachine.cs
+        ├── State.cs
+        ├── StateTransition.cs
+        ├── IStateChangeEvent.cs
+        └── FiniteStateMachine.Runtime.asmdef  (Base.Runtime 참조)
+```
 
 ```csharp
-public interface IState<T>
+public abstract class State<TEntity, TEnumTrigger> where TEnumTrigger : Enum
 {
-    void Enter(T owner);
-    void Update(T owner);
-    void Exit(T owner);
+    public TEntity Owner { get; }
+    public StateMachine<TEntity, TEnumTrigger> StateMachine { get; }
+    public virtual void OnEnter() { }
+    public virtual void OnExit() { }
+    public virtual bool OnReceiveCommand(int inCommand, object inData) { return false; }
 }
 
-public interface IStateMachine<T>
+public abstract class StateMachine<TEntity, TEnumTrigger> where TEnumTrigger : Enum
 {
-    void ChangeState(IState<T> newState);
-    void Update();
-    IState<T> CurrentState { get; }
+    public TEntity Owner { get; }
+    public Notifier Notifier { get; }
+    public State<TEntity, TEnumTrigger> CurrentState { get; }
+    protected abstract State<TEntity, TEnumTrigger> InitialState { get; }
+    protected abstract State<TEntity, TEnumTrigger>[] States { get; }
+    protected abstract StateTransition<TEntity, TEnumTrigger>[] Transitions { get; }
+    public void SetUp();
+    public void Update();
+    public bool TryTransition();
+    public bool ExecuteCommand(TEnumTrigger inTrigger);
+}
+
+public class StateTransition<TEntity, TEnumTrigger> where TEnumTrigger : Enum
+{
+    public State<TEntity, TEnumTrigger> FromState { get; }
+    public State<TEntity, TEnumTrigger> ToState { get; }
+    public TEnumTrigger TransitionTrigger { get; }
+    public Func<State<TEntity, TEnumTrigger>, bool> TransitionCondition { get; }
+    public bool IsTransferable { get; }
+}
+
+public interface IStateChangeEvent<TEntity, TEnumTrigger> : IListener where TEnumTrigger : Enum
+{
+    void OnStateChange(StateMachine<TEntity, TEnumTrigger> stateMachine,
+        State<TEntity, TEnumTrigger> fromState, State<TEntity, TEnumTrigger> toState);
 }
 ```
 
 **사용 예시:**
 
 ```csharp
-// 몬스터 AI에서의 활용
-public class IdleState : IState<Monster>
+public enum MonsterTrigger { Detect, Lose, Attack }
+
+public class IdleState : State<Monster, MonsterTrigger>
 {
-    public void Enter(Monster owner) { /* 대기 애니메이션 */ }
-    public void Update(Monster owner) { /* 적 감지 시 전투 상태로 전환 */ }
-    public void Exit(Monster owner) { }
+    public override void OnEnter() { /* 대기 애니메이션 */ }
 }
 
-var fsm = new StateMachine<Monster>(this);
-fsm.ChangeState(new IdleState());
+public class MonsterFSM : StateMachine<Monster, MonsterTrigger>
+{
+    private readonly IdleState _idle = new();
+    private readonly ChaseState _chase = new();
+
+    protected override State<Monster, MonsterTrigger> InitialState => _idle;
+    protected override State<Monster, MonsterTrigger>[] States => new[] { _idle, _chase };
+    protected override StateTransition<Monster, MonsterTrigger>[] Transitions => new[]
+    {
+        StateTransition<Monster, MonsterTrigger>.Generate(_idle, _chase, MonsterTrigger.Detect),
+        StateTransition<Monster, MonsterTrigger>.Generate(_chase, _idle, MonsterTrigger.Lose),
+    };
+
+    public MonsterFSM(Monster owner) : base(owner) { }
+}
 ```
 
 ---
@@ -438,20 +520,23 @@ fsm.ChangeState(new IdleState());
 
 ```
 Game Scripts (Scripts/)
-    └──→ Base Module (Modules/Base/)
-             ├── Facade (정적 접근점)
-             │   ├── Interfaces (계약 정의)
-             │   └── Bootstrapper (초기화)
-             ├── PageChanger (페이지 전환)
-             ├── PopupManager (팝업 관리)
-             ├── Notifier (이벤트 버스)
-             ├── FSM (상태 기계)
-             ├── Utility (공통 유틸리티)
-             └── Extensions (확장 함수)
+    ├──→ Base Module (Modules/Base/)
+    │        ├── Facade (정적 접근점)
+    │        │   ├── Interfaces (계약 정의)
+    │        │   └── Bootstrapper (초기화)
+    │        ├── PageChanger (페이지 전환)
+    │        ├── PopupManager (팝업 관리)
+    │        ├── Notifier (이벤트 버스)
+    │        ├── Utility (공통 유틸리티)
+    │        └── Extensions (확장 함수)
+    │
+    └──→ FiniteStateMachine Module (Modules/FiniteStateMachine/)
+             └──→ Base.Runtime 의존
 ```
 
 - **Game Scripts**는 `Facade`를 통해서 베이스 서비스에 접근한다.
-- PageChanger, PopupManager, Notifier, FSM은 사용처에서 **직접 인스턴스를 참조**하여 사용한다.
+- PageChanger, PopupManager, Notifier는 사용처에서 **직접 인스턴스를 참조**하여 사용한다.
+- **FiniteStateMachine**은 별도 모듈로, Base.Runtime(Notifier, CollectionExtensions 등)에 의존한다.
 - 인터페이스와 구현체가 분리되어 있어 구현체 교체가 자유롭다.
 - Base 모듈은 게임 로직(Scripts)에 의존하지 않는다.
 
