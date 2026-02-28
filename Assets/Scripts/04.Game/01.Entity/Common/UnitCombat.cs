@@ -20,5 +20,9 @@ public class UnitCombat
 
     public void ResetCooldown() => elapsed = 0f;
 
-    public void Tick(float deltaTime) => elapsed += deltaTime;
+    public void Tick(float deltaTime)
+    {
+        if (elapsed < cooldown)
+            elapsed += deltaTime;
+    }
 }

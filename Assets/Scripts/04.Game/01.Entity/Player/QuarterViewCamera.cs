@@ -8,6 +8,7 @@ public class QuarterViewCamera : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (target == null) return;
         var desired = target.position + offset;
         transform.position = Vector3.Lerp(transform.position, desired, smoothSpeed * Time.deltaTime);
     }

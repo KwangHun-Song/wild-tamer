@@ -18,7 +18,7 @@ public class UnitHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        if (!IsAlive) return;
+        if (!IsAlive || damage <= 0) return;
 
         CurrentHp = Mathf.Max(0, CurrentHp - damage);
         OnDamaged?.Invoke(damage);

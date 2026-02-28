@@ -44,6 +44,7 @@ public class Squad
     {
         foreach (SquadMember member in members)
         {
+            member.Combat.Tick(deltaTime);
             Vector2 direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
             member.Move(direction);
         }

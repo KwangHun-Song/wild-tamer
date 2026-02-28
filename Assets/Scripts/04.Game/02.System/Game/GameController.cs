@@ -110,6 +110,19 @@ public class GameController
             var member = entitySpawner.SpawnSquadMember(memberSnap.Data, pos);
             Squad.AddMember(member);
         }
+
+        // 몬스터 복원
+        foreach (var monsterSnap in snapshot.Monsters)
+            entitySpawner.SpawnMonster(monsterSnap.Data, monsterSnap.Position);
+    }
+
+    /// <summary>GameLoop.OnDestroy()에서 호출. 이벤트 구독을 해제하여 메모리 누수를 방지한다.</summary>
+    public void Cleanup()
+    {
+        Squad.OnMemberAdded   -= combatSystem.RegisterUnit;
+        Squad.OnMemberRemoved -= combatSystem.UnregisterUnit;
+        entitySpawner.OnMonsterSpawned   -= combatSystem.RegisterUnit;
+        entitySpawner.OnMonsterDespawned -= combatSystem.UnregisterUnit;
     }
 
     public void SetPhase(GamePhase phase) => Phase = phase;

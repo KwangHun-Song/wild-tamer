@@ -51,7 +51,9 @@ public class EntitySpawner
     /// <summary>GameController.Update()에서 호출. AI 업데이트를 각 몬스터에 위임한다.</summary>
     public void Update(float deltaTime)
     {
-        foreach (var monster in activeMonsters)
+        // 순회 중 DespawnMonster 호출에 의한 컬렉션 변경을 방지하기 위해 스냅샷 복사
+        var snapshot = new List<Monster>(activeMonsters);
+        foreach (var monster in snapshot)
         {
             monster.Combat.Tick(deltaTime);
             monster.Update();

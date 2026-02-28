@@ -11,8 +11,8 @@ public class UnitMovement : MonoBehaviour
 
     public void MoveTo(Vector2 target)
     {
-        var direction = ((Vector2)transform.position - target).normalized;
-        Move(-direction);
+        var direction = (target - (Vector2)transform.position).normalized;
+        Move(direction);
     }
 
     public void Stop()

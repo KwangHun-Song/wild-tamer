@@ -71,14 +71,15 @@ public class Minimap : MonoBehaviour
         var size = minimapRect.rect.size;
         var nx = Mathf.InverseLerp(worldMin.x, worldMax.x, worldPos.x);
         var ny = Mathf.InverseLerp(worldMin.y, worldMax.y, worldPos.y);
-        return new Vector2(nx * size.x, ny * size.y);
+        var pivot = minimapRect.pivot;
+        return new Vector2((nx - pivot.x) * size.x, (ny - pivot.y) * size.y);
     }
 
     private void AdjustIconPool(List<RectTransform> pool, int needed, RectTransform prefab)
     {
         while (pool.Count < needed)
         {
-            if (prefab == null) { pool.Add(null); continue; }
+            if (prefab == null) return;
             pool.Add(Instantiate(prefab, minimapRect));
         }
         for (var i = needed; i < pool.Count; i++)

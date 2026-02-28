@@ -19,4 +19,6 @@ public class GameLoop : MonoBehaviour
     }
 
     private void Update() => gameController?.Update();
+
+    private void OnDestroy() => gameController?.Cleanup();
 }

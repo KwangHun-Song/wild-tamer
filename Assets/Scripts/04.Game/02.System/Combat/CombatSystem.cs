@@ -50,7 +50,9 @@ public class CombatSystem
 
     private void ProcessCombat()
     {
-        foreach (var unit in registeredUnits)
+        // 순회 중 RegisterUnit/UnregisterUnit 호출(테이밍 등)에 의한 컬렉션 변경을 방지하기 위해 스냅샷 복사
+        var snapshot = registeredUnits.ToArray();
+        foreach (var unit in snapshot)
         {
             if (!unit.IsAlive || !unit.Combat.CanAttack) continue;
 

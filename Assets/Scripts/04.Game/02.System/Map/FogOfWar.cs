@@ -17,6 +17,7 @@ public class FogOfWar : MonoBehaviour
 
     private FogState[,] fogGrid;
     private Texture2D fogTexture;
+    private Color[] colorBuffer;
     private bool isDirty;
 
     // 월드 원점 (그리드 좌하단 기준)
@@ -40,6 +41,7 @@ public class FogOfWar : MonoBehaviour
     {
         fogTexture = new Texture2D(gridWidth, gridHeight, TextureFormat.RGBA32, false);
         fogTexture.filterMode = FilterMode.Bilinear;
+        colorBuffer = new Color[gridWidth * gridHeight];
         UpdateTexture();
         if (fogRenderer != null)
             fogRenderer.sprite = Sprite.Create(fogTexture, new Rect(0, 0, gridWidth, gridHeight), Vector2.zero, 1f);
@@ -102,6 +104,11 @@ public class FogOfWar : MonoBehaviour
     public void RestoreFogGrid(FogState[,] grid)
     {
         if (grid == null) return;
+        if (grid.GetLength(0) != gridWidth || grid.GetLength(1) != gridHeight)
+        {
+            Debug.LogWarning("[FogOfWar] RestoreFogGrid: 크기 불일치로 복원을 건너뜁니다.");
+            return;
+        }
         System.Array.Copy(grid, fogGrid, fogGrid.Length);
         isDirty = true;
         UpdateTexture();
@@ -109,20 +116,20 @@ public class FogOfWar : MonoBehaviour
 
     private void UpdateTexture()
     {
-        for (var x = 0; x < gridWidth; x++)
+        for (var y = 0; y < gridHeight; y++)
         {
-            for (var y = 0; y < gridHeight; y++)
+            for (var x = 0; x < gridWidth; x++)
             {
-                var color = fogGrid[x, y] switch
+                colorBuffer[y * gridWidth + x] = fogGrid[x, y] switch
                 {
                     FogState.Hidden   => new Color(0f, 0f, 0f, 1f),
                     FogState.Explored => new Color(0f, 0f, 0f, 0.5f),
                     FogState.Visible  => new Color(0f, 0f, 0f, 0f),
                     _                 => Color.black
                 };
-                fogTexture.SetPixel(x, y, color);
             }
         }
+        fogTexture.SetPixels(colorBuffer);
         fogTexture.Apply();
         isDirty = false;
     }

@@ -17,11 +17,14 @@ public class FlockBehavior
         ObstacleGrid obstacleGrid)
     {
         List<SquadMember> others = new List<SquadMember>();
+        var selfPos2D = (Vector2)self.Transform.position;
         foreach (SquadMember neighbor in neighbors)
         {
             if (neighbor != self)
             {
-                others.Add(neighbor);
+                float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
+                if (dist <= NeighborRadius)
+                    others.Add(neighbor);
             }
         }
 
