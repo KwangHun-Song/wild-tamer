@@ -31,16 +31,23 @@
 | `Facade/Interfaces/IDatabase.cs` | 정적 데이터 조회 계약 |
 | `Facade/Interfaces/ICoroutineRunner.cs` | 코루틴 실행/지연 호출 계약 |
 
-#### 독립 시스템 인터페이스
+#### 독립 시스템
 
 | 파일 | 책임 |
 |------|------|
 | `PageChanger/IPage.cs` | 페이지 계약 |
 | `PageChanger/IPageChanger.cs` | 페이지 전환 계약 |
+| `PageChanger/Page.cs` | Page MonoBehaviour 추상 클래스 |
+| `PageChanger/PageChanger.cs` | Resources 기반 페이지 전환 구현 (GoBack 히스토리 포함) |
 | `PopupManager/IPopup.cs` | 팝업 계약 |
 | `PopupManager/IPopupManager.cs` | 팝업 관리 계약 |
+| `PopupManager/Popup.cs` | Popup MonoBehaviour 추상 클래스 (Canvas sorting, CompletionSource) |
+| `PopupManager/PopupManager.cs` | 스택 기반 팝업 관리 구현 |
+| `EscapeHandler/IEscapeListener.cs` | Esc 이벤트 리스너 계약 (IListener 상속) |
+| `EscapeHandler/IEscapeHandler.cs` | Esc 핸들러 계약 |
+| `EscapeHandler/EscapeHandler.cs` | 스택 기반 Esc 이벤트 처리 구현 |
 
-> **참고:** Notifier, FSM은 외부 모듈을 가져올 예정이므로 이 구현 계획에서 제외.
+> **참고:** Notifier, FSM은 외부 모듈을 가져왔으며 이 구현 계획과 별도로 관리.
 
 #### Facade 기본 구현체
 
@@ -64,6 +71,7 @@
 |------|------|
 | `Utility/EnumLike.cs` | Enum 대체 확장 가능 클래스 |
 | `Utility/Singleton.cs` | MonoBehaviour 싱글톤 베이스 |
+| `Extensions/CollectionExtensions.cs` | IEnumerable ForEach 확장 메서드 |
 
 #### 프로젝트 설정
 
@@ -76,60 +84,55 @@
 
 ```
 Bootstrapper → Facade → Interfaces (전부)
-독립 시스템 (PageChanger, PopupManager) → 의존 없음 (자체 인터페이스만)
-Notifier, FSM → 외부 모듈 가져올 예정 (이 계획에서 제외)
+독립 시스템 (PageChanger, PopupManager, EscapeHandler) → Facade (Loader, Logger 사용)
+FiniteStateMachine 모듈 → Base.Runtime (Notifier, IListener, CollectionExtensions)
 Utility, Extensions → 의존 없음
 ```
 
 ## 3. 구현 순서
 
-### Step 1: 프로젝트 폴더 및 asmdef 생성
+### Step 1: 프로젝트 폴더 및 asmdef 생성 ✅
 
-- [ ] Base 모듈 폴더 구조 생성 (`Modules/Base/Runtime/Scripts/...`)
-- [ ] `Base.Runtime.asmdef` 생성 (UniTask 참조 포함)
-- [ ] `Base.Tests.asmdef` 생성
-- [ ] `Prefabs/`, `Plugins/` 폴더 생성
-- [ ] DOTween을 `Plugins/` 폴더로 이동
+- [x] Base 모듈 폴더 구조 생성 (`Modules/Base/Runtime/Scripts/...`)
+- [x] `Base.Runtime.asmdef` 생성 (UniTask 참조 포함)
+- [x] `Base.Tests.asmdef` 생성
+- [x] `Prefabs/`, `Plugins/` 폴더 생성
+- [x] DOTween을 `Plugins/` 폴더로 이동
 
-### Step 2: Facade 인터페이스 및 Enum 정의 [병렬 가능]
+### Step 2: Facade 인터페이스 및 Enum 정의 ✅
 
-모든 항목은 Step 1 완료 후 진행. 각 항목은 독립적이므로 병렬 실행 가능.
+- [x] **2-A: Facade 인터페이스 (그룹 1)** — ILogger (+ LogLevel, DebugColor enum), IJsonSerializer, ICoroutineRunner, ITimeProvider
+- [x] **2-B: Facade 인터페이스 (그룹 2)** — IDataStore, IDatabase, IObjectPool, ISoundManager
+- [x] **2-C: Facade 인터페이스 (그룹 3)** — ISceneChanger, ISceneTransition, IInstanceLoader
+- [x] **2-D: 독립 시스템 인터페이스** — IPage, IPageChanger, IPopup, IPopupManager, IEscapeListener, IEscapeHandler
 
-- [ ] **2-A: Facade 인터페이스 (그룹 1)** — ILogger (+ LogLevel, DebugColor enum), IJsonSerializer, ICoroutineRunner, ITimeProvider
-- [ ] **2-B: Facade 인터페이스 (그룹 2)** — IDataStore, IDatabase, IObjectPool, ISoundManager
-- [ ] **2-C: Facade 인터페이스 (그룹 3)** — ISceneChanger, ISceneTransition
-- [ ] **2-D: 독립 시스템 인터페이스** — IPage, IPageChanger, IPopup, IPopupManager
+### Step 3: Facade 클래스 및 Utility ✅
 
-### Step 3: Facade 클래스 및 Utility [병렬 가능]
+- [x] **3-A: Facade + Bootstrapper** — Facade 정적 클래스 (기본 구현체 초기값 포함), Bootstrapper 초기화 (MonoBehaviour 서비스만)
+- [x] **3-B: Utility** — EnumLike\<T\>, Singleton\<T\>, CollectionExtensions
 
-모든 항목은 Step 2 완료 후 진행.
+### Step 4: Facade 기본 구현체 ✅
 
-- [ ] **3-A: Facade + Bootstrapper** — Facade 정적 클래스 (기본 구현체 초기값 포함), Bootstrapper 초기화 골격
-- [ ] **3-B: Utility** — EnumLike\<T\>, Singleton\<T\>
+- [x] **4-A: 기반 서비스 구현** — DefaultLogger, DefaultJsonSerializer, DefaultCoroutineRunner, DefaultTimeProvider
+- [x] **4-B: 데이터/인스턴스 서비스 구현** — DefaultDataStore, DefaultDatabase, DefaultObjectPool, DefaultInstanceLoader
+- [x] **4-C: 씬/사운드 서비스 구현** — DefaultSceneChanger, DefaultSceneTransition, DefaultSoundManager
 
-### Step 4: Facade 기본 구현체 [병렬 가능]
+Facade 클래스의 각 프로퍼티가 기본 구현체를 초기값으로 가지도록 하여, Bootstrapper 없이도 기본 동작이 보장된다. MonoBehaviour 기반 서비스(Coroutine, Sound, Escape)만 Bootstrapper에서 초기화.
 
-모든 항목은 Step 2 완료 후 진행. 각 구현체는 독립적이므로 병렬 실행 가능.
+### Step 5: 독립 시스템 구현 및 유닛 테스트 ✅
 
-- [ ] **4-A: 기반 서비스 구현** — DefaultLogger, DefaultJsonSerializer, DefaultCoroutineRunner, DefaultTimeProvider
-- [ ] **4-B: 데이터/인스턴스 서비스 구현** — DefaultDataStore, DefaultDatabase, DefaultObjectPool, DefaultInstanceLoader
-- [ ] **4-C: 씬/사운드 서비스 구현** — DefaultSceneChanger, DefaultSceneTransition, DefaultSoundManager
+- [x] PageChanger 구현 (Page 추상 클래스, PageChanger)
+- [x] PopupManager 구현 (Popup 추상 클래스, PopupManager)
+- [x] EscapeHandler 구현 (IEscapeListener, IEscapeHandler, EscapeHandler)
+- [x] EnumLike\<T\> 유닛 테스트 (17개)
+- [x] Notifier 유닛 테스트 (10개)
+- [x] FSM 유닛 테스트 (22개+, Trigger/Condition/Mixed 분류)
 
-Facade 클래스의 각 프로퍼티가 기본 구현체를 초기값으로 가지도록 하여, Bootstrapper 없이도 기본 동작이 보장되게 한다. 필요 시 Bootstrapper나 외부에서 구현체를 교체할 수 있다.
+### Step 6: 컴파일 검증 및 정리 ✅
 
-### Step 5: 유닛 테스트
-
-Step 4 완료 후 진행.
-
-- [ ] EnumLike\<T\> 유닛 테스트
-- [ ] Notifier 유닛 테스트
-- [ ] FSM 유닛 테스트
-
-### Step 6: 컴파일 검증 및 정리
-
-- [ ] 전체 컴파일 에러 확인
-- [ ] asmdef 참조 관계 검증
-- [ ] 불필요 파일 정리
+- [x] asmdef 참조 관계 검증 (Base.Runtime → UniTask, FSM → Base.Runtime)
+- [x] 불필요 파일 정리 (고아 .meta 파일 제거)
+- [x] 코드리뷰 v1, v2 반영 완료
 
 ## 4. 테스트 계획
 
