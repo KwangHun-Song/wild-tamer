@@ -84,6 +84,20 @@ if (other is null)
 - 클래스명과 에셋명은 일치시킨다.
 - 문서 파일에 한해 **snake_case**를 사용한다. (`csharp_coding_convention.md`)
 
+### 변수명
+
+- 변수 이름에 **언더바(`_`) 접두사를 사용하지 않는다**. 클래스 필드와 지역 변수를 구분하기 위한 접두사는 불필요하다.
+
+```csharp
+// Good
+private int health;
+private AudioSource bgmSource;
+
+// Bad
+private int _health;
+private AudioSource _bgmSource;
+```
+
 ### 메서드명
 
 - 함수 이름에 **언더바 등 접두사는 사용하지 않는다**.

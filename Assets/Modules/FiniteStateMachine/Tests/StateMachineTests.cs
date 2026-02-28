@@ -65,12 +65,12 @@ namespace FiniteStateMachine.Tests
         public AttackState Attack { get; } = new();
         public HealState Heal { get; } = new();
 
-        private readonly StateTransition<TestEntity, TestTrigger>[] _transitions;
+        private readonly StateTransition<TestEntity, TestTrigger>[] transitions;
 
         public TestStateMachine(TestEntity owner, StateTransition<TestEntity, TestTrigger>[] transitions = null)
             : base(owner)
         {
-            _transitions = transitions ?? new[]
+            transitions = transitions ?? new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(Idle, Attack, TestTrigger.Attack),
                 StateTransition<TestEntity, TestTrigger>.Generate(Attack, Idle, TestTrigger.Retreat),
@@ -85,53 +85,53 @@ namespace FiniteStateMachine.Tests
             Idle, Attack, Heal
         };
 
-        protected override StateTransition<TestEntity, TestTrigger>[] Transitions => _transitions;
+        protected override StateTransition<TestEntity, TestTrigger>[] Transitions => transitions;
     }
 
     public class StateMachineTests
     {
-        private TestEntity _entity;
-        private TestStateMachine _fsm;
+        private TestEntity entity;
+        private TestStateMachine fsm;
 
         [SetUp]
         public void SetUp()
         {
-            _entity = new TestEntity();
-            _fsm = new TestStateMachine(_entity);
-            _fsm.SetUp();
+            entity = new TestEntity();
+            fsm = new TestStateMachine(entity);
+            fsm.SetUp();
         }
 
         [Test]
         public void SetUp_SetsInitialState()
         {
-            Assert.AreEqual(_fsm.Idle, _fsm.CurrentState);
+            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
         }
 
         [Test]
         public void SetUp_CallsEnterOnInitialState()
         {
-            Assert.AreEqual(1, _fsm.Idle.EnterCount);
+            Assert.AreEqual(1, fsm.Idle.EnterCount);
         }
 
         [Test]
         public void SetUp_SetsOwnerOnStates()
         {
-            Assert.AreEqual(_entity, _fsm.Idle.Owner);
-            Assert.AreEqual(_entity, _fsm.Attack.Owner);
+            Assert.AreEqual(entity, fsm.Idle.Owner);
+            Assert.AreEqual(entity, fsm.Attack.Owner);
         }
 
         [Test]
         public void ExecuteCommand_ValidTrigger_ChangesState()
         {
-            _fsm.ExecuteCommand(TestTrigger.Attack);
+            fsm.ExecuteCommand(TestTrigger.Attack);
 
-            Assert.AreEqual(_fsm.Attack, _fsm.CurrentState);
+            Assert.AreEqual(fsm.Attack, fsm.CurrentState);
         }
 
         [Test]
         public void ExecuteCommand_ValidTrigger_ReturnsTrue()
         {
-            bool result = _fsm.ExecuteCommand(TestTrigger.Attack);
+            bool result = fsm.ExecuteCommand(TestTrigger.Attack);
 
             Assert.IsTrue(result);
         }
@@ -139,7 +139,7 @@ namespace FiniteStateMachine.Tests
         [Test]
         public void ExecuteCommand_InvalidTrigger_ReturnsFalse()
         {
-            bool result = _fsm.ExecuteCommand(TestTrigger.Retreat);
+            bool result = fsm.ExecuteCommand(TestTrigger.Retreat);
 
             Assert.IsFalse(result);
         }
@@ -147,35 +147,35 @@ namespace FiniteStateMachine.Tests
         [Test]
         public void ExecuteCommand_InvalidTrigger_DoesNotChangeState()
         {
-            _fsm.ExecuteCommand(TestTrigger.Retreat);
+            fsm.ExecuteCommand(TestTrigger.Retreat);
 
-            Assert.AreEqual(_fsm.Idle, _fsm.CurrentState);
+            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
         }
 
         [Test]
         public void ExecuteCommand_CallsExitOnPreviousState()
         {
-            _fsm.ExecuteCommand(TestTrigger.Attack);
+            fsm.ExecuteCommand(TestTrigger.Attack);
 
-            Assert.AreEqual(1, _fsm.Idle.ExitCount);
+            Assert.AreEqual(1, fsm.Idle.ExitCount);
         }
 
         [Test]
         public void ExecuteCommand_CallsEnterOnNewState()
         {
-            _fsm.ExecuteCommand(TestTrigger.Attack);
+            fsm.ExecuteCommand(TestTrigger.Attack);
 
-            Assert.AreEqual(1, _fsm.Attack.EnterCount);
+            Assert.AreEqual(1, fsm.Attack.EnterCount);
         }
 
         [Test]
         public void ExecuteCommand_SequentialTransitions_Work()
         {
-            _fsm.ExecuteCommand(TestTrigger.Attack);
-            _fsm.ExecuteCommand(TestTrigger.Retreat);
+            fsm.ExecuteCommand(TestTrigger.Attack);
+            fsm.ExecuteCommand(TestTrigger.Retreat);
 
-            Assert.AreEqual(_fsm.Idle, _fsm.CurrentState);
-            Assert.AreEqual(2, _fsm.Idle.EnterCount);
+            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
+            Assert.AreEqual(2, fsm.Idle.EnterCount);
         }
 
         #region Trigger-Only 전이 테스트
@@ -187,7 +187,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, TestTrigger.Attack),
+                    fsm.Idle, fsm.Attack, TestTrigger.Attack),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -206,7 +206,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, TestTrigger.Attack),
+                    fsm.Idle, fsm.Attack, TestTrigger.Attack),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -224,7 +224,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, TestTrigger.Attack),
+                    fsm.Idle, fsm.Attack, TestTrigger.Attack),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -247,7 +247,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, _ => true),
+                    fsm.Idle, fsm.Attack, _ => true),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -265,7 +265,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, _ => false),
+                    fsm.Idle, fsm.Attack, _ => false),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -284,7 +284,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, _ => true),
+                    fsm.Idle, fsm.Attack, _ => true),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -304,7 +304,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, _ => canTransition),
+                    fsm.Idle, fsm.Attack, _ => canTransition),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -332,7 +332,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, TestTrigger.Attack, _ => true),
+                    fsm.Idle, fsm.Attack, TestTrigger.Attack, _ => true),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -351,7 +351,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, TestTrigger.Attack, _ => true),
+                    fsm.Idle, fsm.Attack, TestTrigger.Attack, _ => true),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -370,7 +370,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, TestTrigger.Attack, _ => false),
+                    fsm.Idle, fsm.Attack, TestTrigger.Attack, _ => false),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -389,11 +389,11 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, _ => false),
+                    fsm.Idle, fsm.Attack, _ => false),
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Heal, _ => true),
+                    fsm.Idle, fsm.Heal, _ => true),
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, _ => true),
+                    fsm.Idle, fsm.Attack, _ => true),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -411,7 +411,7 @@ namespace FiniteStateMachine.Tests
             var transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    _fsm.Idle, _fsm.Attack, _ => true),
+                    fsm.Idle, fsm.Attack, _ => true),
             };
 
             var fsm = new TestStateMachine(new TestEntity(), transitions);
@@ -428,20 +428,20 @@ namespace FiniteStateMachine.Tests
         public void StateChangeEvent_NotifiesListeners()
         {
             var listener = new TestStateChangeListener();
-            _fsm.Notifier.Subscribe(listener);
+            fsm.Notifier.Subscribe(listener);
 
-            _fsm.ExecuteCommand(TestTrigger.Attack);
+            fsm.ExecuteCommand(TestTrigger.Attack);
 
             Assert.IsTrue(listener.WasCalled);
-            Assert.AreEqual(_fsm.Idle, listener.FromState);
-            Assert.AreEqual(_fsm.Attack, listener.ToState);
+            Assert.AreEqual(fsm.Idle, listener.FromState);
+            Assert.AreEqual(fsm.Attack, listener.ToState);
         }
 
         [Test]
         public void Owner_IsAccessibleFromState()
         {
-            Assert.AreEqual(_entity, _fsm.CurrentState.Owner);
-            Assert.AreEqual("TestEntity", _fsm.CurrentState.Owner.Name);
+            Assert.AreEqual(entity, fsm.CurrentState.Owner);
+            Assert.AreEqual("TestEntity", fsm.CurrentState.Owner.Name);
         }
 
         private class TestStateChangeListener : IStateChangeEvent<TestEntity, TestTrigger>

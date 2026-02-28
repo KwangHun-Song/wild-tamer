@@ -43,21 +43,21 @@ namespace Base.Tests
 
     public class NotifierTests
     {
-        private Notifier _notifier;
+        private Notifier notifier;
 
         [SetUp]
         public void SetUp()
         {
-            _notifier = new Notifier();
+            notifier = new Notifier();
         }
 
         [Test]
         public void Subscribe_And_Notify_CallsListener()
         {
             var listener = new TestListener();
-            _notifier.Subscribe(listener);
+            notifier.Subscribe(listener);
 
-            _notifier.Notify<ITestEvent>(l => l.OnEvent("hello"));
+            notifier.Notify<ITestEvent>(l => l.OnEvent("hello"));
 
             Assert.AreEqual("hello", listener.LastMessage);
             Assert.AreEqual(1, listener.CallCount);
@@ -68,7 +68,7 @@ namespace Base.Tests
         {
             Assert.DoesNotThrow(() =>
             {
-                _notifier.Notify<ITestEvent>(l => l.OnEvent("hello"));
+                notifier.Notify<ITestEvent>(l => l.OnEvent("hello"));
             });
         }
 
@@ -76,10 +76,10 @@ namespace Base.Tests
         public void Unsubscribe_StopsReceivingNotifications()
         {
             var listener = new TestListener();
-            _notifier.Subscribe(listener);
-            _notifier.Unsubscribe(listener);
+            notifier.Subscribe(listener);
+            notifier.Unsubscribe(listener);
 
-            _notifier.Notify<ITestEvent>(l => l.OnEvent("hello"));
+            notifier.Notify<ITestEvent>(l => l.OnEvent("hello"));
 
             Assert.AreEqual(0, listener.CallCount);
         }
@@ -89,10 +89,10 @@ namespace Base.Tests
         {
             var listener1 = new TestListener();
             var listener2 = new TestListener();
-            _notifier.Subscribe(listener1);
-            _notifier.Subscribe(listener2);
+            notifier.Subscribe(listener1);
+            notifier.Subscribe(listener2);
 
-            _notifier.Notify<ITestEvent>(l => l.OnEvent("broadcast"));
+            notifier.Notify<ITestEvent>(l => l.OnEvent("broadcast"));
 
             Assert.AreEqual("broadcast", listener1.LastMessage);
             Assert.AreEqual("broadcast", listener2.LastMessage);
@@ -102,10 +102,10 @@ namespace Base.Tests
         public void MultiListener_ReceivesBothEventTypes()
         {
             var listener = new MultiListener();
-            _notifier.Subscribe(listener);
+            notifier.Subscribe(listener);
 
-            _notifier.Notify<ITestEvent>(l => l.OnEvent("test"));
-            _notifier.Notify<IOtherEvent>(l => l.OnOther(42));
+            notifier.Notify<ITestEvent>(l => l.OnEvent("test"));
+            notifier.Notify<IOtherEvent>(l => l.OnOther(42));
 
             Assert.AreEqual("test", listener.LastMessage);
             Assert.AreEqual(42, listener.LastValue);
@@ -115,10 +115,10 @@ namespace Base.Tests
         public void DuplicateSubscribe_NotifiesOnlyOnce()
         {
             var listener = new TestListener();
-            _notifier.Subscribe(listener);
-            _notifier.Subscribe(listener);
+            notifier.Subscribe(listener);
+            notifier.Subscribe(listener);
 
-            _notifier.Notify<ITestEvent>(l => l.OnEvent("once"));
+            notifier.Notify<ITestEvent>(l => l.OnEvent("once"));
 
             Assert.AreEqual(1, listener.CallCount);
         }
@@ -130,7 +130,7 @@ namespace Base.Tests
 
             Assert.DoesNotThrow(() =>
             {
-                _notifier.Unsubscribe(listener);
+                notifier.Unsubscribe(listener);
             });
         }
 
@@ -138,13 +138,13 @@ namespace Base.Tests
         public void Notify_UnsubscribeDuringIteration_DoesNotThrow()
         {
             var listener1 = new TestListener();
-            var listenerThatUnsubscribes = new UnsubscribingListener(_notifier);
-            _notifier.Subscribe(listenerThatUnsubscribes);
-            _notifier.Subscribe(listener1);
+            var listenerThatUnsubscribes = new UnsubscribingListener(notifier);
+            notifier.Subscribe(listenerThatUnsubscribes);
+            notifier.Subscribe(listener1);
 
             Assert.DoesNotThrow(() =>
             {
-                _notifier.Notify<ITestEvent>(l => l.OnEvent("safe"));
+                notifier.Notify<ITestEvent>(l => l.OnEvent("safe"));
             });
         }
 
@@ -153,11 +153,11 @@ namespace Base.Tests
         {
             var listener1 = new TestListener();
             var listener2 = new TestListener();
-            _notifier.Subscribe(listener1);
-            _notifier.Subscribe(listener2);
+            notifier.Subscribe(listener1);
+            notifier.Subscribe(listener2);
 
-            _notifier.Unsubscribe(listener1);
-            _notifier.Notify<ITestEvent>(l => l.OnEvent("remaining"));
+            notifier.Unsubscribe(listener1);
+            notifier.Notify<ITestEvent>(l => l.OnEvent("remaining"));
 
             Assert.AreEqual(0, listener1.CallCount);
             Assert.AreEqual("remaining", listener2.LastMessage);
@@ -167,25 +167,25 @@ namespace Base.Tests
         public void Notify_DifferentEventType_DoesNotCallUnrelatedListeners()
         {
             var listener = new TestListener();
-            _notifier.Subscribe(listener);
+            notifier.Subscribe(listener);
 
-            _notifier.Notify<IOtherEvent>(l => l.OnOther(99));
+            notifier.Notify<IOtherEvent>(l => l.OnOther(99));
 
             Assert.AreEqual(0, listener.CallCount);
         }
 
         private class UnsubscribingListener : ITestEvent
         {
-            private readonly Notifier _notifier;
+            private readonly Notifier notifier;
 
             public UnsubscribingListener(Notifier notifier)
             {
-                _notifier = notifier;
+                notifier = notifier;
             }
 
             public void OnEvent(string message)
             {
-                _notifier.Unsubscribe(this);
+                notifier.Unsubscribe(this);
             }
         }
     }

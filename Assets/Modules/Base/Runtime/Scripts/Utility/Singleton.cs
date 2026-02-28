@@ -4,38 +4,38 @@ namespace Base
 {
     public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
     {
-        private static T _instance;
+        private static T instance;
 
         public static T Instance
         {
             get
             {
-                if (_instance == null)
+                if (instance == null)
                 {
-                    _instance = FindFirstObjectByType<T>();
+                    instance = FindFirstObjectByType<T>();
                 }
 
-                return _instance;
+                return instance;
             }
         }
 
         protected virtual void Awake()
         {
-            if (_instance != null && _instance != this)
+            if (instance != null && instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            _instance = (T)this;
+            instance = (T)this;
             DontDestroyOnLoad(gameObject);
         }
 
         protected virtual void OnDestroy()
         {
-            if (_instance == this)
+            if (instance == this)
             {
-                _instance = null;
+                instance = null;
             }
         }
     }

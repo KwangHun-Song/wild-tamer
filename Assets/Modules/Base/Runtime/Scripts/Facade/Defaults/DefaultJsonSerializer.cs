@@ -1,0 +1,17 @@
+using Newtonsoft.Json;
+
+namespace Base
+{
+    public class DefaultJsonSerializer : IJsonSerializer
+    {
+        public string Serialize<T>(T obj)
+        {
+            return JsonConvert.SerializeObject(obj);
+        }
+
+        public T Deserialize<T>(string json)
+        {
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+    }
+}
