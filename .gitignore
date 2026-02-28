@@ -74,6 +74,7 @@ sysinfo.txt
 
 # ===== Claude Code CLI =====
 .claude/
+.omc/
 
 # ===== OS =====
 # Windows
