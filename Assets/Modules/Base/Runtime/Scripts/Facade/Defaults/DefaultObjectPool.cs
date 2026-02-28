@@ -70,7 +70,10 @@ namespace Base
                     {
                         var obj = pool.Dequeue();
                         if (obj != null)
+                        {
+                            instanceToPrefabId.Remove(obj.GetInstanceID());
                             Object.Destroy(obj);
+                        }
                     }
 
                     pools.Remove(id);

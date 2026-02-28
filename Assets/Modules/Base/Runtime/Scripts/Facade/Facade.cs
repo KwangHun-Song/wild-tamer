@@ -15,5 +15,6 @@ namespace Base
         // MonoBehaviour 기반 서비스는 Bootstrapper에서 초기화
         public static ICoroutineRunner Coroutine { get; set; }
         public static ISoundManager Sound { get; set; }
+        public static IEscapeHandler Escape { get; set; }
     }
 }

@@ -65,17 +65,22 @@ namespace FiniteStateMachine.Tests
         public AttackState Attack { get; } = new();
         public HealState Heal { get; } = new();
 
-        private readonly StateTransition<TestEntity, TestTrigger>[] transitions;
+        private StateTransition<TestEntity, TestTrigger>[] transitions;
 
-        public TestStateMachine(TestEntity owner, StateTransition<TestEntity, TestTrigger>[] transitions = null)
+        public TestStateMachine(TestEntity owner)
             : base(owner)
         {
-            transitions = transitions ?? new[]
+            transitions = new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(Idle, Attack, TestTrigger.Attack),
                 StateTransition<TestEntity, TestTrigger>.Generate(Attack, Idle, TestTrigger.Retreat),
                 StateTransition<TestEntity, TestTrigger>.Generate(Idle, Heal, TestTrigger.Heal),
             };
+        }
+
+        public void OverrideTransitions(StateTransition<TestEntity, TestTrigger>[] newTransitions)
+        {
+            transitions = newTransitions;
         }
 
         protected override State<TestEntity, TestTrigger> InitialState => Idle;
@@ -184,56 +189,53 @@ namespace FiniteStateMachine.Tests
         public void TriggerOnly_MatchingTrigger_TransitionsState()
         {
             // Trigger만 설정된 전이: ExecuteCommand로만 전이됨
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, TestTrigger.Attack),
-            };
+                    testFsm.Idle, testFsm.Attack, TestTrigger.Attack),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.ExecuteCommand(TestTrigger.Attack);
+            bool result = testFsm.ExecuteCommand(TestTrigger.Attack);
 
             Assert.IsTrue(result);
-            Assert.AreEqual(fsm.Attack, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Attack, testFsm.CurrentState);
         }
 
         [Test]
         public void TriggerOnly_TryTransition_DoesNotTransition()
         {
             // Trigger-only 전이는 Condition이 없으므로 TryTransition에서 전이되지 않음
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, TestTrigger.Attack),
-            };
+                    testFsm.Idle, testFsm.Attack, TestTrigger.Attack),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.TryTransition();
+            bool result = testFsm.TryTransition();
 
             Assert.IsFalse(result);
-            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Idle, testFsm.CurrentState);
         }
 
         [Test]
         public void TriggerOnly_WrongTrigger_DoesNotTransition()
         {
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, TestTrigger.Attack),
-            };
+                    testFsm.Idle, testFsm.Attack, TestTrigger.Attack),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.ExecuteCommand(TestTrigger.Heal);
+            bool result = testFsm.ExecuteCommand(TestTrigger.Heal);
 
             Assert.IsFalse(result);
-            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Idle, testFsm.CurrentState);
         }
 
         #endregion
@@ -244,56 +246,53 @@ namespace FiniteStateMachine.Tests
         public void ConditionOnly_TrueCondition_TransitionsViaTryTransition()
         {
             // Condition만 설정된 전이: TryTransition/Update로만 전이됨
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, _ => true),
-            };
+                    testFsm.Idle, testFsm.Attack, _ => true),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.TryTransition();
+            bool result = testFsm.TryTransition();
 
             Assert.IsTrue(result);
-            Assert.AreEqual(fsm.Attack, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Attack, testFsm.CurrentState);
         }
 
         [Test]
         public void ConditionOnly_FalseCondition_DoesNotTransition()
         {
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, _ => false),
-            };
+                    testFsm.Idle, testFsm.Attack, _ => false),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.TryTransition();
+            bool result = testFsm.TryTransition();
 
             Assert.IsFalse(result);
-            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Idle, testFsm.CurrentState);
         }
 
         [Test]
         public void ConditionOnly_NotTriggeredByExecuteCommand()
         {
             // Condition-only 전이는 HasTrigger=false이므로 ExecuteCommand로 매칭되지 않음
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, _ => true),
-            };
+                    testFsm.Idle, testFsm.Attack, _ => true),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.ExecuteCommand(TestTrigger.None);
+            bool result = testFsm.ExecuteCommand(TestTrigger.None);
 
             Assert.IsFalse(result);
-            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Idle, testFsm.CurrentState);
         }
 
         [Test]
@@ -301,23 +300,22 @@ namespace FiniteStateMachine.Tests
         {
             bool canTransition = false;
 
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, _ => canTransition),
-            };
-
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
+                    testFsm.Idle, testFsm.Attack, _ => canTransition),
+            });
+            testFsm.SetUp();
 
             // 조건 false일 때
-            Assert.IsFalse(fsm.TryTransition());
-            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
+            Assert.IsFalse(testFsm.TryTransition());
+            Assert.AreEqual(testFsm.Idle, testFsm.CurrentState);
 
             // 조건 true로 변경
             canTransition = true;
-            Assert.IsTrue(fsm.TryTransition());
-            Assert.AreEqual(fsm.Attack, fsm.CurrentState);
+            Assert.IsTrue(testFsm.TryTransition());
+            Assert.AreEqual(testFsm.Attack, testFsm.CurrentState);
         }
 
         #endregion
@@ -329,97 +327,92 @@ namespace FiniteStateMachine.Tests
         {
             // Trigger + Condition 전이: ExecuteCommand로 트리거 매칭 시 전이됨
             // (혼합 전이에서 ExecuteCommand는 Trigger만 체크)
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, TestTrigger.Attack, _ => true),
-            };
+                    testFsm.Idle, testFsm.Attack, TestTrigger.Attack, _ => true),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.ExecuteCommand(TestTrigger.Attack);
+            bool result = testFsm.ExecuteCommand(TestTrigger.Attack);
 
             Assert.IsTrue(result);
-            Assert.AreEqual(fsm.Attack, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Attack, testFsm.CurrentState);
         }
 
         [Test]
         public void Mixed_TriggerAndConditionTrue_TransitionsViaTryTransition()
         {
             // 혼합 전이도 Condition이 있으므로 TryTransition으로 전이 가능
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, TestTrigger.Attack, _ => true),
-            };
+                    testFsm.Idle, testFsm.Attack, TestTrigger.Attack, _ => true),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.TryTransition();
+            bool result = testFsm.TryTransition();
 
             Assert.IsTrue(result);
-            Assert.AreEqual(fsm.Attack, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Attack, testFsm.CurrentState);
         }
 
         [Test]
         public void Mixed_TriggerAndConditionFalse_DoesNotTransitionViaTryTransition()
         {
             // Condition이 false면 TryTransition으로 전이되지 않음
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, TestTrigger.Attack, _ => false),
-            };
+                    testFsm.Idle, testFsm.Attack, TestTrigger.Attack, _ => false),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            bool result = fsm.TryTransition();
+            bool result = testFsm.TryTransition();
 
             Assert.IsFalse(result);
-            Assert.AreEqual(fsm.Idle, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Idle, testFsm.CurrentState);
         }
 
         [Test]
         public void Mixed_MultipleTransitions_FirstMatchingWins()
         {
             // 여러 전이가 있을 때, 먼저 조건을 만족하는 전이가 실행됨
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, _ => false),
+                    testFsm.Idle, testFsm.Attack, _ => false),
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Heal, _ => true),
+                    testFsm.Idle, testFsm.Heal, _ => true),
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, _ => true),
-            };
+                    testFsm.Idle, testFsm.Attack, _ => true),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
-
-            fsm.TryTransition();
+            testFsm.TryTransition();
 
             // 첫 번째(false) 건너뛰고, 두 번째(Heal, true)가 매칭
-            Assert.AreEqual(fsm.Heal, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Heal, testFsm.CurrentState);
         }
 
         [Test]
         public void Update_CallsTryTransition()
         {
-            var transitions = new[]
+            var testFsm = new TestStateMachine(new TestEntity());
+            testFsm.OverrideTransitions(new[]
             {
                 StateTransition<TestEntity, TestTrigger>.Generate(
-                    fsm.Idle, fsm.Attack, _ => true),
-            };
+                    testFsm.Idle, testFsm.Attack, _ => true),
+            });
+            testFsm.SetUp();
 
-            var fsm = new TestStateMachine(new TestEntity(), transitions);
-            fsm.SetUp();
+            testFsm.Update();
 
-            fsm.Update();
-
-            Assert.AreEqual(fsm.Attack, fsm.CurrentState);
+            Assert.AreEqual(testFsm.Attack, testFsm.CurrentState);
         }
 
         #endregion

@@ -15,6 +15,7 @@ namespace Base
 
             Facade.Coroutine = go.AddComponent<DefaultCoroutineRunner>();
             Facade.Sound = go.AddComponent<DefaultSoundManager>();
+            Facade.Escape = go.AddComponent<EscapeHandler>();
         }
     }
 }

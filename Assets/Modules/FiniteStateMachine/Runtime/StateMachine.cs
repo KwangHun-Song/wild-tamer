@@ -53,6 +53,8 @@ namespace FiniteStateMachine
         }
 
         // 커맨드를 실행하여 전이를 시도한다.
+        // 트리거 매칭만 확인하며, Condition은 무시한다.
+        // Condition 기반 전이는 TryTransition/Update를 사용한다.
         public bool ExecuteCommand(TEnumTrigger inTrigger)
         {
             if (CurrentState is null || !transitionLookup.TryGetValue(CurrentState, out var transitions))
