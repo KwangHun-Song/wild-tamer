@@ -18,7 +18,7 @@
 
 | 파일 | 책임 |
 |------|------|
-| `Facade/Facade.cs` | 정적 서비스 접근점. 10개 인터페이스 프로퍼티 |
+| `Facade/Facade.cs` | 정적 서비스 접근점. 11개 인터페이스 프로퍼티 (기본 구현체 초기값 포함) |
 | `Facade/Bootstrapper.cs` | Facade 초기화. RuntimeInitializeOnLoadMethod |
 | `Facade/Interfaces/IDataStore.cs` | 런타임 데이터 저장/로드 계약 |
 | `Facade/Interfaces/ISceneChanger.cs` | 씬 변경 계약 |
@@ -41,6 +41,22 @@
 | `PopupManager/IPopupManager.cs` | 팝업 관리 계약 |
 
 > **참고:** Notifier, FSM은 외부 모듈을 가져올 예정이므로 이 구현 계획에서 제외.
+
+#### Facade 기본 구현체
+
+| 파일 | 책임 |
+|------|------|
+| `Facade/Defaults/DefaultLogger.cs` | UnityEngine.Debug 기반 로깅. 색상 및 레벨 필터링 |
+| `Facade/Defaults/DefaultJsonSerializer.cs` | Newtonsoft Json.NET 기반 직렬화/역직렬화 |
+| `Facade/Defaults/DefaultCoroutineRunner.cs` | MonoBehaviour 기반 코루틴 실행 및 지연 호출 |
+| `Facade/Defaults/DefaultTimeProvider.cs` | DateTime.UtcNow 기반. 오프셋으로 시간 조작 |
+| `Facade/Defaults/DefaultDataStore.cs` | PlayerPrefs + JSON 기반 런타임 데이터 저장/로드 |
+| `Facade/Defaults/DefaultDatabase.cs` | ScriptableObject 기반 정적 데이터 조회 |
+| `Facade/Defaults/DefaultObjectPool.cs` | Dictionary + Queue 기반 오브젝트 풀링 |
+| `Facade/Defaults/DefaultSoundManager.cs` | AudioSource 기반 BGM/SFX 재생 |
+| `Facade/Defaults/DefaultSceneChanger.cs` | SceneManager + SceneTransition 활용 씬 전환 |
+| `Facade/Defaults/DefaultSceneTransition.cs` | 기본 전환 연출 (초기 구현: 즉시 전환) |
+| `Facade/Defaults/DefaultInstanceLoader.cs` | Object.Instantiate/Destroy 기반 인스턴스 관리 |
 
 #### Utility / Extensions
 
@@ -88,16 +104,28 @@ Utility, Extensions → 의존 없음
 
 모든 항목은 Step 2 완료 후 진행.
 
-- [ ] **3-A: Facade + Bootstrapper** — Facade 정적 클래스, Bootstrapper 초기화 골격 (구현체 없이 null 할당)
+- [ ] **3-A: Facade + Bootstrapper** — Facade 정적 클래스 (기본 구현체 초기값 포함), Bootstrapper 초기화 골격
 - [ ] **3-B: Utility** — EnumLike\<T\>, Singleton\<T\>
 
-### Step 4: 유닛 테스트
+### Step 4: Facade 기본 구현체 [병렬 가능]
 
-Step 3 완료 후 진행.
+모든 항목은 Step 2 완료 후 진행. 각 구현체는 독립적이므로 병렬 실행 가능.
+
+- [ ] **4-A: 기반 서비스 구현** — DefaultLogger, DefaultJsonSerializer, DefaultCoroutineRunner, DefaultTimeProvider
+- [ ] **4-B: 데이터/인스턴스 서비스 구현** — DefaultDataStore, DefaultDatabase, DefaultObjectPool, DefaultInstanceLoader
+- [ ] **4-C: 씬/사운드 서비스 구현** — DefaultSceneChanger, DefaultSceneTransition, DefaultSoundManager
+
+Facade 클래스의 각 프로퍼티가 기본 구현체를 초기값으로 가지도록 하여, Bootstrapper 없이도 기본 동작이 보장되게 한다. 필요 시 Bootstrapper나 외부에서 구현체를 교체할 수 있다.
+
+### Step 5: 유닛 테스트
+
+Step 4 완료 후 진행.
 
 - [ ] EnumLike\<T\> 유닛 테스트
+- [ ] Notifier 유닛 테스트
+- [ ] FSM 유닛 테스트
 
-### Step 5: 컴파일 검증 및 정리
+### Step 6: 컴파일 검증 및 정리
 
 - [ ] 전체 컴파일 에러 확인
 - [ ] asmdef 참조 관계 검증
@@ -110,6 +138,8 @@ Step 3 완료 후 진행.
 | 대상 | 테스트 내용 |
 |------|------------|
 | `EnumLike<T>` | 값 비교, 동등성, 해시코드, ToString, 정렬 |
+| `Notifier` | Subscribe/Unsubscribe/Notify, 중복 구독 방지, 열거 중 변경 안전성 |
+| `FSM` | Trigger/Condition/혼합 전이, 상태 Enter/Exit, 이벤트 발행 |
 
 ### 수동 검증
 
