@@ -8,14 +8,25 @@ public abstract class CharacterView : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
 
-    [SerializeField] private string moveAnimTrigger   = "move";
-    [SerializeField] private string idleAnimTrigger   = "idle";
+    [SerializeField] private string moveAnimTrigger = "move";
+    [SerializeField] private string idleAnimTrigger = "idle";
     [SerializeField] private string attackAnimTrigger = "attack";
 
     private const int QueueSize = 5;
 
     private bool isMovingState = false;
     private readonly Queue<Vector2> directionQueue = new ();
+
+    protected virtual void Awake()
+    {
+        spriteRenderer.sortingOrder = SortingOrder.Unit;
+    }
+
+    private void LateUpdate()
+    {
+        var pos = transform.position;
+        transform.position = new Vector3(pos.x, pos.y, pos.y);
+    }
 
     public UnitMovement Movement => movement;
 

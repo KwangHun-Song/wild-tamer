@@ -12,10 +12,10 @@ public class CameraShake : IOnHitListener
 
     public CameraShake(QuarterViewCamera camera, float intensity, float duration, Notifier notifier)
     {
-        this.camera   = camera;
+        this.camera = camera;
         this.intensity = intensity;
-        this.duration  = duration;
-        this.notifier  = notifier;
+        this.duration = duration;
+        this.notifier = notifier;
         notifier.Subscribe(this);
     }
 

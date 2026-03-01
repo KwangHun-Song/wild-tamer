@@ -8,19 +8,19 @@ using UnityEngine;
 /// </summary>
 public class MonsterSquadSpawner
 {
-    public int   MinSquadCount      = 3;
-    public int   MaxSquadCount      = 8;
-    public int   MinMembersPerSquad = 1;
-    public int   MaxMembersPerSquad = 12;
-    public float SpawnMargin        = 3f;   // 카메라 경계 밖 추가 여유 거리
-    public float DespawnDistance    = 35f;  // 플레이어 기준 디스폰 반경
-    public float SpawnInterval      = 8f;   // 스폰 시도 주기(초)
+    public int MinSquadCount = 3;
+    public int MaxSquadCount = 8;
+    public int MinMembersPerSquad = 1;
+    public int MaxMembersPerSquad = 12;
+    public float SpawnMargin = 3f;   // 카메라 경계 밖 추가 여유 거리
+    public float DespawnDistance = 35f;  // 플레이어 기준 디스폰 반경
+    public float SpawnInterval = 8f;   // 스폰 시도 주기(초)
 
-    private readonly EntitySpawner      entitySpawner;
-    private readonly ObstacleGrid       obstacleGrid;
-    private readonly Transform          playerTransform;
-    private readonly Camera             camera;
-    private readonly MonsterData[]      spawnTable;
+    private readonly EntitySpawner entitySpawner;
+    private readonly ObstacleGrid obstacleGrid;
+    private readonly Transform playerTransform;
+    private readonly Camera camera;
+    private readonly MonsterData[] spawnTable;
 
     private float spawnTimer;
 
@@ -31,12 +31,12 @@ public class MonsterSquadSpawner
         Camera camera,
         MonsterData[] spawnTable)
     {
-        this.entitySpawner   = entitySpawner;
-        this.obstacleGrid    = obstacleGrid;
+        this.entitySpawner = entitySpawner;
+        this.obstacleGrid = obstacleGrid;
         this.playerTransform = playerTransform;
-        this.camera          = camera;
-        this.spawnTable      = spawnTable;
-        spawnTimer           = SpawnInterval;
+        this.camera = camera;
+        this.spawnTable = spawnTable;
+        spawnTimer = SpawnInterval;
     }
 
     /// <summary>GameController.Update()에서 매 프레임 호출한다.</summary>
@@ -63,10 +63,10 @@ public class MonsterSquadSpawner
         if (entitySpawner.ActiveSquads.Count >= MaxSquadCount) return;
         if (spawnTable == null || spawnTable.Length == 0) return;
 
-        var pos   = FindSpawnPositionOutsideCamera();
-        var data  = spawnTable[UnityEngine.Random.Range(0, spawnTable.Length)];
+        var pos = FindSpawnPositionOutsideCamera();
+        var data = spawnTable[UnityEngine.Random.Range(0, spawnTable.Length)];
         var count = UnityEngine.Random.Range(MinMembersPerSquad, MaxMembersPerSquad + 1);
-        entitySpawner.SpawnMonsterSquad(data, pos, count);
+        entitySpawner.SpawnMonsterSquad(data, pos, count, obstacleGrid);
     }
 
     private void TryDespawnFarSquads()
@@ -84,9 +84,20 @@ public class MonsterSquadSpawner
 
     private Vector2 FindSpawnPositionOutsideCamera()
     {
-        var   camPos = (Vector2)camera.transform.position;
-        float halfH  = camera.orthographicSize + SpawnMargin;
-        float halfW  = halfH * camera.aspect   + SpawnMargin;
+        for (int attempt = 0; attempt < 20; attempt++)
+        {
+            var candidate = GetRandomEdgePosition();
+            if (obstacleGrid == null || obstacleGrid.IsWalkable(candidate))
+                return candidate;
+        }
+        return GetRandomEdgePosition(); // 20회 실패 시 그냥 반환
+    }
+
+    private Vector2 GetRandomEdgePosition()
+    {
+        var camPos = (Vector2)camera.transform.position;
+        float halfH = camera.orthographicSize + SpawnMargin;
+        float halfW = halfH * camera.aspect + SpawnMargin;
 
         return UnityEngine.Random.Range(0, 4) switch
         {

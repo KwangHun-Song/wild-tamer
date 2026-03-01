@@ -4,8 +4,8 @@ using UnityEngine.Tilemaps;
 public class MapGenerator : MonoBehaviour
 {
     [SerializeField] private Tilemap groundTilemap;
+    [SerializeField] private Tilemap waterTilemap;
     [SerializeField] private Tilemap obstacleTilemap;
-    [SerializeField] private TileBase waterTile;
     [SerializeField] private float cellSize = 1f;
 
     public ObstacleGrid ObstacleGrid { get; private set; }
@@ -37,12 +37,12 @@ public class MapGenerator : MonoBehaviour
 
                 // Ground 타일이 없으면 빈 공간 → 통행 불가
                 bool hasGround = groundTilemap.HasTile(cellPos);
-                // Obstacles 타일이 있으면 → 통행 불가
+                // Obstacle 타일이 있으면 → 통행 불가
                 bool hasObstacle = obstacleTilemap != null && obstacleTilemap.HasTile(cellPos);
-                // Water 타일이면 → 통행 불가
-                bool isWater = waterTile != null && groundTilemap.GetTile(cellPos) == waterTile;
+                // Water 타일이 있으면 → 통행 불가
+                bool hasWater = waterTilemap != null && waterTilemap.HasTile(cellPos);
 
-                ObstacleGrid.SetWalkable(new Vector2Int(x, y), hasGround && !hasObstacle && !isWater);
+                ObstacleGrid.SetWalkable(new Vector2Int(x, y), hasGround && !hasObstacle && !hasWater);
             }
         }
     }

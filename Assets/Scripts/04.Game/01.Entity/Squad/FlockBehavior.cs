@@ -39,11 +39,11 @@ public class FlockBehavior
                 neighborsCache.Add(neighbor);
         }
 
-        var alignment  = CalculateAlignment(self, neighborsCache) * AlignmentWeight;
-        var cohesion   = CalculateCohesion(self, neighborsCache) * CohesionWeight;
+        var alignment = CalculateAlignment(self, neighborsCache) * AlignmentWeight;
+        var cohesion = CalculateCohesion(self, neighborsCache) * CohesionWeight;
         var separation = CalculateSeparation(self, neighborsCache) * SeparationWeight;
-        var follow     = CalculateFollow(self, leader) * FollowWeight;
-        var avoidance  = CalculateAvoidance(self, obstacleGrid) * AvoidanceWeight;
+        var follow = CalculateFollow(self, leader) * FollowWeight;
+        var avoidance = CalculateAvoidance(self, obstacleGrid) * AvoidanceWeight;
 
         var combined = alignment + cohesion + separation + follow + avoidance;
 
@@ -94,7 +94,7 @@ public class FlockBehavior
         if (count == 0)
             return Vector2.zero;
 
-        var center   = centerSum / count;
+        var center = centerSum / count;
         var toCenter = center - selfPos;
 
         if (toCenter == Vector2.zero)
@@ -210,23 +210,23 @@ public class FlockBehavior
                 neighborsCache.Add(neighbor);
         }
 
-        var cohesion   = CalculateCohesion(self, neighborsCache)       * CohesionWeight;
-        var separation = CalculateSeparation(self, neighborsCache)      * SeparationWeight;
-        var follow     = CalculateFollow(self, leader)                  * FollowWeight;
-        var avoidance  = CalculateAvoidance(self, obstacleGrid)         * AvoidanceWeight;
-        var alignment  = CalculateAlignment(self, neighborsCache)       * AlignmentWeight;
-        var combined   = alignment + cohesion + separation + follow + avoidance;
+        var cohesion = CalculateCohesion(self, neighborsCache) * CohesionWeight;
+        var separation = CalculateSeparation(self, neighborsCache) * SeparationWeight;
+        var follow = CalculateFollow(self, leader) * FollowWeight;
+        var avoidance = CalculateAvoidance(self, obstacleGrid) * AvoidanceWeight;
+        var alignment = CalculateAlignment(self, neighborsCache) * AlignmentWeight;
+        var combined = alignment + cohesion + separation + follow + avoidance;
 
         combined.x = Mathf.Abs(combined.x) < 0.1F ? 0F : combined.x;
         combined.y = Mathf.Abs(combined.y) < 0.1F ? 0F : combined.y;
 
         return new FlockDebugData
         {
-            Cohesion   = cohesion,
+            Cohesion = cohesion,
             Separation = separation,
-            Follow     = follow,
-            Avoidance  = avoidance,
-            Combined   = combined == Vector2.zero ? Vector2.zero : combined.normalized,
+            Follow = follow,
+            Avoidance = avoidance,
+            Combined = combined == Vector2.zero ? Vector2.zero : combined.normalized,
         };
     }
 #endif

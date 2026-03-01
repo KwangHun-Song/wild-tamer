@@ -11,25 +11,28 @@ using UnityEngine;
 public class EntitySpawner
 {
     private readonly SpatialGrid<IUnit> unitGrid;
-    private readonly List<Monster>      activeMonsters = new();
-    private readonly List<MonsterSquad> activeSquads   = new();
+    private readonly Transform unitRoot;
+    private readonly List<Monster> activeMonsters = new();
+    private readonly List<MonsterSquad> activeSquads = new();
 
-    public IReadOnlyList<Monster>      ActiveMonsters => activeMonsters;
-    public IReadOnlyList<MonsterSquad> ActiveSquads   => activeSquads;
+    public IReadOnlyList<Monster> ActiveMonsters => activeMonsters;
+    public IReadOnlyList<MonsterSquad> ActiveSquads => activeSquads;
 
-    public event Action<Monster>      OnMonsterSpawned;
-    public event Action<Monster>      OnMonsterDespawned;
+    public event Action<Monster> OnMonsterSpawned;
+    public event Action<Monster> OnMonsterDespawned;
     public event Action<MonsterSquad> OnSquadSpawned;
     public event Action<MonsterSquad> OnSquadDespawned;
 
-    public EntitySpawner(SpatialGrid<IUnit> unitGrid)
+    public EntitySpawner(SpatialGrid<IUnit> unitGrid, Transform unitRoot = null)
     {
         this.unitGrid = unitGrid;
+        this.unitRoot = unitRoot;
     }
 
     public Monster SpawnMonster(MonsterData data, Vector2 position)
     {
         var go = Facade.Pool.Spawn(data.prefab);
+        go.transform.SetParent(unitRoot, worldPositionStays: false);
         go.transform.position = position;
         var view = go.GetComponent<MonsterView>();
         var monster = new Monster(view, data, unitGrid);
@@ -41,6 +44,7 @@ public class EntitySpawner
     public SquadMember SpawnSquadMember(MonsterData data, Vector2 position)
     {
         var go = Facade.Pool.Spawn(data.squadPrefab);
+        go.transform.SetParent(unitRoot, worldPositionStays: false);
         go.transform.position = position;
         var view = go.GetComponent<SquadMemberView>();
         return new SquadMember(view, data);
@@ -59,21 +63,21 @@ public class EntitySpawner
     /// 스쿼드 몬스터는 activeMonsters에 추가하지 않는다 — Update/Tick은 MonsterSquad.Update()가 담당.
     /// CombatSystem 등록은 OnMonsterSpawned 이벤트로 처리한다.
     /// </summary>
-    public MonsterSquad SpawnMonsterSquad(MonsterData data, Vector2 position, int count)
+    public MonsterSquad SpawnMonsterSquad(MonsterData data, Vector2 position, int count, ObstacleGrid obstacleGrid = null)
     {
         count = Mathf.Clamp(count, 1, 12);
         var squad = new MonsterSquad(data, unitGrid);
 
         for (int i = 0; i < count; i++)
         {
-            var offset   = i == 0 ? Vector2.zero : UnityEngine.Random.insideUnitCircle * 1.5f;
-            var spawnPos = position + offset;
-            var role     = i == 0 ? MonsterRole.Leader : MonsterRole.Follower;
+            var spawnPos = i == 0 ? position : FindWalkableOffset(position, obstacleGrid);
+            var role = i == 0 ? MonsterRole.Leader : MonsterRole.Follower;
 
-            var go      = Facade.Pool.Spawn(data.prefab);
+            var go = Facade.Pool.Spawn(data.prefab);
+            go.transform.SetParent(unitRoot, worldPositionStays: false);
             go.transform.position = spawnPos;
-            var view    = go.GetComponent<MonsterView>();
-            var monster = new Monster(view, data, unitGrid, role);
+            var view = go.GetComponent<MonsterView>();
+            var monster = new Monster(view, data, unitGrid, role, obstacleGrid);
 
             squad.AddMember(monster);
             OnMonsterSpawned?.Invoke(monster); // CombatSystem 등록
@@ -83,6 +87,17 @@ public class EntitySpawner
         activeSquads.Add(squad);
         OnSquadSpawned?.Invoke(squad);
         return squad;
+    }
+
+    private static Vector2 FindWalkableOffset(Vector2 origin, ObstacleGrid grid)
+    {
+        if (grid == null) return origin + (Vector2)UnityEngine.Random.insideUnitCircle * 1.5f;
+        for (int attempt = 0; attempt < 10; attempt++)
+        {
+            var candidate = origin + (Vector2)UnityEngine.Random.insideUnitCircle * 1.5f;
+            if (grid.IsWalkable(candidate)) return candidate;
+        }
+        return origin;
     }
 
     /// <summary>스쿼드 전체를 디스폰한다.</summary>

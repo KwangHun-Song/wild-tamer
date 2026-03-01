@@ -11,13 +11,13 @@ public class GameController
     public Squad Squad { get; }
 
     // 시스템
-    private readonly CombatSystem        combatSystem;
-    private readonly EntitySpawner       entitySpawner;
-    private readonly TamingSystem        tamingSystem;
+    private readonly CombatSystem combatSystem;
+    private readonly EntitySpawner entitySpawner;
+    private readonly TamingSystem tamingSystem;
     private readonly MonsterSquadSpawner squadSpawner;
 
     // 씬 참조
-    private readonly PlayerInput  playerInput;
+    private readonly PlayerInput playerInput;
     private readonly ObstacleGrid obstacleGrid;
 
     // 공유 자원
@@ -30,9 +30,10 @@ public class GameController
         PlayerInput playerInput,
         ObstacleGrid obstacleGrid,
         Camera gameCamera = null,
-        MonsterData[] monsterSpawnTable = null)
+        MonsterData[] monsterSpawnTable = null,
+        Transform unitRoot = null)
     {
-        this.playerInput  = playerInput;
+        this.playerInput = playerInput;
         this.obstacleGrid = obstacleGrid;
 
         // 공유 SpatialGrid 생성 (CombatSystem, EntitySpawner, MonsterAI가 공유)
@@ -41,22 +42,22 @@ public class GameController
         // 개체 생성
         var playerCombat = new UnitCombat(10, 1.5f, 5f, 1f);
         Player = new Player(playerView, playerCombat, 100);
-        Squad  = new Squad();
+        Squad = new Squad();
 
         // 시스템 생성
-        combatSystem  = new CombatSystem(unitGrid, Notifier);
-        entitySpawner = new EntitySpawner(unitGrid);
-        tamingSystem  = new TamingSystem(Squad, entitySpawner, Notifier);
+        combatSystem = new CombatSystem(unitGrid, Notifier);
+        entitySpawner = new EntitySpawner(unitGrid, unitRoot);
+        tamingSystem = new TamingSystem(Squad, entitySpawner, Notifier);
 
         // CombatSystem 유닛 등록
         combatSystem.RegisterUnit(Player);
 
         // Squad ↔ CombatSystem 자동 등록
-        Squad.OnMemberAdded   += combatSystem.RegisterUnit;
+        Squad.OnMemberAdded += combatSystem.RegisterUnit;
         Squad.OnMemberRemoved += combatSystem.UnregisterUnit;
 
         // EntitySpawner ↔ CombatSystem 자동 등록
-        entitySpawner.OnMonsterSpawned   += combatSystem.RegisterUnit;
+        entitySpawner.OnMonsterSpawned += combatSystem.RegisterUnit;
         entitySpawner.OnMonsterDespawned += combatSystem.UnregisterUnit;
 
         // 몬스터 스쿼드 스포너 (카메라가 없으면 비활성)
@@ -129,7 +130,7 @@ public class GameController
         Squad.Clear();
         foreach (var memberSnap in snapshot.SquadMembers)
         {
-            var pos    = snapshot.PlayerPosition + memberSnap.PositionOffset;
+            var pos = snapshot.PlayerPosition + memberSnap.PositionOffset;
             var member = entitySpawner.SpawnSquadMember(memberSnap.Data, pos);
             Squad.AddMember(member);
         }
@@ -142,9 +143,9 @@ public class GameController
     /// <summary>GameLoop.OnDestroy()에서 호출. 이벤트 구독을 해제하여 메모리 누수를 방지한다.</summary>
     public void Cleanup()
     {
-        Squad.OnMemberAdded   -= combatSystem.RegisterUnit;
+        Squad.OnMemberAdded -= combatSystem.RegisterUnit;
         Squad.OnMemberRemoved -= combatSystem.UnregisterUnit;
-        entitySpawner.OnMonsterSpawned   -= combatSystem.RegisterUnit;
+        entitySpawner.OnMonsterSpawned -= combatSystem.RegisterUnit;
         entitySpawner.OnMonsterDespawned -= combatSystem.UnregisterUnit;
         tamingSystem.Dispose();
     }

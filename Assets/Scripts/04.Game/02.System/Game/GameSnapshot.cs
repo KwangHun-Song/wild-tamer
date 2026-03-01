@@ -18,9 +18,9 @@ public class GameSnapshot
         FogState[,] fogGrid)
     {
         PlayerPosition = playerPosition;
-        SquadMembers   = squadMembers;
-        Monsters       = monsters;
-        FogGrid        = fogGrid;
+        SquadMembers = squadMembers;
+        Monsters = monsters;
+        FogGrid = fogGrid;
     }
 }
 
@@ -35,9 +35,9 @@ public class SquadMemberSnapshot
 
     public SquadMemberSnapshot(SquadMember member, Vector2 playerPos)
     {
-        Data           = member.Data;
+        Data = member.Data;
         PositionOffset = (Vector2)member.Transform.position - playerPos;
-        CurrentHp      = member.Health.CurrentHp;
+        CurrentHp = member.Health.CurrentHp;
     }
 }
 
@@ -52,8 +52,8 @@ public class MonsterSnapshot
 
     public MonsterSnapshot(Monster monster)
     {
-        Data      = monster.Data;
-        Position  = (Vector2)monster.Transform.position;
+        Data = monster.Data;
+        Position = (Vector2)monster.Transform.position;
         CurrentHp = monster.Health.CurrentHp;
     }
 }

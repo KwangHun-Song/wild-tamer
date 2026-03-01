@@ -8,7 +8,8 @@ public class Monster : Character
     public override UnitTeam Team => UnitTeam.Enemy;
     public MonsterData Data { get; }
 
-    private readonly MonsterView monsterView;
+    private readonly MonsterView  monsterView;
+    private readonly ObstacleGrid obstacleGrid;
     private IMonsterBehavior behavior;
 
     public event Action<Vector2> OnMoveRequested;
@@ -17,11 +18,12 @@ public class Monster : Character
     public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid)
         : this(view, data, unitGrid, MonsterRole.Standalone) { }
 
-    public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid, MonsterRole role)
+    public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid, MonsterRole role, ObstacleGrid obstacleGrid = null)
         : base(view, CreateCombat(data))
     {
         Data = data;
         monsterView = view;
+        this.obstacleGrid = obstacleGrid;
         Health.Initialize(data.maxHp);
         view.Movement.MoveSpeed = data.moveSpeed;
         Health.OnDamaged += OnHealthDamaged;
@@ -30,7 +32,7 @@ public class Monster : Character
 
         behavior = role switch
         {
-            MonsterRole.Leader   => new MonsterLeaderAI(this, unitGrid),
+            MonsterRole.Leader   => new MonsterLeaderAI(this, unitGrid, obstacleGrid),
             MonsterRole.Follower => null,
             _                    => new MonsterAI(this, unitGrid),
         };
@@ -40,7 +42,7 @@ public class Monster : Character
     /// <summary>리더 승계 시 호출. 팔로워에게 리더 AI를 부여한다.</summary>
     public void PromoteToLeader(SpatialGrid<IUnit> unitGrid)
     {
-        behavior = new MonsterLeaderAI(this, unitGrid);
+        behavior = new MonsterLeaderAI(this, unitGrid, obstacleGrid);
         behavior.SetUp();
     }
 

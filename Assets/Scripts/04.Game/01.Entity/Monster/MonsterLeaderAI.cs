@@ -12,12 +12,12 @@ public class MonsterLeaderAI : StateMachine<Monster, MonsterTrigger>, IMonsterBe
     public SpatialGrid<IUnit> UnitGrid { get; }
 
     private readonly MonsterWanderState wander = new();
-    private readonly MonsterChaseState  chase  = new();
+    private readonly MonsterChaseState chase = new();
     private readonly MonsterAttackState attack = new();
-    private readonly ObstacleGrid       obstacleGrid;
+    private readonly ObstacleGrid obstacleGrid;
 
     private Vector2 wanderDirection;
-    private float   wanderTimer;
+    private float wanderTimer;
 
     public float WanderChangeInterval = 3f;
 
@@ -28,15 +28,15 @@ public class MonsterLeaderAI : StateMachine<Monster, MonsterTrigger>, IMonsterBe
 
     protected override StateTransition<Monster, MonsterTrigger>[] Transitions => new[]
     {
-        StateTransition<Monster, MonsterTrigger>.Generate(wander, chase,  MonsterTrigger.DetectEnemy),
-        StateTransition<Monster, MonsterTrigger>.Generate(chase,  wander, MonsterTrigger.LoseEnemy),
-        StateTransition<Monster, MonsterTrigger>.Generate(chase,  attack, MonsterTrigger.InAttackRange),
-        StateTransition<Monster, MonsterTrigger>.Generate(attack, chase,  MonsterTrigger.OutOfAttackRange),
+        StateTransition<Monster, MonsterTrigger>.Generate(wander, chase, MonsterTrigger.DetectEnemy),
+        StateTransition<Monster, MonsterTrigger>.Generate(chase, wander, MonsterTrigger.LoseEnemy),
+        StateTransition<Monster, MonsterTrigger>.Generate(chase, attack, MonsterTrigger.InAttackRange),
+        StateTransition<Monster, MonsterTrigger>.Generate(attack, chase, MonsterTrigger.OutOfAttackRange),
     };
 
     public MonsterLeaderAI(Monster owner, SpatialGrid<IUnit> unitGrid, ObstacleGrid obstacleGrid = null) : base(owner)
     {
-        UnitGrid          = unitGrid;
+        UnitGrid = unitGrid;
         this.obstacleGrid = obstacleGrid;
     }
 
@@ -103,7 +103,7 @@ public class MonsterLeaderAI : StateMachine<Monster, MonsterTrigger>, IMonsterBe
     private void PickNewWanderDirection()
     {
         wanderDirection = Random.insideUnitCircle.normalized;
-        wanderTimer     = WanderChangeInterval;
+        wanderTimer = WanderChangeInterval;
     }
 
     private bool HasEnemyInRange(Vector2 pos, float range)

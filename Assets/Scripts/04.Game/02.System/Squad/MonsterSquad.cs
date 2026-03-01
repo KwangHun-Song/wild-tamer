@@ -10,7 +10,7 @@ using UnityEngine;
 /// </summary>
 public class MonsterSquad
 {
-    private readonly List<Monster>             members       = new();
+    private readonly List<Monster> members = new();
     private readonly Dictionary<Monster, Action> deathHandlers = new();
     private Monster leader;
     private readonly SpatialGrid<IUnit> unitGrid;
@@ -18,17 +18,17 @@ public class MonsterSquad
 
     public float StopRadius = 0.6f; // 리더 근처 팔로워 정지 반경
 
-    public Monster Leader                 => leader;
+    public Monster Leader => leader;
     public IReadOnlyList<Monster> Members => members;
-    public bool IsEmpty                   => members.Count == 0;
-    public MonsterData Data               { get; }
+    public bool IsEmpty => members.Count == 0;
+    public MonsterData Data { get; }
 
     public event Action<Monster> OnMemberDied;
-    public event Action          OnSquadEmpty;
+    public event Action OnSquadEmpty;
 
     public MonsterSquad(MonsterData data, SpatialGrid<IUnit> unitGrid)
     {
-        Data          = data;
+        Data = data;
         this.unitGrid = unitGrid;
     }
 
@@ -46,7 +46,7 @@ public class MonsterSquad
     {
         if (leader == null || !leader.IsAlive) return;
 
-        var leaderTf  = leader.Transform;
+        var leaderTf = leader.Transform;
         Vector2 leaderPos = leaderTf.position;
 
         // 리더 AI 업데이트 (MonsterLeaderAI 내부에서 Move 호출)
@@ -69,9 +69,9 @@ public class MonsterSquad
                 continue;
             }
 
-            var dir         = flock.CalculateDirection(follower, aliveMembers, leaderTf, obstacleGrid);
+            var dir = flock.CalculateDirection(follower, aliveMembers, leaderTf, obstacleGrid);
             var followerPos = (Vector2)follower.Transform.position;
-            var resolved    = obstacleGrid == null ? dir : new Vector2(
+            var resolved = obstacleGrid == null ? dir : new Vector2(
                 obstacleGrid.IsWalkable(new Vector2(followerPos.x + dir.x * 0.5f, followerPos.y)) ? dir.x : 0f,
                 obstacleGrid.IsWalkable(new Vector2(followerPos.x, followerPos.y + dir.y * 0.5f)) ? dir.y : 0f
             );

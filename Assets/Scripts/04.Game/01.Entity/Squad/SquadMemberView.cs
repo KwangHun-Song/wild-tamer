@@ -8,7 +8,7 @@ public class SquadMemberView : CharacterView
     {
         subscribedMember = member;
         member.OnMoveRequested += OnMoveRequested;
-        member.OnAttackFired   += HandleAttackRequested;
+        member.OnAttackFired += HandleAttackRequested;
     }
 
     public void Unsubscribe()
@@ -16,7 +16,7 @@ public class SquadMemberView : CharacterView
         if (subscribedMember != null)
         {
             subscribedMember.OnMoveRequested -= OnMoveRequested;
-            subscribedMember.OnAttackFired   -= HandleAttackRequested;
+            subscribedMember.OnAttackFired -= HandleAttackRequested;
             subscribedMember = null;
         }
     }
@@ -31,7 +31,7 @@ public class SquadMemberView : CharacterView
         if (subscribedMember == null)
             return;
 
-        var data   = subscribedMember.FlockDebug;
+        var data = subscribedMember.FlockDebug;
         var origin = (Vector2)transform.position;
 
         DrawDebugVector(origin, data.Cohesion,   Color.green,  "C");
