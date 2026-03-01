@@ -29,6 +29,11 @@ public class InPlayState : SceneState
         // Canvas에 UICamera 연결 (Screen Space - Camera)
         playPage.Canvas.worldCamera = playStates.UICamera;
 
+        // 카메라가 PlayerView를 추적하도록 연결
+        var quarterViewCamera = Camera.main?.GetComponent<QuarterViewCamera>();
+        if (quarterViewCamera != null)
+            quarterViewCamera.Target = playPage.PlayerView.transform;
+
         // 맵 생성
         playPage.WorldMap.MapGenerator.Generate();
 
