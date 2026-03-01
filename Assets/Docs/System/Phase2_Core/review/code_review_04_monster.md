@@ -245,6 +245,8 @@ public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid) 
 
 **제안**: 구현이 더 명확한 의존성 주입 형태이므로 코드를 기준으로 설계 문서(`monster.md`)를 업데이트한다.
 
+> **[수정 완료]** 커밋 `57737ca`에서 반영됨. `monster.md`의 Monster 생성자 시그니처, MonsterAI 생성, MonsterAI.Update() 패턴 설명, EntitySpawner 코드가 실제 구현에 맞게 동기화됨.
+
 ---
 
 ## 코드 리뷰 체크리스트
