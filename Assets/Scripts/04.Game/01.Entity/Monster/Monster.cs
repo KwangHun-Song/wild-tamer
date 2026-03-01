@@ -1,17 +1,23 @@
 using System;
 using UnityEngine;
 
+public enum MonsterRole { Standalone, Leader, Follower }
+
 public class Monster : Character
 {
     public override UnitTeam Team => UnitTeam.Enemy;
     public MonsterData Data { get; }
 
     private readonly MonsterView monsterView;
-    private readonly MonsterAI ai;
+    private IMonsterBehavior behavior;
 
     public event Action<Vector2> OnMoveRequested;
 
+    /// <summary>스탠드얼론 몬스터용 (기존 코드 호환).</summary>
     public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid)
+        : this(view, data, unitGrid, MonsterRole.Standalone) { }
+
+    public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid, MonsterRole role)
         : base(view, CreateCombat(data))
     {
         Data = data;
@@ -22,8 +28,20 @@ public class Monster : Character
         Health.OnDeath   += OnHealthDeath;
         view.Subscribe(this);
 
-        ai = new MonsterAI(this, unitGrid);
-        ai.SetUp();
+        behavior = role switch
+        {
+            MonsterRole.Leader   => new MonsterLeaderAI(this, unitGrid),
+            MonsterRole.Follower => null,
+            _                    => new MonsterAI(this, unitGrid),
+        };
+        behavior?.SetUp();
+    }
+
+    /// <summary>리더 승계 시 호출. 팔로워에게 리더 AI를 부여한다.</summary>
+    public void PromoteToLeader(SpatialGrid<IUnit> unitGrid)
+    {
+        behavior = new MonsterLeaderAI(this, unitGrid);
+        behavior.SetUp();
     }
 
     private void OnHealthDamaged(int _) => monsterView.PlayHitEffect();
@@ -36,8 +54,8 @@ public class Monster : Character
         Health.OnDeath   -= OnHealthDeath;
     }
 
-    /// <summary>EntitySpawner.Update()에서 매 프레임 호출. MonsterAI에 위임한다.</summary>
-    public void Update() => ai.Update();
+    /// <summary>EntitySpawner.Update() 또는 MonsterSquad.Update()에서 매 프레임 호출.</summary>
+    public void Update() => behavior?.Update();
 
     public void Move(Vector2 direction) => OnMoveRequested?.Invoke(direction);
 

@@ -11,12 +11,13 @@ public class GameController
     public Squad Squad { get; }
 
     // 시스템
-    private readonly CombatSystem combatSystem;
-    private readonly EntitySpawner entitySpawner;
-    private readonly TamingSystem tamingSystem;
+    private readonly CombatSystem        combatSystem;
+    private readonly EntitySpawner       entitySpawner;
+    private readonly TamingSystem        tamingSystem;
+    private readonly MonsterSquadSpawner squadSpawner;
 
     // 씬 참조
-    private readonly PlayerInput playerInput;
+    private readonly PlayerInput  playerInput;
     private readonly ObstacleGrid obstacleGrid;
 
     // 공유 자원
@@ -27,7 +28,9 @@ public class GameController
     public GameController(
         PlayerView playerView,
         PlayerInput playerInput,
-        ObstacleGrid obstacleGrid)
+        ObstacleGrid obstacleGrid,
+        Camera gameCamera = null,
+        MonsterData[] monsterSpawnTable = null)
     {
         this.playerInput  = playerInput;
         this.obstacleGrid = obstacleGrid;
@@ -55,6 +58,17 @@ public class GameController
         // EntitySpawner ↔ CombatSystem 자동 등록
         entitySpawner.OnMonsterSpawned   += combatSystem.RegisterUnit;
         entitySpawner.OnMonsterDespawned += combatSystem.UnregisterUnit;
+
+        // 몬스터 스쿼드 스포너 (카메라가 없으면 비활성)
+        if (gameCamera != null)
+        {
+            squadSpawner = new MonsterSquadSpawner(
+                entitySpawner,
+                obstacleGrid,
+                Player.Transform,
+                gameCamera,
+                monsterSpawnTable);
+        }
     }
 
     /// <summary>GameLoop(MonoBehaviour)에서 매 프레임 호출한다.</summary>
@@ -77,10 +91,13 @@ public class GameController
         // 2. 부대 이동
         Squad.Update(Player.Transform, obstacleGrid, dt);
 
-        // 3. 몬스터 AI (Combat.Tick 포함)
+        // 3. 스탠드얼론 몬스터 AI (Combat.Tick 포함)
         entitySpawner.Update(dt);
 
-        // 4. 전투
+        // 4. 몬스터 스쿼드 스폰/디스폰/AI
+        squadSpawner?.Update(dt);
+
+        // 5. 전투
         combatSystem.Update();
     }
 

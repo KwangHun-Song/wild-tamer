@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -16,14 +17,14 @@ public class FlockBehavior
     public float ArrivalRadius = 1f;           // Follow 감속 반경 — 이내에서 거리에 비례해 Follow 약화
     public float MinSeparationDistance = 0.8f; // 캐릭터 간 최소 유지 거리
 
-    private readonly List<SquadMember> neighborsCache = new();
+    private readonly List<IUnit> neighborsCache = new();
 
     /// <summary>
     /// 각 힘을 가중합산하고 정규화한 최종 이동 방향을 반환한다.
     /// </summary>
     public Vector2 CalculateDirection(
-        SquadMember self,
-        IReadOnlyList<SquadMember> neighbors,
+        IUnit self,
+        IEnumerable<IUnit> neighbors,
         Transform leader,
         ObstacleGrid obstacleGrid)
     {
@@ -63,7 +64,7 @@ public class FlockBehavior
     /// <summary>
     /// 이웃의 평균 이동 방향에 맞추려는 힘. (현재 미구현 — MoveDirection 노출 시 확장)
     /// </summary>
-    private Vector2 CalculateAlignment(SquadMember self, List<SquadMember> neighbors)
+    private Vector2 CalculateAlignment(IUnit self, List<IUnit> neighbors)
     {
         return Vector2.zero;
     }
@@ -71,7 +72,7 @@ public class FlockBehavior
     /// <summary>
     /// 이웃의 무게중심 방향으로 모이려는 힘.
     /// </summary>
-    private Vector2 CalculateCohesion(SquadMember self, List<SquadMember> neighbors)
+    private Vector2 CalculateCohesion(IUnit self, List<IUnit> neighbors)
     {
         if (neighbors.Count == 0)
             return Vector2.zero;
@@ -109,7 +110,7 @@ public class FlockBehavior
     /// 이웃과 최소 거리(MinSeparationDistance)를 유지하려는 힘.
     /// 거리가 가까울수록 반발력이 강해지는 선형 모델.
     /// </summary>
-    private Vector2 CalculateSeparation(SquadMember self, List<SquadMember> neighbors)
+    private Vector2 CalculateSeparation(IUnit self, List<IUnit> neighbors)
     {
         if (neighbors.Count == 0)
             return Vector2.zero;
@@ -141,7 +142,7 @@ public class FlockBehavior
     /// ArrivalRadius 이내에서는 거리에 비례해 힘을 감소시켜 Separation과 자연스러운 평형점을 형성한다.
     /// (단절 방식은 ArrivalRadius 경계에서 진동을 유발하므로 선형 감소 방식을 사용)
     /// </summary>
-    private Vector2 CalculateFollow(SquadMember self, Transform leader)
+    private Vector2 CalculateFollow(IUnit self, Transform leader)
     {
         var toLeader = (Vector2)leader.position - (Vector2)self.Transform.position;
         float dist = toLeader.magnitude;
@@ -161,7 +162,7 @@ public class FlockBehavior
     /// <summary>
     /// 4방향 인접 셀을 검사해 장애물을 피하려는 힘.
     /// </summary>
-    private Vector2 CalculateAvoidance(SquadMember self, ObstacleGrid obstacleGrid)
+    private Vector2 CalculateAvoidance(IUnit self, ObstacleGrid obstacleGrid)
     {
         Vector2 selfPos = self.Transform.position;
         var avoidance = Vector2.zero;
@@ -194,8 +195,8 @@ public class FlockBehavior
     /// 기즈모 시각화용 디버그 데이터를 계산한다. (에디터 전용)
     /// </summary>
     public FlockDebugData ComputeDebugData(
-        SquadMember self,
-        IReadOnlyList<SquadMember> neighbors,
+        IUnit self,
+        IEnumerable<IUnit> neighbors,
         Transform leader,
         ObstacleGrid obstacleGrid)
     {
