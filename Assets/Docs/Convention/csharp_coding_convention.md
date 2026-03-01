@@ -127,7 +127,7 @@ MVP 패턴을 기반으로 레이어를 분리한다. **MonoBehaviour는 View/Br
 |--------|------|------|------|
 | Model / Logic | pure C# | 게임 로직, 상태 관리 | `Character`, `UnitHealth`, `UnitCombat`, `GameController` |
 | View | MonoBehaviour | Unity 렌더링, 컴포넌트 연결 | `CharacterView`, `PlayerView` |
-| Bridge | MonoBehaviour | Unity 생명주기(Update 등)를 Controller에 위임 | `GameLoop` |
+| Bridge | MonoBehaviour | Unity 생명주기(Update 등)를 Controller에 위임 | `InPlayState`, `SceneState` 계열 |
 
 ```csharp
 // Good - 로직은 pure C#
@@ -145,7 +145,71 @@ public class UnitHealth : MonoBehaviour  // ← MVP 레이어 위반
 ```
 
 - Model/Logic 레이어 클래스가 `MonoBehaviour`를 상속하면 MVP 레이어 위반으로 간주한다.
-- Bridge 레이어(`GameLoop` 등)는 직접 로직을 구현하지 않고, Controller의 메서드를 호출하는 역할만 한다.
+- Bridge 레이어는 직접 로직을 구현하지 않고, Controller의 메서드를 호출하는 역할만 한다.
+- `Update()`가 필요한 경우, 독립적인 MonoBehaviour를 추가로 만들지 않고 **이미 존재하는 MonoBehaviour(SceneState 등)의 Update()를 활용**한다.
+
+## 컴포넌트 참조 규칙
+
+### GetComponent 지양
+
+런타임 `GetComponent` / `GetComponentInChildren` 호출을 **지양**한다.
+`GetComponent`는 타입 안전성이 낮고, 참조 누락이 런타임에서야 발견된다.
+
+대신 **SerializeField + 공개 프로퍼티** 패턴으로 Inspector에서 연결한다.
+
+```csharp
+// Good - SerializeField로 Inspector에서 연결
+public class PlayPage : Page
+{
+    [SerializeField] private Canvas canvas;
+    [SerializeField] private WorldMap worldMap;
+    [SerializeField] private PlayerView playerView;
+
+    public Canvas Canvas => canvas;
+    public WorldMap WorldMap => worldMap;
+    public PlayerView PlayerView => playerView;
+}
+
+// Bad - 런타임 GetComponent 탐색
+public class InPlayState : SceneState
+{
+    protected override async UniTask OnExecuteAsync()
+    {
+        var canvas = playPage.GetComponentInChildren<Canvas>();       // ← 지양
+        var mapGen = worldMapRoot.GetComponentInChildren<MapGenerator>(); // ← 지양
+    }
+}
+```
+
+- 컴포넌트 간 의존성은 Unity Inspector(SerializeField)에서 명시적으로 연결한다.
+- 부득이하게 `GetComponent`를 사용해야 할 경우 `Awake()`나 초기화 단계에서 **1회만** 호출하고 결과를 캐시한다.
+
+### Update() 집중화
+
+개별 MonoBehaviour에 `Update()`를 분산하지 않고, **중앙 게임 루프가 각 시스템을 순서대로 호출**한다.
+
+```csharp
+// Good - GameController가 순서를 명시적으로 제어
+public class GameController
+{
+    public void Update()
+    {
+        Player.Move(playerInput.MoveDirection); // 1. 입력
+        Squad.Update(dt);                        // 2. 부대
+        entitySpawner.Update(dt);               // 3. 몬스터
+        combatSystem.Update();                  // 4. 전투
+    }
+}
+
+// Bad - 각 시스템이 독립적인 MonoBehaviour Update() 보유
+public class CombatSystem : MonoBehaviour  // ← 분산 Update, 호출 순서 불명확
+{
+    private void Update() { ... }
+}
+```
+
+- 게임 시스템 클래스(`CombatSystem`, `EntitySpawner` 등)는 `MonoBehaviour`를 상속하지 않고, `Tick(float dt)` 또는 `Update()` 메서드를 순수 C# 메서드로 구현한다.
+- Unity의 `Update()` 진입점은 Bridge 레이어(`InPlayState` 등) **한 곳**에서만 사용한다.
 
 ## 기타 규칙
 
