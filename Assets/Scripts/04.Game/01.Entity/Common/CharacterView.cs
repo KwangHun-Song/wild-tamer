@@ -13,10 +13,9 @@ public abstract class CharacterView : MonoBehaviour
     protected void HandleMoveRequested(Vector2 direction)
     {
         animator.SetBool(IsMoving, direction.sqrMagnitude > 0.01f);
-        if (direction.x < -0.01f)
-            spriteRenderer.flipX = true;
-        else if (direction.x > 0.01f)
-            spriteRenderer.flipX = false;
+        // x 성분이 충분히 클 때만 flip 갱신 — 미세 진동으로 인한 깜빡임 방지
+        if (Mathf.Abs(direction.x) > 0.3f)
+            spriteRenderer.flipX = direction.x < 0;
         Movement.Move(direction);
     }
 }

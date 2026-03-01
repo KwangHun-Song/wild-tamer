@@ -42,11 +42,16 @@ public class Squad
 
     public void Update(Transform leader, ObstacleGrid obstacleGrid, float deltaTime)
     {
+        Vector2 leaderPos = leader.position;
         foreach (SquadMember member in members)
         {
             member.Combat.Tick(deltaTime);
-            Vector2 direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
-            member.Move(direction);
+            var direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
+
+            // 리더와의 거리 비례로 속도 감소 — ArrivalRadius 이내에서 감속해 오버슈트 방지
+            float dist = Vector2.Distance((Vector2)member.Transform.position, leaderPos);
+            float speedScale = Mathf.Clamp01(dist / flock.ArrivalRadius);
+            member.Move(direction * speedScale);
         }
     }
 }
