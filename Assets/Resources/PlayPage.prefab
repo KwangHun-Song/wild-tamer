@@ -384,6 +384,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mapGenerator: {fileID: 7010927564923645851}
+  playerSpawn: {fileID: 3333333333333333333}
 --- !u!4 &6278572575708600186 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7594976175171251397, guid: f8f16c71188d7324093c8fe994a7bd25, type: 3}
@@ -472,4 +473,9 @@ MonoBehaviour:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4247223193249414759, guid: cd50561675b782c47b8ad94e7f88acfd, type: 3}
   m_PrefabInstance: {fileID: 6692246248436896377}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3333333333333333333 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7932868884215850072, guid: f8f16c71188d7324093c8fe994a7bd25, type: 3}
+  m_PrefabInstance: {fileID: 4487624725777742783}
   m_PrefabAsset: {fileID: 0}

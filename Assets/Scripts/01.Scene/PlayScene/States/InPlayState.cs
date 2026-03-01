@@ -37,6 +37,10 @@ public class InPlayState : SceneState
         // 맵 생성
         playPage.WorldMap.MapGenerator.Generate();
 
+        // 플레이어 스폰 위치 적용
+        if (playPage.WorldMap.PlayerSpawn != null)
+            playPage.PlayerView.transform.position = playPage.WorldMap.PlayerSpawn.position;
+
         // GameController 생성 → Update()가 즉시 구동 시작
         gameController = new GameController(
             playPage.PlayerView,

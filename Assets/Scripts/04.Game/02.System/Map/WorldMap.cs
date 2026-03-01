@@ -7,6 +7,8 @@ using UnityEngine;
 public class WorldMap : MonoBehaviour
 {
     [SerializeField] private MapGenerator mapGenerator;
+    [SerializeField] private Transform playerSpawn;
 
     public MapGenerator MapGenerator => mapGenerator;
+    public Transform PlayerSpawn => playerSpawn;
 }
