@@ -9,6 +9,8 @@ using UnityEngine;
 /// </summary>
 public class InPlayState : SceneState
 {
+    [SerializeField] private PlayerInput playerInput;
+
     // SceneState는 MonoBehaviour이므로 Update()가 매 프레임 호출된다.
     // 이전 상태(Init, Load, EnterPage) 동안에는 null이므로 no-op으로 안전하다.
     private GameController gameController;
@@ -33,7 +35,7 @@ public class InPlayState : SceneState
         // GameController 생성 → Update()가 즉시 구동 시작
         gameController = new GameController(
             playPage.PlayerView,
-            playStates.PlayerInput,
+            playerInput,
             playPage.WorldMap.MapGenerator.ObstacleGrid);
 
         try
