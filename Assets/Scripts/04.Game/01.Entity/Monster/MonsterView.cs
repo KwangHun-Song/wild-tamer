@@ -2,9 +2,6 @@ using UnityEngine;
 
 public class MonsterView : CharacterView
 {
-    [SerializeField] private Animator animator;
-
-    private static readonly int IsMoving = Animator.StringToHash("isMoving");
     private Monster subscribedMonster;
 
     public void Subscribe(Monster monster)
@@ -22,11 +19,7 @@ public class MonsterView : CharacterView
         }
     }
 
-    private void OnMoveRequested(Vector2 direction)
-    {
-        animator.SetBool(IsMoving, direction.sqrMagnitude > 0.01f);
-        Movement.Move(direction);
-    }
+    private void OnMoveRequested(Vector2 direction) => HandleMoveRequested(direction);
 
     private void OnDestroy() => Unsubscribe();
 

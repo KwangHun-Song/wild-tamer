@@ -133,6 +133,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movement: {fileID: 3966382182766130772}
   animator: {fileID: 7602825950795536651}
+  spriteRenderer: {fileID: 3158311379164944093}
 --- !u!114 &3966382182766130772
 MonoBehaviour:
   m_ObjectHideFlags: 0

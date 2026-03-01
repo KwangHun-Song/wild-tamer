@@ -2,9 +2,6 @@ using UnityEngine;
 
 public class PlayerView : CharacterView
 {
-    [SerializeField] private Animator animator;
-
-    private static readonly int IsMoving = Animator.StringToHash("isMoving");
     private Player subscribedPlayer;
 
     public void Subscribe(Player player)
@@ -22,11 +19,7 @@ public class PlayerView : CharacterView
         }
     }
 
-    private void OnMoveRequested(Vector2 direction)
-    {
-        animator.SetBool(IsMoving, direction.sqrMagnitude > 0.01f);
-        Movement.Move(direction);
-    }
+    private void OnMoveRequested(Vector2 direction) => HandleMoveRequested(direction);
 
     private void OnDestroy() => Unsubscribe();
 }
