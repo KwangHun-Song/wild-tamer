@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class UnitMovement : MonoBehaviour
 {
-    public float MoveSpeed { get; set; }
+    [SerializeField] private float moveSpeed = 5f;
+
+    public float MoveSpeed { get => moveSpeed; set => moveSpeed = value; }
 
     public void Move(Vector2 direction)
     {
