@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6139b19ddc0fd441a897d568874a3a1, type: 3}
+  m_Name: MonsterData_Archer
+  m_EditorClassIdentifier:
+  id: archer
+  displayName: "\uAD81\uC218"
+  grade: 0
+  maxHp: 50
+  attackDamage: 10
+  attackRange: 4
+  attackCooldown: 1.5
+  detectionRange: 6
+  moveSpeed: 2
+  tamingChance: 0.3
+  prefab: {fileID: 7956779084935424389, guid: 0a4fea54baa459441bae168004884013, type: 3}
+  squadPrefab: {fileID: 7956779084935424389, guid: 87ddf7b3aa64c7943b4f390ec6e8d223, type: 3}
+  bossPatterns: []

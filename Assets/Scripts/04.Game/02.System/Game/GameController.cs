@@ -132,4 +132,21 @@ public class GameController
     }
 
     public void SetPhase(GamePhase phase) => Phase = phase;
+
+    /// <summary>테스트용: 게임 시작 시 부대원과 몬스터를 초기 배치한다.</summary>
+    public void SpawnTestEntities(MonsterData[] squadData, MonsterData[] monsterData, Vector2 origin)
+    {
+        for (int i = 0; i < squadData.Length; i++)
+        {
+            var pos = origin + new Vector2((i + 1) * 1.5f, 0f);
+            var member = entitySpawner.SpawnSquadMember(squadData[i], pos);
+            Squad.AddMember(member);
+        }
+
+        for (int i = 0; i < monsterData.Length; i++)
+        {
+            var pos = origin + new Vector2((i - monsterData.Length / 2f) * 2.5f, 6f);
+            entitySpawner.SpawnMonster(monsterData[i], pos);
+        }
+    }
 }

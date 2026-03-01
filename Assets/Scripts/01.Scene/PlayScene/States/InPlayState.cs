@@ -10,6 +10,8 @@ using UnityEngine;
 public class InPlayState : SceneState
 {
     [SerializeField] private PlayerInput playerInput;
+    [SerializeField] private MonsterData[] initialSquadData;
+    [SerializeField] private MonsterData[] initialMonsterData;
 
     // SceneState는 MonoBehaviour이므로 Update()가 매 프레임 호출된다.
     // 이전 상태(Init, Load, EnterPage) 동안에는 null이므로 no-op으로 안전하다.
@@ -46,6 +48,12 @@ public class InPlayState : SceneState
             playPage.PlayerView,
             playerInput,
             playPage.WorldMap.MapGenerator.ObstacleGrid);
+
+        // 테스트용: 초기 부대원(Purple) · 몬스터(Red) 스폰
+        var spawnOrigin = playPage.WorldMap.PlayerSpawn != null
+            ? (Vector2)playPage.WorldMap.PlayerSpawn.position
+            : Vector2.zero;
+        gameController.SpawnTestEntities(initialSquadData, initialMonsterData, spawnOrigin);
 
         try
         {
