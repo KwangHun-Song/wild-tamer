@@ -64,8 +64,8 @@ public class MonsterSquadSpawner
         if (spawnTable == null || spawnTable.Length == 0) return;
 
         var pos   = FindSpawnPositionOutsideCamera();
-        var data  = spawnTable[Random.Range(0, spawnTable.Length)];
-        var count = Random.Range(MinMembersPerSquad, MaxMembersPerSquad + 1);
+        var data  = spawnTable[UnityEngine.Random.Range(0, spawnTable.Length)];
+        var count = UnityEngine.Random.Range(MinMembersPerSquad, MaxMembersPerSquad + 1);
         entitySpawner.SpawnMonsterSquad(data, pos, count);
     }
 
@@ -88,12 +88,12 @@ public class MonsterSquadSpawner
         float halfH  = camera.orthographicSize + SpawnMargin;
         float halfW  = halfH * camera.aspect   + SpawnMargin;
 
-        return Random.Range(0, 4) switch
+        return UnityEngine.Random.Range(0, 4) switch
         {
-            0 => new Vector2(Random.Range(camPos.x - halfW, camPos.x + halfW), camPos.y + halfH), // 위
-            1 => new Vector2(Random.Range(camPos.x - halfW, camPos.x + halfW), camPos.y - halfH), // 아래
-            2 => new Vector2(camPos.x - halfW, Random.Range(camPos.y - halfH, camPos.y + halfH)), // 왼쪽
-            _ => new Vector2(camPos.x + halfW, Random.Range(camPos.y - halfH, camPos.y + halfH)), // 오른쪽
+            0 => new Vector2(UnityEngine.Random.Range(camPos.x - halfW, camPos.x + halfW), camPos.y + halfH), // 위
+            1 => new Vector2(UnityEngine.Random.Range(camPos.x - halfW, camPos.x + halfW), camPos.y - halfH), // 아래
+            2 => new Vector2(camPos.x - halfW, UnityEngine.Random.Range(camPos.y - halfH, camPos.y + halfH)), // 왼쪽
+            _ => new Vector2(camPos.x + halfW, UnityEngine.Random.Range(camPos.y - halfH, camPos.y + halfH)), // 오른쪽
         };
     }
 }

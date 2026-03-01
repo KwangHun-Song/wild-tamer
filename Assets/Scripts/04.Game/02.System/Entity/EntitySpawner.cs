@@ -66,7 +66,7 @@ public class EntitySpawner
 
         for (int i = 0; i < count; i++)
         {
-            var offset   = i == 0 ? Vector2.zero : Random.insideUnitCircle * 1.5f;
+            var offset   = i == 0 ? Vector2.zero : UnityEngine.Random.insideUnitCircle * 1.5f;
             var spawnPos = position + offset;
             var role     = i == 0 ? MonsterRole.Leader : MonsterRole.Follower;
 
