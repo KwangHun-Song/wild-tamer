@@ -10,7 +10,8 @@ using UnityEngine;
 /// </summary>
 public class MonsterSquad
 {
-    private readonly List<Monster> members = new();
+    private readonly List<Monster>             members       = new();
+    private readonly Dictionary<Monster, Action> deathHandlers = new();
     private Monster leader;
     private readonly SpatialGrid<IUnit> unitGrid;
     private readonly FlockBehavior flock = new();
@@ -34,7 +35,9 @@ public class MonsterSquad
     public void AddMember(Monster monster)
     {
         members.Add(monster);
-        monster.Health.OnDeath += () => HandleMemberDeath(monster);
+        void handler() => HandleMemberDeath(monster);
+        deathHandlers[monster] = handler;
+        monster.Health.OnDeath += handler;
         if (leader == null) PromoteLeader(monster);
     }
 
@@ -50,9 +53,8 @@ public class MonsterSquad
         leader.Combat.Tick(deltaTime);
         leader.Update();
 
-        // 팔로워: FlockBehavior로 리더 추종
-        // List<Monster>는 IEnumerable<IUnit> 공변 변환으로 그대로 전달 가능
-        IEnumerable<IUnit> allAsUnits = members.Where(m => m.IsAlive);
+        // 팔로워: FlockBehavior로 리더 추종 — ToList()로 한 번만 구체화해 O(N²) 방지
+        var aliveMembers = members.Where(m => m.IsAlive).ToList();
 
         foreach (var follower in members)
         {
@@ -67,13 +69,24 @@ public class MonsterSquad
                 continue;
             }
 
-            var dir = flock.CalculateDirection(follower, allAsUnits, leaderTf, obstacleGrid);
-            follower.Move(dir);
+            var dir         = flock.CalculateDirection(follower, aliveMembers, leaderTf, obstacleGrid);
+            var followerPos = (Vector2)follower.Transform.position;
+            var resolved    = obstacleGrid == null ? dir : new Vector2(
+                obstacleGrid.IsWalkable(new Vector2(followerPos.x + dir.x * 0.5f, followerPos.y)) ? dir.x : 0f,
+                obstacleGrid.IsWalkable(new Vector2(followerPos.x, followerPos.y + dir.y * 0.5f)) ? dir.y : 0f
+            );
+            follower.Move(resolved);
         }
     }
 
     private void HandleMemberDeath(Monster dead)
     {
+        if (deathHandlers.TryGetValue(dead, out var handler))
+        {
+            dead.Health.OnDeath -= handler;
+            deathHandlers.Remove(dead);
+        }
+
         members.Remove(dead);
         OnMemberDied?.Invoke(dead);
 
