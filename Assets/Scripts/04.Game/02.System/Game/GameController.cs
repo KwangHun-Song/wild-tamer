@@ -64,8 +64,14 @@ public class GameController
 
         var dt = Time.deltaTime;
 
-        // 1. 입력 → Player
-        Player.Move(playerInput.MoveDirection);
+        // 1. 입력 → Player (축별 장애물 충돌 체크)
+        var rawDir = playerInput.MoveDirection;
+        var pos = (Vector2)Player.Transform.position;
+        var resolvedDir = new Vector2(
+            obstacleGrid.IsWalkable(new Vector2(pos.x + rawDir.x * 0.5f, pos.y)) ? rawDir.x : 0f,
+            obstacleGrid.IsWalkable(new Vector2(pos.x, pos.y + rawDir.y * 0.5f)) ? rawDir.y : 0f
+        );
+        Player.Move(resolvedDir);
         Player.Combat.Tick(dt);
 
         // 2. 부대 이동
