@@ -134,6 +134,8 @@ MonoBehaviour:
   movement: {fileID: 5846652100252353806}
   animator: {fileID: 8244988490624634828}
   spriteRenderer: {fileID: 5279148376336422103}
+  moveAnimTrigger: move
+  idleAnimTrigger: idle
 --- !u!114 &5846652100252353806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7cbc639226a2b649950a67d58b4a6ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3
+  moveSpeed: 2
 --- !u!95 &8244988490624634828
 Animator:
   serializedVersion: 5

@@ -24,4 +24,13 @@ public class SquadMember : Character
     {
         return new UnitCombat(d.attackDamage, d.attackRange, d.detectionRange, d.attackCooldown);
     }
+
+#if UNITY_EDITOR
+    public FlockBehavior.FlockDebugData FlockDebug { get; private set; }
+
+    public void SetFlockDebug(FlockBehavior.FlockDebugData data)
+    {
+        FlockDebug = data;
+    }
+#endif
 }

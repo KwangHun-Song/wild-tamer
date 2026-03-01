@@ -8,8 +8,8 @@ public class Squad
     private readonly List<SquadMember> members = new();
     private readonly FlockBehavior flock;
 
-    public float StopRadius = 0.5f;       // 리더 근처 완전 정지 반경
-    public float MemberStopRadius = 0.5f; // 정지 멤버 근처 연쇄 정지 반경
+    public float StopRadius = 0.6f;       // 리더 근처 완전 정지 반경
+    public float MemberStopRadius = 0.6f; // 정지 멤버 근처 연쇄 정지 반경
 
     public IReadOnlyList<SquadMember> Members => members;
     public int Count => members.Count;
@@ -74,6 +74,10 @@ public class Squad
         foreach (var member in members)
         {
             member.Combat.Tick(deltaTime);
+
+#if UNITY_EDITOR
+            member.SetFlockDebug(flock.ComputeDebugData(member, members, leader, obstacleGrid));
+#endif
 
             if (stopped.Contains(member))
             {

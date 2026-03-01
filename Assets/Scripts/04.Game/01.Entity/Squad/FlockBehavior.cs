@@ -9,12 +9,12 @@ public class FlockBehavior
 {
     public float AlignmentWeight = 1f;
     public float CohesionWeight = 1f;
-    public float SeparationWeight = 2f;
+    public float SeparationWeight = 1.5f;
     public float FollowWeight = 2f;
     public float AvoidanceWeight = 2f;
     public float NeighborRadius = 3f;
     public float ArrivalRadius = 1f;           // Follow 감속 반경 — 이내에서 거리에 비례해 Follow 약화
-    public float MinSeparationDistance = 0.4f; // 캐릭터 간 최소 유지 거리
+    public float MinSeparationDistance = 0.8f; // 캐릭터 간 최소 유지 거리
 
     private readonly List<SquadMember> neighborsCache = new();
 
@@ -54,7 +54,10 @@ public class FlockBehavior
         if (combined == Vector2.zero)
             return Vector2.zero;
 
-        return combined.normalized;
+        if (combined.magnitude > 1F)
+            return combined.normalized;
+
+        return combined;
     }
 
     /// <summary>
@@ -73,17 +76,33 @@ public class FlockBehavior
         if (neighbors.Count == 0)
             return Vector2.zero;
 
+        Vector2 selfPos = self.Transform.position;
         var centerSum = Vector2.zero;
-        foreach (var neighbor in neighbors)
-            centerSum += (Vector2)neighbor.Transform.position;
+        int count = 0;
 
-        var center   = centerSum / neighbors.Count;
-        var toCenter = center - (Vector2)self.Transform.position;
+        foreach (var neighbor in neighbors)
+        {
+            // 최소 유지 거리 이내의 이웃은 이미 충분히 가까우므로 응집 계산에서 제외한다.
+            float dist = Vector2.Distance(selfPos, (Vector2)neighbor.Transform.position);
+            if (dist < MinSeparationDistance) continue;
+
+            centerSum += (Vector2)neighbor.Transform.position;
+            count++;
+        }
+
+        if (count == 0)
+            return Vector2.zero;
+
+        var center   = centerSum / count;
+        var toCenter = center - selfPos;
 
         if (toCenter == Vector2.zero)
             return Vector2.zero;
 
-        return toCenter.normalized;
+        if (toCenter.magnitude > 1F)
+            return toCenter.normalized;
+
+        return toCenter;
     }
 
     /// <summary>
@@ -111,7 +130,10 @@ public class FlockBehavior
         if (separationSum == Vector2.zero)
             return Vector2.zero;
 
-        return separationSum.normalized;
+        if (separationSum.magnitude > 1F)
+            return separationSum.normalized;
+
+        return separationSum;
     }
 
     /// <summary>
