@@ -70,6 +70,7 @@ sysinfo.txt
 # ===== Claude Code CLI =====
 .claude/
 .omc/
+.mcp.json
 
 # ===== OS =====
 # Windows
