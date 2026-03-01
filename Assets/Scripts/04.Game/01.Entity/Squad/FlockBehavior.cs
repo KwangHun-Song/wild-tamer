@@ -13,7 +13,7 @@ public class FlockBehavior
     public float FollowWeight = 2f;
     public float AvoidanceWeight = 2f;
     public float NeighborRadius = 3f;
-    public float ArrivalRadius = 1f;           // 리더 도달 판정 반경 — 이내에선 Follow 없음
+    public float ArrivalRadius = 1f;           // Follow 감속 반경 — 이내에서 거리에 비례해 Follow 약화
     public float MinSeparationDistance = 0.5f; // 캐릭터 간 최소 유지 거리
 
     /// <summary>
@@ -109,16 +109,20 @@ public class FlockBehavior
 
     /// <summary>
     /// 리더(플레이어)를 따라가려는 힘.
-    /// ArrivalRadius 이내에 도달하면 힘을 제거해 목적지 근처 떨림을 방지한다.
+    /// ArrivalRadius 이내에서는 거리에 비례해 힘을 감소시켜 Separation과 자연스러운 평형점을 형성한다.
+    /// (단절 방식은 ArrivalRadius 경계에서 진동을 유발하므로 선형 감소 방식을 사용)
     /// </summary>
     private Vector2 CalculateFollow(SquadMember self, Transform leader)
     {
         var toLeader = (Vector2)leader.position - (Vector2)self.Transform.position;
+        float dist = toLeader.magnitude;
 
-        if (toLeader.sqrMagnitude < ArrivalRadius * ArrivalRadius)
+        if (dist < 0.01f)
             return Vector2.zero;
 
-        return toLeader.normalized;
+        // ArrivalRadius 이내에서 선형 감소 (0에서 0, ArrivalRadius에서 1, 이후 유지)
+        float strength = Mathf.Clamp01(dist / ArrivalRadius);
+        return (toLeader / dist) * strength;
     }
 
     /// <summary>
