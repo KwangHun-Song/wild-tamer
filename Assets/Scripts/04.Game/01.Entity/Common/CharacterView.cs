@@ -13,8 +13,8 @@ public abstract class CharacterView : MonoBehaviour
     protected void HandleMoveRequested(Vector2 direction)
     {
         animator.SetBool(IsMoving, direction.sqrMagnitude > 0.01f);
-        // x 성분이 충분히 클 때만 flip 갱신 — 미세 진동으로 인한 깜빡임 방지
-        if (Mathf.Abs(direction.x) > 0.3f)
+        // x 성분이 명확히 우세할 때만 flip 갱신 — 미세 진동으로 인한 깜빡임 방지
+        if (Mathf.Abs(direction.x) > 0.6f)
             spriteRenderer.flipX = direction.x < 0;
         Movement.Move(direction);
     }

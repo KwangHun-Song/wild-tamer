@@ -8,6 +8,9 @@ public class Squad
     private readonly List<SquadMember> members = new();
     private readonly FlockBehavior flock;
 
+    public float StopRadius = 0.5f;       // 리더 근처 완전 정지 반경
+    public float MemberStopRadius = 0.5f; // 정지 멤버 근처 연쇄 정지 반경
+
     public IReadOnlyList<SquadMember> Members => members;
     public int Count => members.Count;
 
@@ -43,12 +46,42 @@ public class Squad
     public void Update(Transform leader, ObstacleGrid obstacleGrid, float deltaTime)
     {
         Vector2 leaderPos = leader.position;
-        foreach (SquadMember member in members)
+
+        // 1단계: 리더 근처 멤버 정지 판정
+        var stopped = new List<SquadMember>();
+        foreach (var member in members)
+        {
+            if (Vector2.Distance((Vector2)member.Transform.position, leaderPos) <= StopRadius)
+                stopped.Add(member);
+        }
+
+        // 2단계: 정지 멤버 근처 멤버 연쇄 정지 (스냅샷 기반으로 1패스만 수행)
+        var stopSnapshot = new List<SquadMember>(stopped);
+        foreach (var member in members)
+        {
+            if (stopped.Contains(member)) continue;
+            foreach (var s in stopSnapshot)
+            {
+                if (Vector2.Distance((Vector2)member.Transform.position, (Vector2)s.Transform.position) <= MemberStopRadius)
+                {
+                    stopped.Add(member);
+                    break;
+                }
+            }
+        }
+
+        // 3단계: 이동
+        foreach (var member in members)
         {
             member.Combat.Tick(deltaTime);
-            var direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
 
-            // 리더와의 거리 비례로 속도 감소 — ArrivalRadius 이내에서 감속해 오버슈트 방지
+            if (stopped.Contains(member))
+            {
+                member.Move(Vector2.zero);
+                continue;
+            }
+
+            var direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
             float dist = Vector2.Distance((Vector2)member.Transform.position, leaderPos);
             float speedScale = Mathf.Clamp01(dist / flock.ArrivalRadius);
             member.Move(direction * speedScale);
