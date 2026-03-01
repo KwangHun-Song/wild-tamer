@@ -11,19 +11,20 @@ public class MapGenerator : MonoBehaviour
 
     public void Generate()
     {
-        if (obstacleTilemap == null)
+        if (groundTilemap == null)
         {
-            Debug.LogWarning("[MapGenerator] obstacleTilemap이 설정되지 않았습니다.");
+            Debug.LogWarning("[MapGenerator] groundTilemap이 설정되지 않았습니다.");
             ObstacleGrid = new ObstacleGrid(100, 100, cellSize, Vector2.zero);
             return;
         }
 
-        obstacleTilemap.CompressBounds();
-        var bounds = obstacleTilemap.cellBounds;
+        // Ground 타일맵 기준으로 전체 맵 크기 결정
+        groundTilemap.CompressBounds();
+        var bounds = groundTilemap.cellBounds;
 
         int width = bounds.size.x;
         int height = bounds.size.y;
-        var origin = (Vector2)obstacleTilemap.CellToWorld(bounds.min);
+        var origin = (Vector2)groundTilemap.CellToWorld(bounds.min);
 
         ObstacleGrid = new ObstacleGrid(width, height, cellSize, origin);
 
@@ -32,8 +33,13 @@ public class MapGenerator : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 var cellPos = new Vector3Int(bounds.min.x + x, bounds.min.y + y, 0);
-                bool hasObstacle = obstacleTilemap.HasTile(cellPos);
-                ObstacleGrid.SetWalkable(new Vector2Int(x, y), !hasObstacle);
+
+                // Ground 타일이 없으면 물/빈 공간 → 통행 불가
+                bool hasGround = groundTilemap.HasTile(cellPos);
+                // Obstacles 타일이 있으면 → 통행 불가
+                bool hasObstacle = obstacleTilemap != null && obstacleTilemap.HasTile(cellPos);
+
+                ObstacleGrid.SetWalkable(new Vector2Int(x, y), hasGround && !hasObstacle);
             }
         }
     }
