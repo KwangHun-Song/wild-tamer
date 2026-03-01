@@ -50,7 +50,8 @@ public class InPlayState : SceneState
             playerInput,
             playPage.WorldMap.MapGenerator.ObstacleGrid,
             Camera.main,
-            monsterSquadSpawnTable);
+            monsterSquadSpawnTable,
+            playPage.WorldMap.UnitRoot);
 
         // 테스트용: 초기 부대원(Purple) · 몬스터(Red) 스폰
         var spawnOrigin = playPage.WorldMap.PlayerSpawn != null
