@@ -46945,4 +46945,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groundTilemap: {fileID: 334814926230754288}
   obstacleTilemap: {fileID: 2245047048718457632}
+  waterTile: {fileID: 11400000, guid: 313e3ca8663e7ee41adab2532f6d47bf, type: 2}
   cellSize: 1
