@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 군집 행동(Flocking) 방향을 계산한다.
+/// Alignment · Cohesion · Separation · Follow · Avoidance 다섯 힘의 합산으로 이동 방향을 결정한다.
+/// </summary>
 public class FlockBehavior
 {
     public float AlignmentWeight = 1f;
@@ -9,15 +13,19 @@ public class FlockBehavior
     public float FollowWeight = 2f;
     public float AvoidanceWeight = 2f;
     public float NeighborRadius = 3f;
-    public float ArrivalRadius = 2f;           // 리더 도달 판정 반경 — 이내에선 Follow 없음
-    public float MinSeparationDistance = 0.8f; // 캐릭터 간 최소 유지 거리
+    public float ArrivalRadius = 1f;           // 리더 도달 판정 반경 — 이내에선 Follow 없음
+    public float MinSeparationDistance = 0.5f; // 캐릭터 간 최소 유지 거리
 
+    /// <summary>
+    /// 각 힘을 가중합산하고 정규화한 최종 이동 방향을 반환한다.
+    /// </summary>
     public Vector2 CalculateDirection(
         SquadMember self,
         IReadOnlyList<SquadMember> neighbors,
         Transform leader,
         ObstacleGrid obstacleGrid)
     {
+        // NeighborRadius 이내의 이웃만 수집
         var others = new List<SquadMember>();
         var selfPos2D = (Vector2)self.Transform.position;
         foreach (var neighbor in neighbors)
@@ -42,12 +50,17 @@ public class FlockBehavior
         return combined.normalized;
     }
 
+    /// <summary>
+    /// 이웃의 평균 이동 방향에 맞추려는 힘. (현재 미구현 — MoveDirection 노출 시 확장)
+    /// </summary>
     private Vector2 CalculateAlignment(SquadMember self, List<SquadMember> neighbors)
     {
-        // UnitMovement에 MoveDirection이 없어 현재는 zero 반환 — 향후 확장 시 구현
         return Vector2.zero;
     }
 
+    /// <summary>
+    /// 이웃의 무게중심 방향으로 모이려는 힘.
+    /// </summary>
     private Vector2 CalculateCohesion(SquadMember self, List<SquadMember> neighbors)
     {
         if (neighbors.Count == 0)
@@ -66,6 +79,10 @@ public class FlockBehavior
         return toCenter.normalized;
     }
 
+    /// <summary>
+    /// 이웃과 최소 거리(MinSeparationDistance)를 유지하려는 힘.
+    /// 거리가 가까울수록 반발력이 강해지는 선형 모델.
+    /// </summary>
     private Vector2 CalculateSeparation(SquadMember self, List<SquadMember> neighbors)
     {
         if (neighbors.Count == 0)
@@ -90,17 +107,23 @@ public class FlockBehavior
         return separationSum.normalized;
     }
 
+    /// <summary>
+    /// 리더(플레이어)를 따라가려는 힘.
+    /// ArrivalRadius 이내에 도달하면 힘을 제거해 목적지 근처 떨림을 방지한다.
+    /// </summary>
     private Vector2 CalculateFollow(SquadMember self, Transform leader)
     {
         var toLeader = (Vector2)leader.position - (Vector2)self.Transform.position;
 
-        // 도달 반경 이내에선 Follow 없음 — 떨림 방지
         if (toLeader.sqrMagnitude < ArrivalRadius * ArrivalRadius)
             return Vector2.zero;
 
         return toLeader.normalized;
     }
 
+    /// <summary>
+    /// 4방향 인접 셀을 검사해 장애물을 피하려는 힘.
+    /// </summary>
     private Vector2 CalculateAvoidance(SquadMember self, ObstacleGrid obstacleGrid)
     {
         Vector2 selfPos = self.Transform.position;
