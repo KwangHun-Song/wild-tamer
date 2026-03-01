@@ -82,9 +82,7 @@ public class Squad
             }
 
             var direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
-            float dist = Vector2.Distance((Vector2)member.Transform.position, leaderPos);
-            float speedScale = Mathf.Clamp01(dist / flock.ArrivalRadius);
-            member.Move(direction * speedScale);
+            member.Move(direction);
         }
     }
 }
