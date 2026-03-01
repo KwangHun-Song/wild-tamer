@@ -19,6 +19,22 @@ public class FlockBehavior
 
     private readonly List<IUnit> neighborsCache = new();
 
+    public FlockBehavior() { }
+
+    /// <summary>ScriptableObject 설정으로 가중치와 반경을 초기화한다. null이면 기본값을 유지한다.</summary>
+    public FlockBehavior(FlockSettingsData settings)
+    {
+        if (settings == null) return;
+        AlignmentWeight      = settings.alignmentWeight;
+        CohesionWeight       = settings.cohesionWeight;
+        SeparationWeight     = settings.separationWeight;
+        FollowWeight         = settings.followWeight;
+        AvoidanceWeight      = settings.avoidanceWeight;
+        NeighborRadius       = settings.neighborRadius;
+        ArrivalRadius        = settings.arrivalRadius;
+        MinSeparationDistance = settings.minSeparationDistance;
+    }
+
     /// <summary>
     /// 각 힘을 가중합산하고 정규화한 최종 이동 방향을 반환한다.
     /// </summary>

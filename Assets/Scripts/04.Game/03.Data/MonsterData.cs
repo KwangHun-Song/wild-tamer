@@ -15,6 +15,7 @@ public class MonsterData : ScriptableObject
     public float tamingChance;
     public GameObject prefab;
     public GameObject squadPrefab;
+    public FlockSettingsData flockSettings;
     public BossPattern[] bossPatterns;
 }
 

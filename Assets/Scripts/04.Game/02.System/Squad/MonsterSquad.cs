@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base;
 using UnityEngine;
 
 /// <summary>
@@ -14,7 +15,7 @@ public class MonsterSquad
     private readonly Dictionary<Monster, Action> deathHandlers = new();
     private Monster leader;
     private readonly SpatialGrid<IUnit> unitGrid;
-    private readonly FlockBehavior flock = new();
+    private readonly FlockBehavior flock;
 
     public float StopRadius = 0.6f; // 리더 근처 팔로워 정지 반경
 
@@ -30,6 +31,11 @@ public class MonsterSquad
     {
         Data = data;
         this.unitGrid = unitGrid;
+        flock = new FlockBehavior(data.flockSettings);
+
+        var squadSettings = Facade.DB.Get<SquadSettingsData>("SquadSettings");
+        if (squadSettings != null)
+            StopRadius = squadSettings.stopRadius;
     }
 
     public void AddMember(Monster monster)

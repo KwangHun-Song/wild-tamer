@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base;
 using UnityEngine;
 
 public class Squad
@@ -19,7 +20,15 @@ public class Squad
 
     public Squad()
     {
-        flock = new FlockBehavior();
+        var flockSettings = Facade.DB.Get<FlockSettingsData>("PlayerSquadFlock");
+        flock = new FlockBehavior(flockSettings);
+
+        var squadSettings = Facade.DB.Get<SquadSettingsData>("SquadSettings");
+        if (squadSettings != null)
+        {
+            StopRadius       = squadSettings.stopRadius;
+            MemberStopRadius = squadSettings.memberStopRadius;
+        }
     }
 
     public void AddMember(SquadMember member)

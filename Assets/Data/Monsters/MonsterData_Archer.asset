@@ -24,4 +24,5 @@ MonoBehaviour:
   tamingChance: 0.3
   prefab: {fileID: 7956779084935424389, guid: 0a4fea54baa459441bae168004884013, type: 3}
   squadPrefab: {fileID: 7956779084935424389, guid: 87ddf7b3aa64c7943b4f390ec6e8d223, type: 3}
+  flockSettings: {fileID: 11400000, guid: 60d607d5ac1cf3349833bfd8b5fb8e42, type: 2}
   bossPatterns: []
