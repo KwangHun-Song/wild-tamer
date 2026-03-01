@@ -49,7 +49,7 @@ public class Monster : Character
 
     public event Action<Vector2> OnMoveRequested;
 
-    public Monster(MonsterView view, MonsterData data)
+    public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid)
         : base(view, CreateCombat(data))
     {
         Data = data;
@@ -61,7 +61,7 @@ public class Monster : Character
         view.Health.OnDeath   += monsterView.PlayDeathEffect;
         view.Subscribe(this);
 
-        ai = new MonsterAI(this);
+        ai = new MonsterAI(this, unitGrid);
         ai.SetUp();
     }
 
@@ -103,7 +103,7 @@ public class MonsterView : CharacterView
 
 FSM(`StateMachine<Monster, MonsterTrigger>`) 기반 AI. Idle → Chase → Attack 상태를 전이한다.
 
-각 State는 탐지 로직이 필요하다. `MonsterIdleState`와 `MonsterChaseState`는 Owner의 `Combat.DetectionRange`를 기준으로 **CombatSystem의 SpatialGrid**를 조회하여 적을 탐지한다. SpatialGrid 참조는 MonsterAI 생성 시 주입받는다.
+탐지·이동·공격 판정 로직은 `MonsterAI.Update()`에 중앙 집중된다. 부모의 `StateMachine.Update()`를 `new` 키워드로 숨기고, 매 프레임 switch 문으로 현재 상태에 따라 SpatialGrid를 조회하여 전이 트리거를 실행한다. 각 State 클래스(`MonsterIdleState`, `MonsterChaseState`, `MonsterAttackState`)는 `OnEnter()` / `OnExit()` 만 구현한다. SpatialGrid 참조는 MonsterAI 생성 시 주입받는다.
 
 ```csharp
 public enum MonsterTrigger
@@ -134,19 +134,36 @@ public class MonsterAI : StateMachine<Monster, MonsterTrigger>
     {
         UnitGrid = unitGrid;
     }
+
+    /// <summary>Monster.Update()에서 매 프레임 호출. 상태 전이 판정과 이동을 처리한다.</summary>
+    public new void Update()
+    {
+        var pos = (Vector2)Owner.Transform.position;
+        switch (CurrentState)
+        {
+            case MonsterIdleState _:
+                if (HasEnemyInRange(pos, Owner.Combat.DetectionRange))
+                    ExecuteCommand(MonsterTrigger.DetectEnemy);
+                break;
+            case MonsterChaseState _:
+                // 탐지 범위 이탈 → Idle / 공격 범위 진입 → Attack / 그 외 → 추적 이동
+                break;
+            case MonsterAttackState _:
+                // 공격 범위 이탈 → Chase / CanAttack → ResetCooldown (데미지는 추후 연결)
+                break;
+        }
+    }
 }
 ```
 
-각 State는 `StateMachine.Owner`(Monster)와 `(StateMachine as MonsterAI).UnitGrid`를 통해 탐지를 수행한다.
+각 State 클래스는 `OnEnter()` / `OnExit()` 만 담당한다. 전이 판정은 `MonsterAI.Update()`가 수행한다.
 
 ```csharp
 // MonsterIdleState 예시
 public class MonsterIdleState : State<Monster, MonsterTrigger>
 {
     public override void OnEnter() { /* 대기 애니메이션 */ }
-
-    // TryTransition에서 조건 체크 — 탐지 범위 내 적 존재 시 DetectEnemy 트리거
-    // StateMachine.TryTransition()이 매 프레임 호출하므로 여기서 조건 평가
+    public override void OnExit()  { }
 }
 ```
 
@@ -169,17 +186,23 @@ Monster와 SquadMember 양쪽 스폰/디스폰을 담당한다. `OnMonsterSpawne
 public class EntitySpawner
 {
     private readonly List<Monster> activeMonsters = new();
+    private readonly SpatialGrid<IUnit> unitGrid;   // MonsterAI 탐지에 사용
 
     public IReadOnlyList<Monster> ActiveMonsters => activeMonsters;
 
     public event Action<Monster> OnMonsterSpawned;
     public event Action<Monster> OnMonsterDespawned;
 
+    public EntitySpawner(SpatialGrid<IUnit> unitGrid)
+    {
+        this.unitGrid = unitGrid;
+    }
+
     public Monster SpawnMonster(MonsterData data, Vector2 position)
     {
         var go      = Facade.Pool.Spawn(data.prefab, position);
         var view    = go.GetComponent<MonsterView>();
-        var monster = new Monster(view, data);
+        var monster = new Monster(view, data, unitGrid);
         activeMonsters.Add(monster);
         OnMonsterSpawned?.Invoke(monster);
         return monster;
