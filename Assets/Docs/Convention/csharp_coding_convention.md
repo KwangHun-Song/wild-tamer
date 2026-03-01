@@ -81,6 +81,8 @@ if (other is null)
 - **클래스명과 파일명은 일치**시킨다. (`PlayerController` 클래스 → `PlayerController.cs`)
 - 한 클래스는 한 파일로 분리한다.
   - 대표 클래스의 하위 클래스들이고, 함께 보는 것이 가독성에 유리한 경우 일부 예외 허용
+  - **enum과 interface는 클래스가 아니므로**, 밀접하게 연관된 타입을 같은 파일에 함께 정의할 수 있다.
+    - 예: `UnitTeam` enum과 `IUnit` interface → `IUnit.cs` 한 파일에 공존 허용
 - 클래스명과 에셋명은 일치시킨다.
 - 문서 파일에 한해 **snake_case**를 사용한다. (`csharp_coding_convention.md`)
 
@@ -116,6 +118,34 @@ public void _Initialize() { }
 ## using 문
 
 - 필요 없는 항목을 정리하여 **최소화**한다.
+
+## 아키텍처 레이어 규칙
+
+MVP 패턴을 기반으로 레이어를 분리한다. **MonoBehaviour는 View/Bridge 레이어에만 허용**한다.
+
+| 레이어 | 형태 | 역할 | 예시 |
+|--------|------|------|------|
+| Model / Logic | pure C# | 게임 로직, 상태 관리 | `Character`, `UnitHealth`, `UnitCombat`, `GameController` |
+| View | MonoBehaviour | Unity 렌더링, 컴포넌트 연결 | `CharacterView`, `PlayerView` |
+| Bridge | MonoBehaviour | Unity 생명주기(Update 등)를 Controller에 위임 | `GameLoop` |
+
+```csharp
+// Good - 로직은 pure C#
+public class UnitHealth
+{
+    public int CurrentHp { get; private set; }
+    public void TakeDamage(int damage) { ... }
+}
+
+// Bad - 로직에 MonoBehaviour 사용
+public class UnitHealth : MonoBehaviour  // ← MVP 레이어 위반
+{
+    public void TakeDamage(int damage) { ... }
+}
+```
+
+- Model/Logic 레이어 클래스가 `MonoBehaviour`를 상속하면 MVP 레이어 위반으로 간주한다.
+- Bridge 레이어(`GameLoop` 등)는 직접 로직을 구현하지 않고, Controller의 메서드를 호출하는 역할만 한다.
 
 ## 기타 규칙
 

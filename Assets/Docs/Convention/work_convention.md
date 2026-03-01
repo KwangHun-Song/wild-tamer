@@ -41,6 +41,20 @@
 - 예상되는 기술적 난이도 및 리스크
 - 테스트 방법
 
+#### 구현 계획 문서 분할
+
+하나의 Phase에 독립적인 시스템이 여럿 포함되거나 구현 계획이 복잡한 경우, **시스템별로 분리**하여 작성할 수 있다.
+
+```
+Phase2_Core/
+├── implementation_plan.md              # 전체 개요 (선택)
+├── implementation_plan_world_map.md    # 월드맵 시스템 구현 계획
+└── implementation_plan_play_page.md    # 플레이 페이지 구현 계획
+```
+
+- 파일명은 `implementation_plan_{시스템명}.md` 형식을 따른다 (snake_case).
+- 각 파일의 내부 구조는 단일 `implementation_plan.md`와 동일하다.
+
 ### 5단계: 구현
 
 계획에 따라 **코드를 작성**한다.
