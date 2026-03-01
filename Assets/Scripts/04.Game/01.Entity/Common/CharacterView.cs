@@ -8,8 +8,9 @@ public abstract class CharacterView : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
 
-    [SerializeField] private string moveAnimTrigger = "move";
-    [SerializeField] private string idleAnimTrigger = "idle";
+    [SerializeField] private string moveAnimTrigger   = "move";
+    [SerializeField] private string idleAnimTrigger   = "idle";
+    [SerializeField] private string attackAnimTrigger = "attack";
 
     private const int QueueSize = 5;
 
@@ -17,6 +18,12 @@ public abstract class CharacterView : MonoBehaviour
     private readonly Queue<Vector2> directionQueue = new ();
 
     public UnitMovement Movement => movement;
+
+    protected void HandleAttackRequested()
+    {
+        isMovingState = false;
+        animator.SetTrigger(attackAnimTrigger);
+    }
 
     protected void HandleMoveRequested(Vector2 direction)
     {

@@ -8,6 +8,7 @@ public class SquadMemberView : CharacterView
     {
         subscribedMember = member;
         member.OnMoveRequested += OnMoveRequested;
+        member.OnAttackFired   += HandleAttackRequested;
     }
 
     public void Unsubscribe()
@@ -15,6 +16,7 @@ public class SquadMemberView : CharacterView
         if (subscribedMember != null)
         {
             subscribedMember.OnMoveRequested -= OnMoveRequested;
+            subscribedMember.OnAttackFired   -= HandleAttackRequested;
             subscribedMember = null;
         }
     }

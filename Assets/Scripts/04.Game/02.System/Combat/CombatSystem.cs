@@ -61,6 +61,7 @@ public class CombatSystem
             {
                 if (target.Team == unit.Team || !target.IsAlive) continue;
                 DamageProcessor.ProcessDamage(unit, target, notifier);
+                (unit as Character)?.FireAttack();
                 break; // 한 틱에 한 대상만 공격
             }
         }

@@ -8,6 +8,7 @@ public class MonsterView : CharacterView
     {
         subscribedMonster = monster;
         monster.OnMoveRequested += OnMoveRequested;
+        monster.OnAttackFired   += HandleAttackRequested;
     }
 
     public void Unsubscribe()
@@ -15,6 +16,7 @@ public class MonsterView : CharacterView
         if (subscribedMonster != null)
         {
             subscribedMonster.OnMoveRequested -= OnMoveRequested;
+            subscribedMonster.OnAttackFired   -= HandleAttackRequested;
             subscribedMonster = null;
         }
     }

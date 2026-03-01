@@ -8,6 +8,7 @@ public class PlayerView : CharacterView
     {
         subscribedPlayer = player;
         player.OnMoveRequested += OnMoveRequested;
+        player.OnAttackFired   += HandleAttackRequested;
     }
 
     public void Unsubscribe()
@@ -15,6 +16,7 @@ public class PlayerView : CharacterView
         if (subscribedPlayer != null)
         {
             subscribedPlayer.OnMoveRequested -= OnMoveRequested;
+            subscribedPlayer.OnAttackFired   -= HandleAttackRequested;
             subscribedPlayer = null;
         }
     }
