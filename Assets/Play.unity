@@ -628,6 +628,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1365925640}
     - target: {fileID: 7070524933350365199, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
+      propertyPath: uiCamera
+      value: 
+      objectReference: {fileID: 869663256}
+    - target: {fileID: 7070524933350365199, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
       propertyPath: popupRoot
       value: 
       objectReference: {fileID: 1751116662}

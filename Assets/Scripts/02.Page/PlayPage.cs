@@ -9,8 +9,14 @@ public class PlayPage : Page
 
     [SerializeField] private Button settingButton;
     [SerializeField] private Transform worldMapRoot;
+    [SerializeField] private Canvas canvas;
+    [SerializeField] private WorldMap worldMap;
+    [SerializeField] private PlayerView playerView;
 
     public Transform WorldMapRoot => worldMapRoot;
+    public Canvas Canvas => canvas;
+    public WorldMap WorldMap => worldMap;
+    public PlayerView PlayerView => playerView;
 
     public override UniTask ShowAsync(object param = null)
     {
