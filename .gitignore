@@ -84,3 +84,6 @@ $RECYCLE.BIN/
 .AppleDouble
 .LSOverride
 ._*
+
+# Unity Editor temp files
+Assets/Editor/Temp.meta
