@@ -14,7 +14,9 @@ public class FlockBehavior
     public float AvoidanceWeight = 2f;
     public float NeighborRadius = 3f;
     public float ArrivalRadius = 1f;           // Follow 감속 반경 — 이내에서 거리에 비례해 Follow 약화
-    public float MinSeparationDistance = 0.5f; // 캐릭터 간 최소 유지 거리
+    public float MinSeparationDistance = 0.4f; // 캐릭터 간 최소 유지 거리
+
+    private readonly List<SquadMember> neighborsCache = new();
 
     /// <summary>
     /// 각 힘을 가중합산하고 정규화한 최종 이동 방향을 반환한다.
@@ -26,23 +28,28 @@ public class FlockBehavior
         ObstacleGrid obstacleGrid)
     {
         // NeighborRadius 이내의 이웃만 수집
-        var others = new List<SquadMember>();
+        neighborsCache.Clear();
         var selfPos2D = (Vector2)self.Transform.position;
         foreach (var neighbor in neighbors)
         {
             if (neighbor == self) continue;
             float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
             if (dist <= NeighborRadius)
-                others.Add(neighbor);
+                neighborsCache.Add(neighbor);
         }
 
-        var alignment  = CalculateAlignment(self, others) * AlignmentWeight;
-        var cohesion   = CalculateCohesion(self, others) * CohesionWeight;
-        var separation = CalculateSeparation(self, others) * SeparationWeight;
+        var alignment  = CalculateAlignment(self, neighborsCache) * AlignmentWeight;
+        var cohesion   = CalculateCohesion(self, neighborsCache) * CohesionWeight;
+        var separation = CalculateSeparation(self, neighborsCache) * SeparationWeight;
         var follow     = CalculateFollow(self, leader) * FollowWeight;
         var avoidance  = CalculateAvoidance(self, obstacleGrid) * AvoidanceWeight;
 
         var combined = alignment + cohesion + separation + follow + avoidance;
+
+        // x, y값을 각각 오프셋 미만이면 0으로 치환
+        var offsetMin = 0.2F;
+        combined.x = Mathf.Abs(combined.x) < offsetMin ? 0F : combined.x;
+        combined.y = Mathf.Abs(combined.y) < offsetMin ? 0F : combined.y;
 
         if (combined == Vector2.zero)
             return Vector2.zero;
@@ -117,12 +124,16 @@ public class FlockBehavior
         var toLeader = (Vector2)leader.position - (Vector2)self.Transform.position;
         float dist = toLeader.magnitude;
 
-        if (dist < 0.01f)
+        // 충분히 가까워졌으면 더 이상 리더에 가까이 가지 않는다.
+        if (dist < ArrivalRadius)
             return Vector2.zero;
 
-        // ArrivalRadius 이내에서 선형 감소 (0에서 0, ArrivalRadius에서 1, 이후 유지)
-        float strength = Mathf.Clamp01(dist / ArrivalRadius);
-        return (toLeader / dist) * strength;
+        // 멀면 충분한 힘으로 리더를 따라가려고 한다.
+        if (dist > ArrivalRadius * 2)
+            return toLeader;
+
+        // 중간 거리에서는 보간 사용
+        return Vector2.Lerp(Vector2.zero, toLeader, (dist - ArrivalRadius) / ArrivalRadius);
     }
 
     /// <summary>
@@ -146,4 +157,54 @@ public class FlockBehavior
 
         return avoidance.normalized;
     }
+
+#if UNITY_EDITOR
+    public struct FlockDebugData
+    {
+        public Vector2 Cohesion;
+        public Vector2 Separation;
+        public Vector2 Follow;
+        public Vector2 Avoidance;
+        public Vector2 Combined;
+    }
+
+    /// <summary>
+    /// 기즈모 시각화용 디버그 데이터를 계산한다. (에디터 전용)
+    /// </summary>
+    public FlockDebugData ComputeDebugData(
+        SquadMember self,
+        IReadOnlyList<SquadMember> neighbors,
+        Transform leader,
+        ObstacleGrid obstacleGrid)
+    {
+        neighborsCache.Clear();
+        var selfPos2D = (Vector2)self.Transform.position;
+        foreach (var neighbor in neighbors)
+        {
+            if (neighbor == self) continue;
+            float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
+            if (dist <= NeighborRadius)
+                neighborsCache.Add(neighbor);
+        }
+
+        var cohesion   = CalculateCohesion(self, neighborsCache)       * CohesionWeight;
+        var separation = CalculateSeparation(self, neighborsCache)      * SeparationWeight;
+        var follow     = CalculateFollow(self, leader)                  * FollowWeight;
+        var avoidance  = CalculateAvoidance(self, obstacleGrid)         * AvoidanceWeight;
+        var alignment  = CalculateAlignment(self, neighborsCache)       * AlignmentWeight;
+        var combined   = alignment + cohesion + separation + follow + avoidance;
+
+        combined.x = Mathf.Abs(combined.x) < 0.1F ? 0F : combined.x;
+        combined.y = Mathf.Abs(combined.y) < 0.1F ? 0F : combined.y;
+
+        return new FlockDebugData
+        {
+            Cohesion   = cohesion,
+            Separation = separation,
+            Follow     = follow,
+            Avoidance  = avoidance,
+            Combined   = combined == Vector2.zero ? Vector2.zero : combined.normalized,
+        };
+    }
+#endif
 }
