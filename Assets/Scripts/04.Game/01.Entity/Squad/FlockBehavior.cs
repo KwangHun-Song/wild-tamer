@@ -5,10 +5,12 @@ public class FlockBehavior
 {
     public float AlignmentWeight = 1f;
     public float CohesionWeight = 1f;
-    public float SeparationWeight = 1.5f;
+    public float SeparationWeight = 2f;
     public float FollowWeight = 2f;
     public float AvoidanceWeight = 2f;
     public float NeighborRadius = 3f;
+    public float ArrivalRadius = 2f;           // 리더 도달 판정 반경 — 이내에선 Follow 없음
+    public float MinSeparationDistance = 0.8f; // 캐릭터 간 최소 유지 거리
 
     public Vector2 CalculateDirection(
         SquadMember self,
@@ -16,30 +18,26 @@ public class FlockBehavior
         Transform leader,
         ObstacleGrid obstacleGrid)
     {
-        List<SquadMember> others = new List<SquadMember>();
+        var others = new List<SquadMember>();
         var selfPos2D = (Vector2)self.Transform.position;
-        foreach (SquadMember neighbor in neighbors)
+        foreach (var neighbor in neighbors)
         {
-            if (neighbor != self)
-            {
-                float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
-                if (dist <= NeighborRadius)
-                    others.Add(neighbor);
-            }
+            if (neighbor == self) continue;
+            float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
+            if (dist <= NeighborRadius)
+                others.Add(neighbor);
         }
 
-        Vector2 alignment = CalculateAlignment(self, others) * AlignmentWeight;
-        Vector2 cohesion = CalculateCohesion(self, others) * CohesionWeight;
-        Vector2 separation = CalculateSeparation(self, others) * SeparationWeight;
-        Vector2 follow = CalculateFollow(self, leader) * FollowWeight;
-        Vector2 avoidance = CalculateAvoidance(self, obstacleGrid) * AvoidanceWeight;
+        var alignment  = CalculateAlignment(self, others) * AlignmentWeight;
+        var cohesion   = CalculateCohesion(self, others) * CohesionWeight;
+        var separation = CalculateSeparation(self, others) * SeparationWeight;
+        var follow     = CalculateFollow(self, leader) * FollowWeight;
+        var avoidance  = CalculateAvoidance(self, obstacleGrid) * AvoidanceWeight;
 
-        Vector2 combined = alignment + cohesion + separation + follow + avoidance;
+        var combined = alignment + cohesion + separation + follow + avoidance;
 
         if (combined == Vector2.zero)
-        {
             return Vector2.zero;
-        }
 
         return combined.normalized;
     }
@@ -53,23 +51,17 @@ public class FlockBehavior
     private Vector2 CalculateCohesion(SquadMember self, List<SquadMember> neighbors)
     {
         if (neighbors.Count == 0)
-        {
             return Vector2.zero;
-        }
 
-        Vector2 centerSum = Vector2.zero;
-        foreach (SquadMember neighbor in neighbors)
-        {
+        var centerSum = Vector2.zero;
+        foreach (var neighbor in neighbors)
             centerSum += (Vector2)neighbor.Transform.position;
-        }
 
-        Vector2 center = centerSum / neighbors.Count;
-        Vector2 toCenter = center - (Vector2)self.Transform.position;
+        var center   = centerSum / neighbors.Count;
+        var toCenter = center - (Vector2)self.Transform.position;
 
         if (toCenter == Vector2.zero)
-        {
             return Vector2.zero;
-        }
 
         return toCenter.normalized;
     }
@@ -77,40 +69,34 @@ public class FlockBehavior
     private Vector2 CalculateSeparation(SquadMember self, List<SquadMember> neighbors)
     {
         if (neighbors.Count == 0)
-        {
             return Vector2.zero;
-        }
 
         Vector2 selfPos = self.Transform.position;
-        Vector2 separationSum = Vector2.zero;
+        var separationSum = Vector2.zero;
 
-        foreach (SquadMember neighbor in neighbors)
+        foreach (var neighbor in neighbors)
         {
-            Vector2 diff = selfPos - (Vector2)neighbor.Transform.position;
+            var diff = selfPos - (Vector2)neighbor.Transform.position;
             float distance = diff.magnitude;
 
-            if (distance > 0f)
-            {
-                separationSum += diff / (distance * distance);
-            }
+            // 최소 거리 이내일 때만 선형 반발력 적용 (distance=0에서 최대, MinSeparationDistance에서 0)
+            if (distance > 0f && distance < MinSeparationDistance)
+                separationSum += diff.normalized * (MinSeparationDistance - distance) / MinSeparationDistance;
         }
 
         if (separationSum == Vector2.zero)
-        {
             return Vector2.zero;
-        }
 
         return separationSum.normalized;
     }
 
     private Vector2 CalculateFollow(SquadMember self, Transform leader)
     {
-        Vector2 toLeader = (Vector2)leader.position - (Vector2)self.Transform.position;
+        var toLeader = (Vector2)leader.position - (Vector2)self.Transform.position;
 
-        if (toLeader == Vector2.zero)
-        {
+        // 도달 반경 이내에선 Follow 없음 — 떨림 방지
+        if (toLeader.sqrMagnitude < ArrivalRadius * ArrivalRadius)
             return Vector2.zero;
-        }
 
         return toLeader.normalized;
     }
@@ -118,29 +104,18 @@ public class FlockBehavior
     private Vector2 CalculateAvoidance(SquadMember self, ObstacleGrid obstacleGrid)
     {
         Vector2 selfPos = self.Transform.position;
-        Vector2 avoidance = Vector2.zero;
+        var avoidance = Vector2.zero;
 
-        Vector2[] directions = new Vector2[]
-        {
-            Vector2.up,
-            Vector2.down,
-            Vector2.left,
-            Vector2.right
-        };
+        Vector2[] directions = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
 
-        foreach (Vector2 dir in directions)
+        foreach (var dir in directions)
         {
-            Vector2 checkPos = selfPos + dir;
-            if (!obstacleGrid.IsWalkable(checkPos))
-            {
+            if (!obstacleGrid.IsWalkable(selfPos + dir))
                 avoidance -= dir;
-            }
         }
 
         if (avoidance == Vector2.zero)
-        {
             return Vector2.zero;
-        }
 
         return avoidance.normalized;
     }

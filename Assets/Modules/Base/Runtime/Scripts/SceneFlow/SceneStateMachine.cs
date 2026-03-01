@@ -22,6 +22,7 @@ namespace Base
             foreach (var state in allStates)
             {
                 state.OnSetUp(this);
+                state.gameObject.SetActive(false);
             }
         }
 
@@ -39,6 +40,7 @@ namespace Base
                 return;
 
             CurrentState = state;
+            state.gameObject.SetActive(true);
             Notifier.Notify<ISceneStateEnterEvent>(l => l.OnSceneStateEnter(state));
 
             try
@@ -51,6 +53,7 @@ namespace Base
             finally
             {
                 Notifier.Notify<ISceneStateExitEvent>(l => l.OnSceneStateExit(state));
+                state.gameObject.SetActive(false);
             }
         }
 

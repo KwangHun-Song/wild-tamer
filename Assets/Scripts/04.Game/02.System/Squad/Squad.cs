@@ -33,7 +33,7 @@ public class Squad
 
     public void Clear()
     {
-        List<SquadMember> copy = members.ToList();
+        var copy = members.ToList();
         foreach (SquadMember member in copy)
         {
             RemoveMember(member);

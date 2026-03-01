@@ -56,22 +56,57 @@ void TakeDamage(int amount) { }
 
 ### 중괄호
 
-- 중괄호 추가 규칙은 **자율**로 하되, 추후 가독성이 좋은 규칙을 논의할 여지를 남긴다.
-- `if`, `for`, `foreach`, `while` 등의 본문이 **한 줄**이면 중괄호를 생략할 수 있다.
+- `if`, `for`, `foreach`, `while` 등의 본문이 **한 줄**이면 중괄호를 **생략**한다.
+- 단, else/else-if 체인에서 하나라도 여러 줄이 필요하면 체인 전체에 중괄호를 유지한다.
 
 ```csharp
-// 허용 - 한 줄 본문은 중괄호 생략 가능
+// Good - 한 줄 본문은 중괄호 생략
 if (other is null)
     return false;
 
 if (!isValid)
     continue;
 
-// 허용 - 중괄호를 넣어도 무방
+// Bad - 한 줄인데 중괄호 사용
 if (other is null)
 {
     return false;
 }
+
+// Good - else 체인에서 한 곳이 여러 줄이면 전체 유지
+if (a)
+{
+    DoA();
+}
+else if (b)
+{
+    DoB1();
+    DoB2();
+}
+else
+{
+    DoC();
+}
+```
+
+### var 사용
+
+- 우변에서 타입이 **명확히 드러나는** 경우 `var`를 사용한다.
+- 우변만 보고 타입을 즉시 알 수 없는 경우 타입을 명시한다.
+
+```csharp
+// Good - 우변에서 타입이 명확
+var player = new Player();
+var states = GetComponentsInChildren<SceneState>(true);
+var members = new List<SquadMember>();
+
+// Good - 타입이 불명확하면 명시
+IUnit closest = null;
+float minDist = float.MaxValue;
+
+// Bad - 우변이 명확한데 타입 반복
+Player player = new Player();
+List<SquadMember> members = new List<SquadMember>();
 ```
 
 ## 명명 규칙
