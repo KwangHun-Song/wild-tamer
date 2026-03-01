@@ -43,6 +43,7 @@ public class EntitySpawner
 
     public void DespawnMonster(Monster monster)
     {
+        monster.Cleanup();
         OnMonsterDespawned?.Invoke(monster);
         activeMonsters.Remove(monster);
         Facade.Pool.Despawn(monster.Transform.gameObject);

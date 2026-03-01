@@ -129,6 +129,7 @@ public class GameController
         Squad.OnMemberRemoved -= combatSystem.UnregisterUnit;
         entitySpawner.OnMonsterSpawned   -= combatSystem.RegisterUnit;
         entitySpawner.OnMonsterDespawned -= combatSystem.UnregisterUnit;
+        tamingSystem.Dispose();
     }
 
     public void SetPhase(GamePhase phase) => Phase = phase;
