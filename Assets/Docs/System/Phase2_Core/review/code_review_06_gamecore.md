@@ -83,6 +83,8 @@ foreach (SquadMember member in members)
 }
 ```
 
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `Squad.Update()` 내 각 멤버에 `member.Combat.Tick(deltaTime)` 호출이 추가됨.
+
 ---
 
 ### 2. EntitySpawner.Update() 순회 중 컬렉션 변경 위험 (중요도: 높음)
@@ -118,6 +120,8 @@ public void Update(float deltaTime)
     }
 }
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `var snapshot = new List<Monster>(activeMonsters)` 복사본 생성 후 순회로 변경됨.
 
 ---
 
@@ -169,6 +173,8 @@ public void Cleanup()
 // GameLoop
 private void OnDestroy() => gameController?.Cleanup();
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `GameController.Cleanup()` 메서드와 `GameLoop.OnDestroy()`에서의 호출이 구현됨.
 
 ---
 
@@ -224,6 +230,8 @@ foreach (var monsterSnap in snapshot.Monsters)
     // HP 복원이 필요하면 monster.Health.SetCurrentHp(monsterSnap.CurrentHp) 등 추가
 }
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `RestoreFromSnapshot()`에 `snapshot.Monsters`를 순회하여 몬스터를 재스폰하는 루프가 추가됨.
 
 ---
 

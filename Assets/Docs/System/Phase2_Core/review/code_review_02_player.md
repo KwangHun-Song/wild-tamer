@@ -118,6 +118,8 @@ public class PlayerView : CharacterView
 }
 ```
 
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. 람다 대신 명명된 메서드, `subscribedPlayer` 필드, `Unsubscribe()` 및 `OnDestroy()` 구현됨.
+
 ---
 
 ### 2. QuarterViewCamera target null 체크 부재 (중요도: 높음)
@@ -145,6 +147,8 @@ private void LateUpdate()
     transform.position = Vector3.Lerp(transform.position, desired, smoothSpeed * Time.deltaTime);
 }
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `LateUpdate()` 시작부에 `if (target == null) return;` null 체크 추가됨.
 
 ---
 

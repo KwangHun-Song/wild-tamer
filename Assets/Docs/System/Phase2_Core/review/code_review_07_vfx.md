@@ -96,6 +96,8 @@ private IEnumerator ApplyHitStop()
 }
 ```
 
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `var previousTimeScale = Time.timeScale` 저장 후 복원 시 사용함.
+
 ---
 
 ### 2. CameraShake 코루틴 중첩 문제 (중요도: 중간)
@@ -129,6 +131,8 @@ public void OnHit(IUnit attacker, IUnit target, int damage)
     currentShake = Facade.Coroutine.StartCoroutine(Shake());
 }
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `isShaking` 플래그를 도입하여 진행 중인 셰이크가 있으면 새 요청을 무시하는 방식으로 중첩 방지됨.
 
 ---
 

@@ -68,6 +68,8 @@ foreach (SquadMember neighbor in neighbors)
 }
 ```
 
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `NeighborRadius` 기반 거리 필터링이 이웃 선정 루프에 추가됨.
+
 ---
 
 ### 2. FlockBehavior — Alignment가 항상 zero를 반환하여 가중치가 무의미 (중요도: 중간)
@@ -150,6 +152,8 @@ public void Update(Transform leader, ObstacleGrid obstacleGrid, float deltaTime)
 
 **제안**: `FlockBehavior.CalculateDirection()`이 방향만 반환하고 `UnitMovement.Move()`가 속도를 처리하는 현재 구조를 유지한다면, 미사용 파라미터를 제거하거나 `// reserved for future use` 주석을 추가한다. 또는 `UnitMovement`에 deltaTime을 외부에서 주입하는 방식으로 통일할 수 있다.
 
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `Squad.Update()`에 `member.Combat.Tick(deltaTime)` 호출이 추가되어 `deltaTime` 파라미터가 실질적으로 사용됨.
+
 ---
 
 ### 5. FlockBehavior — public 필드 대신 프로퍼티 권장 (중요도: 낮음)
@@ -212,6 +216,8 @@ public void Unsubscribe()
 
 private void OnMoveRequested(Vector2 direction) => Movement.Move(direction);
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `subscribedMember` 필드, `Unsubscribe()`, `OnDestroy()` 추가됨.
 
 ---
 

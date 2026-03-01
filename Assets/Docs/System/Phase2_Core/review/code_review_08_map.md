@@ -93,6 +93,8 @@ if (grid.GetLength(0) != gridWidth || grid.GetLength(1) != gridHeight)
 }
 ```
 
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `grid.GetLength(0) != gridWidth || grid.GetLength(1) != gridHeight` 크기 검증 가드 추가됨.
+
 ---
 
 ### 4. FogOfWar와 ObstacleGrid 간 그리드 파라미터 불일치 위험 (중요도: 중간)
@@ -217,6 +219,8 @@ private void UpdateTexture()
     isDirty = false;
 }
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `Color[] colorBuffer` 사전 할당 및 `fogTexture.SetPixels(colorBuffer)` 일괄 적용으로 변경됨.
 
 ---
 

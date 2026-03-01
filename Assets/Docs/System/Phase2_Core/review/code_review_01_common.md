@@ -61,9 +61,11 @@
 
 ### UnitHealth
 
+> **[구현 변경]** 커밋 `19406c6`에서 MonoBehaviour → pure C#으로 리팩토링됨 (MVP 레이어 위반 수정).
+
 | 항목 | 설계 | 실제 구현 | 충족 | 비고 |
 |------|------|-----------|:----:|------|
-| MonoBehaviour 상속 | O | O | O | |
+| MonoBehaviour 상속 | O | X | △ | 커밋 `19406c6`에서 pure C#으로 리팩토링됨 |
 | `MaxHp` | `int MaxHp { get; private set; }` | `int MaxHp { get; private set; }` | O | |
 | `CurrentHp` | `int CurrentHp { get; private set; }` | `int CurrentHp { get; private set; }` | O | |
 | `IsAlive` | `CurrentHp > 0` | `CurrentHp > 0` | O | |
@@ -117,8 +119,8 @@
 ### 2. MonoBehaviour 사용 기준을 정확히 준수한다
 
 설계 문서의 MonoBehaviour 사용 기준표를 그대로 따르고 있다:
-- `Character`, `UnitCombat` -- pure C# (MonoBehaviour X)
-- `CharacterView`, `UnitHealth`, `UnitMovement` -- MonoBehaviour (씬 배치, Transform/컴포넌트 직렬화)
+- `Character`, `UnitCombat`, `UnitHealth` -- pure C# (MonoBehaviour X, `UnitHealth`는 커밋 `19406c6`에서 리팩토링됨)
+- `CharacterView`, `UnitMovement` -- MonoBehaviour (씬 배치, Transform/컴포넌트 직렬화)
 
 ### 3. MVP 계층 분리가 명확하다
 
@@ -165,6 +167,8 @@ public void TakeDamage(int damage)
 }
 ```
 
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `TakeDamage()` 시작부에 `if (!IsAlive || damage <= 0) return;` 가드 추가됨.
+
 ---
 
 ### 2. UnitCombat.elapsed 오버플로우 가능성 (중요도: 중간)
@@ -186,6 +190,8 @@ public void Tick(float deltaTime)
         elapsed += deltaTime;
 }
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `elapsed < cooldown` 조건 추가로 `cooldown` 이상 누적되지 않도록 클램프됨.
 
 ---
 
@@ -212,6 +218,8 @@ public void MoveTo(Vector2 target)
     Move(direction);
 }
 ```
+
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `(target - (Vector2)transform.position).normalized` 직관적 방향 계산으로 변경됨.
 
 ---
 

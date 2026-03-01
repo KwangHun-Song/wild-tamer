@@ -103,6 +103,8 @@ public void UnregisterUnit(IUnit unit) => pendingRemove.Add(unit);
 private void FlushPending() { ... }
 ```
 
+> **[수정 완료]** 커밋 `4550d55`에서 반영됨. `ProcessCombat()` 내 `var snapshot = registeredUnits.ToArray()` 스냅샷 복사 후 순회로 변경됨.
+
 ---
 
 #### 2. TamingSystem.Dispose()가 IDisposable 인터페이스를 구현하지 않음 (중요도: 중간)
