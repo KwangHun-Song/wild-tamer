@@ -33,7 +33,7 @@ public class InPlayState : SceneState, ISettingButtonListener
             return;
         }
 
-        playStates.SceneNotifier.Subscribe(this);
+        playStates.Notifier.Subscribe(this);
 
         // Canvas에 UICamera 연결 (Screen Space - Camera)
         playPage.Canvas.worldCamera = playStates.UICamera;
@@ -91,7 +91,7 @@ public class InPlayState : SceneState, ISettingButtonListener
         }
         finally
         {
-            playStates.SceneNotifier.Unsubscribe(this);
+            playStates.Notifier.Unsubscribe(this);
             cameraShake?.Dispose();
             gameController.Cleanup();
             gameController = null;
