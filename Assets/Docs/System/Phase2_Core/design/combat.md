@@ -28,10 +28,17 @@ public class CombatSystem
     {
         RebuildGrid();
         ProcessCombat();
+        ResolveOverlaps();
     }
 
     private void RebuildGrid() { ... }
     private void ProcessCombat() { ... }
+
+    /// <summary>
+    /// 같은 팀 유닛 간 겹침을 물리적으로 분리한다.
+    /// 각 유닛 쌍에 대해 거리가 두 Radius 합보다 작으면 반발 벡터를 적용한다.
+    /// </summary>
+    private void ResolveOverlaps() { ... }
 }
 ```
 

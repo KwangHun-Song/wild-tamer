@@ -39,6 +39,7 @@ public interface IUnit
     UnitHealth Health { get; }      // View.Health 위임
     UnitCombat Combat { get; }      // Presenter 소유
     bool IsAlive { get; }
+    float Radius { get; }           // 충돌 반경 (ResolveOverlaps 등에서 사용)
 }
 ```
 
@@ -109,6 +110,7 @@ View는 `protected`로 선언한다. 외부에서 View에 직접 접근이 필�
 public abstract class Character : IUnit
 {
     public abstract UnitTeam Team { get; }
+    public abstract float Radius { get; }
     public Transform Transform => View.Transform;
     public UnitHealth Health => View.Health;
     public UnitCombat Combat { get; }
