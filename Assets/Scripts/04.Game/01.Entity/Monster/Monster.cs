@@ -1,3 +1,4 @@
+using System;
 using FiniteStateMachine;
 using UnityEngine;
 
@@ -8,6 +9,9 @@ public class Monster : Character
     public override UnitTeam Team => UnitTeam.Enemy;
     public override float Radius => Data.radius;
     public MonsterData Data { get; }
+
+    /// <summary>MonsterDeadState에서 DeathSequence 완료 후 발생. EntitySpawner가 구독하여 Despawn을 처리한다.</summary>
+    public event Action<Monster> OnReadyToDespawn;
 
     private readonly MonsterView monsterView;
     private readonly ObstacleGrid obstacleGrid;
@@ -83,12 +87,19 @@ public class Monster : Character
         fsm?.ExecuteCommand(MonsterTrigger.Die);
     }
 
+    /// <summary>MonsterDeadState에서 DeathSequence 완료 후 호출. Despawn을 트리거한다.</summary>
+    public void OnDeathSequenceComplete()
+    {
+        OnReadyToDespawn?.Invoke(this);
+    }
+
     /// <summary>EntitySpawner.DespawnMonster()에서 호출.</summary>
     public void Cleanup()
     {
-        Health.OnDamaged -= OnHealthDamaged;
-        Health.OnDeath   -= OnHealthDeath;
-        OnAttackFired    -= View.PlayAttackAnimation;
+        Health.OnDamaged     -= OnHealthDamaged;
+        Health.OnDeath       -= OnHealthDeath;
+        OnAttackFired        -= View.PlayAttackAnimation;
+        OnReadyToDespawn      = null;
     }
 
     /// <summary>EntitySpawner.Update() 또는 MonsterSquad.Update()에서 매 프레임 호출.</summary>

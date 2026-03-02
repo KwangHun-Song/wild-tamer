@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Base;
@@ -77,7 +78,7 @@ public abstract class CharacterView : MonoBehaviour
     /// Idle로 전환 + Flip 해제 → Z축 회전 → FadeOut 순서로 재생한다.
     /// 파라미터는 DeathSequenceData("DeathSequence") 에셋에서 조회한다.
     /// </summary>
-    public void PlayDeathSequence()
+    public void PlayDeathSequence(Action onComplete = null)
     {
         PlayIdleAnimation();
         spriteRenderer.flipX = false;
@@ -88,6 +89,7 @@ public abstract class CharacterView : MonoBehaviour
         if (deathSequenceData == null)
         {
             Debug.LogWarning("[CharacterView] DeathSequenceData를 찾을 수 없습니다. Resources/DeathSequence.asset을 확인하세요.");
+            onComplete?.Invoke();
             return;
         }
 
@@ -98,7 +100,8 @@ public abstract class CharacterView : MonoBehaviour
                 .SetEase(deathSequenceData.rotateEase))
             .AppendInterval(deathSequenceData.fadeDelay)
             .Append(spriteRenderer.DOFade(0f, deathSequenceData.fadeDuration)
-                .SetEase(deathSequenceData.fadeEase));
+                .SetEase(deathSequenceData.fadeEase))
+            .OnComplete(() => onComplete?.Invoke());
     }
 
     private void SetTriggerSafe(string triggerName)

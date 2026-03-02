@@ -30,6 +30,11 @@ public class SquadMember : Character
     private void OnHealthDeath()
     {
         fsm.ExecuteCommand(SquadMemberTrigger.Die);
+    }
+
+    /// <summary>SquadMemberDeadState에서 DeathSequence 완료 후 호출. OnDied를 발생시켜 Despawn을 트리거한다.</summary>
+    public void OnDeathSequenceComplete()
+    {
         OnDied?.Invoke(this);
     }
 

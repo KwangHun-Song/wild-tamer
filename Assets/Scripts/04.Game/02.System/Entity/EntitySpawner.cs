@@ -36,6 +36,7 @@ public class EntitySpawner
         go.transform.position = position;
         var view = go.GetComponent<MonsterView>();
         var monster = new Monster(view, data, unitGrid);
+        monster.OnReadyToDespawn += DespawnMonster;
         activeMonsters.Add(monster);
         OnMonsterSpawned?.Invoke(monster);
         return monster;
@@ -61,6 +62,7 @@ public class EntitySpawner
 
     public void DespawnMonster(Monster monster)
     {
+        monster.OnReadyToDespawn -= DespawnMonster;
         monster.Cleanup();
         OnMonsterDespawned?.Invoke(monster);
         activeMonsters.Remove(monster);
@@ -88,11 +90,11 @@ public class EntitySpawner
             var view = go.GetComponent<MonsterView>();
             var monster = new Monster(view, data, unitGrid, role, obstacleGrid);
 
+            monster.OnReadyToDespawn += DespawnMonster;
             squad.AddMember(monster);
             OnMonsterSpawned?.Invoke(monster); // CombatSystem 등록
         }
 
-        squad.OnMemberDied += DespawnMonster;
         activeSquads.Add(squad);
         OnSquadSpawned?.Invoke(squad);
         return squad;
@@ -109,11 +111,9 @@ public class EntitySpawner
         return origin;
     }
 
-    /// <summary>스쿼드 전체를 디스폰한다.</summary>
+    /// <summary>스쿼드 전체를 강제 디스폰한다. 살아있는 멤버는 연출 없이 즉시 반환된다.</summary>
     public void DespawnMonsterSquad(MonsterSquad squad)
     {
-        squad.OnMemberDied -= DespawnMonster;
-
         foreach (var m in squad.Members.ToList())
             DespawnMonster(m);
 
