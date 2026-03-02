@@ -65,6 +65,9 @@ public class CombatSystem
                 var b = registeredUnits[j];
                 if (!b.IsAlive) continue;
 
+                // Player 팀끼리는 Squad.Update()의 정지 로직과 FlockBehavior가 담당하므로 건너뛴다
+                if (a.Team == UnitTeam.Player && b.Team == UnitTeam.Player) continue;
+
                 var posA = (Vector2)a.Transform.position;
                 var posB = (Vector2)b.Transform.position;
                 var diff = posA - posB;
