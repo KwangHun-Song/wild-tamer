@@ -20,6 +20,7 @@ public class UnitHealth
         if (!IsAlive || damage <= 0) return;
 
         CurrentHp = Math.Max(0, CurrentHp - damage);
+
         OnDamaged?.Invoke(damage);
 
         if (!IsAlive)

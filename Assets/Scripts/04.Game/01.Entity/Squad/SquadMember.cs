@@ -19,7 +19,8 @@ public class SquadMember : Character
         View.Movement.MoveSpeed = data.squadMoveSpeed;
         fsm = new SquadMemberFSM(this, unitGrid);
         fsm.SetUp();
-        Health.OnDeath += OnHealthDeath;
+        Health.OnDeath   += OnHealthDeath;
+        OnAttackFired    += View.PlayAttackAnimation;
 #if UNITY_EDITOR
         view.Subscribe(this);
 #endif
@@ -33,7 +34,8 @@ public class SquadMember : Character
 
     public void Cleanup()
     {
-        Health.OnDeath -= OnHealthDeath;
+        Health.OnDeath   -= OnHealthDeath;
+        OnAttackFired    -= View.PlayAttackAnimation;
     }
 
     /// <summary>Squad.Update()에서 매 프레임 호출. FlockBehavior가 계산한 이동 방향을 전달한다.</summary>

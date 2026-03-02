@@ -28,6 +28,7 @@ public class Monster : Character
         view.Movement.MoveSpeed = data.moveSpeed;
         Health.OnDamaged += OnHealthDamaged;
         Health.OnDeath   += OnHealthDeath;
+        OnAttackFired    += View.PlayAttackAnimation;
 
         fsm = role switch
         {
@@ -58,6 +59,7 @@ public class Monster : Character
     {
         Health.OnDamaged -= OnHealthDamaged;
         Health.OnDeath   -= OnHealthDeath;
+        OnAttackFired    -= View.PlayAttackAnimation;
     }
 
     /// <summary>EntitySpawner.Update() 또는 MonsterSquad.Update()에서 매 프레임 호출.</summary>

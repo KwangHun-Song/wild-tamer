@@ -11,15 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6139b19ddc0fd441a897d568874a3a1, type: 3}
   m_Name: MonsterData_Lancer
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   id: lancer
   displayName: "\uCC3D\uBCD1"
   grade: 0
   maxHp: 60
-  attackDamage: 12
-  attackRange: 3
+  attackDamage: 2
+  attackRange: 0.75
   attackCooldown: 1.2
-  detectionRange: 4
+  detectionRange: 2.5
   moveSpeed: 1.5
   squadMoveSpeed: 2
   tamingChance: 0.3

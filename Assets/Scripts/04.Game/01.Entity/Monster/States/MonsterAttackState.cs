@@ -42,8 +42,7 @@ public class MonsterAttackState : State<Monster, MonsterTrigger>
         Owner.View.Movement.Move(dir);
         Owner.View.UpdateFacing(dir);
 
-        if (Owner.Combat.CanAttack)
-            Owner.Combat.ResetCooldown();
+        // 데미지/쿨타임 리셋은 CombatSystem.ProcessCombat()에서 처리
     }
 
     private IUnit FindClosestEnemy(Vector2 pos, float range)

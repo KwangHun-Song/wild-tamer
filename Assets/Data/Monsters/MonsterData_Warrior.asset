@@ -11,15 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6139b19ddc0fd441a897d568874a3a1, type: 3}
   m_Name: MonsterData_Warrior
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   id: warrior
   displayName: "\uC804\uC0AC"
   grade: 0
   maxHp: 80
-  attackDamage: 15
-  attackRange: 1
+  attackDamage: 3
+  attackRange: 0.25
   attackCooldown: 1
-  detectionRange: 3.5
+  detectionRange: 2
   moveSpeed: 1.5
   squadMoveSpeed: 2
   tamingChance: 0.3

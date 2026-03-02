@@ -20,7 +20,6 @@ public class SquadMemberAttackState : State<SquadMember, SquadMemberTrigger>
             Owner.View.UpdateFacing(dir);
         }
 
-        if (Owner.Combat.CanAttack)
-            Owner.Combat.ResetCooldown();
+        // 데미지/쿨타임 리셋은 CombatSystem.ProcessCombat()에서 처리
     }
 }

@@ -1,6 +1,7 @@
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
+using UnityEngine;
 
 public abstract class CharacterView : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public abstract class CharacterView : MonoBehaviour
     [SerializeField] private string idleAnimTrigger = "idle";
     [SerializeField] private string attackAnimTrigger = "attack";
     [SerializeField] private string deadAnimTrigger = "dead";
+    [SerializeField] private string moveAnimStateName = "Run";
 
     private const int QueueSize = 5;
     private readonly Queue<Vector2> directionQueue = new();
@@ -20,6 +22,19 @@ public abstract class CharacterView : MonoBehaviour
     {
         spriteRenderer.sortingOrder = SortingOrder.Unit;
     }
+
+    private void OnEnable()
+    {
+        spriteRenderer.DOKill();
+        spriteRenderer.color = Color.white;
+        OnSpawnedFromPool();
+    }
+
+    /// <summary>풀에서 꺼내질 때(OnEnable) 호출. 서브클래스에서 상태 초기화에 사용한다.</summary>
+    protected virtual void OnSpawnedFromPool() { }
+
+    /// <summary>HP 바 뷰를 Health에 바인딩한다. HP 바가 있는 서브클래스에서 오버라이드한다.</summary>
+    public virtual void BindHpBar(UnitHealth health) { }
 
     private void LateUpdate()
     {
@@ -30,6 +45,20 @@ public abstract class CharacterView : MonoBehaviour
     }
 
     public UnitMovement Movement => movement;
+
+    /// <summary>
+    /// 현재 Animator가 이동(Run) 상태를 재생 중인지 확인한다.
+    /// PlayerIdleState 등에서 wasMoving bool 대신 사용.
+    /// </summary>
+    public bool IsPlayingMoveAnimation() =>
+        animator != null && animator.GetCurrentAnimatorStateInfo(0).IsName(moveAnimStateName);
+
+    public void PlayDamageFlash()
+    {
+        spriteRenderer.DOKill();
+        spriteRenderer.color = Color.red;
+        spriteRenderer.DOColor(Color.white, 0.25f);
+    }
 
     public void PlayIdleAnimation() => SetTriggerSafe(idleAnimTrigger);
     public void PlayMoveAnimation() => SetTriggerSafe(moveAnimTrigger);

@@ -1,15 +1,13 @@
+using Base;
 using FiniteStateMachine;
 using UnityEngine;
 
 public class PlayerIdleState : State<Player, PlayerTrigger>
 {
-    private bool wasMoving;
-
     public override void OnEnter()
     {
         var dir = Owner.InputDirection;
-        wasMoving = dir.magnitude > 0.01f;
-        if (wasMoving) Owner.View.PlayMoveAnimation();
+        if (dir.magnitude > 0.01f) Owner.View.PlayMoveAnimation();
         else Owner.View.PlayIdleAnimation();
     }
 
@@ -22,19 +20,19 @@ public class PlayerIdleState : State<Player, PlayerTrigger>
         {
             Owner.View.Movement.Move(dir);
             Owner.View.UpdateFacing(dir);
-            if (!wasMoving)
+            if (!Owner.View.IsPlayingMoveAnimation())
             {
+                Facade.Logger?.Log($"[Player] Idle → MOVE ({dir:F2})", LogLevel.Info, DebugColor.Cyan);
                 Owner.View.PlayMoveAnimation();
-                wasMoving = true;
             }
         }
         else
         {
-            if (wasMoving)
+            if (Owner.View.IsPlayingMoveAnimation())
             {
                 Owner.View.Movement.Move(Vector2.zero);
+                Facade.Logger?.Log("[Player] Idle → IDLE (정지)", LogLevel.Info, DebugColor.Yellow);
                 Owner.View.PlayIdleAnimation();
-                wasMoving = false;
             }
         }
     }
