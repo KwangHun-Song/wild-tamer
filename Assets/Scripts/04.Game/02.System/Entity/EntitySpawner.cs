@@ -47,7 +47,16 @@ public class EntitySpawner
         go.transform.SetParent(unitRoot, worldPositionStays: false);
         go.transform.position = position;
         var view = go.GetComponent<SquadMemberView>();
-        return new SquadMember(view, data);
+        var member = new SquadMember(view, data, unitGrid);
+        member.OnDied += DespawnSquadMember;
+        return member;
+    }
+
+    public void DespawnSquadMember(SquadMember member)
+    {
+        member.OnDied -= DespawnSquadMember;
+        member.Cleanup();
+        Facade.Pool.Despawn(member.Transform.gameObject);
     }
 
     public void DespawnMonster(Monster monster)

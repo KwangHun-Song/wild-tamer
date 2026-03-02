@@ -5,19 +5,50 @@ public class SquadMember : Character
 {
     public override UnitTeam Team => UnitTeam.Player;
     public MonsterData Data { get; }
-    public event Action<Vector2> OnMoveRequested;
 
-    public SquadMember(SquadMemberView view, MonsterData data) : base(view, CreateCombat(data))
+    public Vector2 DesiredMoveDirection { get; private set; }
+
+    public event Action<SquadMember> OnDied;
+
+    private readonly SquadMemberFSM fsm;
+
+    public SquadMember(SquadMemberView view, MonsterData data, SpatialGrid<IUnit> unitGrid) : base(view, CreateCombat(data))
     {
         Data = data;
-        view.Subscribe(this);
         Health.Initialize(data.maxHp);
-        view.Movement.MoveSpeed = data.moveSpeed;
+        View.Movement.MoveSpeed = data.squadMoveSpeed;
+        fsm = new SquadMemberFSM(this, unitGrid);
+        fsm.SetUp();
+        Health.OnDeath += OnHealthDeath;
+#if UNITY_EDITOR
+        view.Subscribe(this);
+#endif
     }
 
-    public void Move(Vector2 direction)
+    private void OnHealthDeath()
     {
-        OnMoveRequested?.Invoke(direction);
+        fsm.ExecuteCommand(SquadMemberTrigger.Die);
+        OnDied?.Invoke(this);
+    }
+
+    public void Cleanup()
+    {
+        Health.OnDeath -= OnHealthDeath;
+    }
+
+    /// <summary>Squad.Update()에서 매 프레임 호출. FlockBehavior가 계산한 이동 방향을 전달한다.</summary>
+    public void SetMoveDirection(Vector2 direction)
+    {
+        DesiredMoveDirection = direction;
+    }
+
+    /// <summary>Squad.Update()에서 매 프레임 호출하여 FSM을 구동한다.</summary>
+    public void Update()
+    {
+        fsm.Update();
+#if UNITY_EDITOR
+        View.SetGizmoLabel(fsm.CurrentState?.GetType().Name ?? "None");
+#endif
     }
 
     private static UnitCombat CreateCombat(MonsterData d)
