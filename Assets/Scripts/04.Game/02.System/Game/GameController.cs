@@ -16,6 +16,7 @@ public class GameController
     private readonly EntitySpawner entitySpawner;
     private readonly TamingSystem tamingSystem;
     private readonly MonsterSquadSpawner squadSpawner;
+    private readonly BossSpawnSystem bossSpawnSystem;
 
     // 씬 참조
     private readonly PlayerInput playerInput;
@@ -33,7 +34,10 @@ public class GameController
         ObstacleGrid obstacleGrid,
         Camera gameCamera = null,
         MonsterData[] monsterSpawnTable = null,
-        Transform unitRoot = null)
+        Transform unitRoot = null,
+        BossMonsterData[] bossPool = null,
+        BossWarningView bossWarningView = null,
+        BossHpBarView bossHpBarView = null)
     {
         this.playerInput = playerInput;
         this.obstacleGrid = obstacleGrid;
@@ -77,6 +81,14 @@ public class GameController
                 gameCamera,
                 monsterSpawnTable);
         }
+
+        // 보스 스폰 시스템 (bossPool이 있을 때만 활성)
+        if (bossPool != null && bossPool.Length > 0)
+        {
+            bossSpawnSystem = new BossSpawnSystem(
+                bossPool, entitySpawner, bossWarningView, bossHpBarView,
+                unitGrid, obstacleGrid, Player.Transform, Notifier);
+        }
     }
 
     /// <summary>GameLoop(MonoBehaviour)에서 매 프레임 호출한다.</summary>
@@ -110,7 +122,10 @@ public class GameController
         // 4. 몬스터 스쿼드 스폰/디스폰/AI
         squadSpawner?.Update(dt);
 
-        // 5. 전투
+        // 5. 보스 스폰 타이머
+        bossSpawnSystem?.Update(dt);
+
+        // 6. 전투
         combatSystem.Update();
     }
 

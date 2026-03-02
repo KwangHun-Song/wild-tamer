@@ -13,6 +13,10 @@ public class InPlayState : SceneState, ISettingButtonListener
     [SerializeField] private MonsterData[] initialSquadData;
     [SerializeField] private MonsterData[] initialMonsterData;
     [SerializeField] private MonsterData[] monsterSquadSpawnTable;
+    [Header("보스")]
+    [SerializeField] private BossMonsterData[] bossPool;
+    [SerializeField] private BossWarningView   bossWarningView;
+    [SerializeField] private BossHpBarView     bossHpBarView;
     [Header("치트 — 숫자키 1·2·3…으로 해당 인덱스의 스쿼드 멤버를 플레이어 주변에 스폰")]
     [SerializeField] private MonsterData[] cheatSquadTypes;
 
@@ -64,7 +68,10 @@ public class InPlayState : SceneState, ISettingButtonListener
             playPage.WorldMap.MapGenerator.ObstacleGrid,
             Camera.main,
             monsterSquadSpawnTable,
-            playPage.WorldMap.UnitRoot);
+            playPage.WorldMap.UnitRoot,
+            bossPool,
+            bossWarningView,
+            bossHpBarView);
 
         // 카메라 셰이크 (플레이어 피격 시)
         CameraShake cameraShake = null;

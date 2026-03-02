@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc2c38332254bf04fbd12d0f58a5278a, type: 3}
+  m_Name: BossMonsterData_Monk
+  m_EditorClassIdentifier: 
+  id: boss_monk
+  displayName: "\uC218\uB3C4\uC2B9 \uC6B0\uB450\uBA38\uB9AC"
+  icon: {fileID: 0}
+  maxHp: 600
+  moveSpeed: 1.5
+  attackDamage: 10
+  attackRange: 1.2
+  detectionRange: 999
+  radius: 0.5
+  attackCooldown: 1.5
+  patterns:
+  - {fileID: 11400000, guid: dc3936415da169e4c93d8275b4d20d39, type: 2}
+  - {fileID: 11400000, guid: 1ece6cf770c38c540ad8e11ee4ff2572, type: 2}
+  - {fileID: 11400000, guid: 45d7c0e63a17d4f418f6e7460cede4f4, type: 2}
+  - {fileID: 11400000, guid: 2ca52a8cb98b74d4997d9aa4b861a48f, type: 2}
+  patternInterval: 1.5
+  enrageThreshold: 0.5
+  enrageCooldownMultiplier: 0.8
+  enrageSpeedMultiplier: 1.3
+  viewPrefab: {fileID: 7956779084935424389, guid: 79f8488827131dd44873cde813bc35b2, type: 3}

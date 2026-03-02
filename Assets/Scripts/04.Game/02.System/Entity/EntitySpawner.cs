@@ -14,6 +14,7 @@ public class EntitySpawner
     private readonly Transform unitRoot;
     private readonly List<Monster> activeMonsters = new();
     private readonly List<MonsterSquad> activeSquads = new();
+    private BossMonster activeBoss;
 
     public IReadOnlyList<Monster> ActiveMonsters => activeMonsters;
     public IReadOnlyList<MonsterSquad> ActiveSquads => activeSquads;
@@ -121,6 +122,21 @@ public class EntitySpawner
         OnSquadDespawned?.Invoke(squad);
     }
 
+    /// <summary>보스를 활성 보스로 등록하고 OnMonsterSpawned 이벤트를 발생시킨다 (CombatSystem 등록).</summary>
+    public void RegisterBoss(BossMonster boss)
+    {
+        activeBoss = boss;
+        OnMonsterSpawned?.Invoke(boss);
+    }
+
+    /// <summary>보스를 해제하고 OnMonsterDespawned 이벤트를 발생시킨다 (CombatSystem 해제).</summary>
+    public void UnregisterBoss(BossMonster boss)
+    {
+        if (activeBoss != boss) return;
+        activeBoss = null;
+        OnMonsterDespawned?.Invoke(boss);
+    }
+
     /// <summary>GameController.Update()에서 호출. 스탠드얼론 몬스터 AI 업데이트를 위임한다.</summary>
     public void Update(float deltaTime)
     {
@@ -130,6 +146,12 @@ public class EntitySpawner
         {
             monster.Combat.Tick(deltaTime);
             monster.Update();
+        }
+
+        if (activeBoss != null)
+        {
+            activeBoss.Combat.Tick(deltaTime);
+            activeBoss.Update();
         }
     }
 }
