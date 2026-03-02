@@ -87,3 +87,6 @@ $RECYCLE.BIN/
 
 # Unity Editor temp files
 Assets/Editor/Temp.meta
+
+# Screenshots
+/[Aa]ssets/[Ss]creenshots/
