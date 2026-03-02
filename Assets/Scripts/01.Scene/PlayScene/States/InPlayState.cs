@@ -63,6 +63,11 @@ public class InPlayState : SceneState
             monsterSquadSpawnTable,
             playPage.WorldMap.UnitRoot);
 
+        // 카메라 셰이크 (플레이어 피격 시)
+        CameraShake cameraShake = null;
+        if (quarterViewCamera != null)
+            cameraShake = new CameraShake(quarterViewCamera, gameController.Player, 0.1f, 0.2f, gameController.Notifier);
+
         // HP 바 바인딩
         playPage.PlayerHpBar?.Bind(gameController.Player.Health);
 
@@ -78,6 +83,7 @@ public class InPlayState : SceneState
         }
         finally
         {
+            cameraShake?.Dispose();
             gameController.Cleanup();
             gameController = null;
         }
