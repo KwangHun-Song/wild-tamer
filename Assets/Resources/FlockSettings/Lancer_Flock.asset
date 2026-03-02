@@ -19,4 +19,4 @@ MonoBehaviour:
   avoidanceWeight: 2
   neighborRadius: 2.5
   arrivalRadius: 0.8
-  minSeparationDistance: 0.7
+  minSeparationDistance: 1.2

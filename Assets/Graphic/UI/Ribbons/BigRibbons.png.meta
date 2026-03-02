@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -121,7 +121,322 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: BigRibbons_0
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 517
+        width: 98
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d060f2f942a65f4583ad947ab679329
+      internalID: -292713053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_1
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 529
+        width: 64
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ac0b0b8712c9e324daf84f18317ae89c
+      internalID: 163603761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_2
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 519
+        width: 97
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 867c8b6fd6b9d7444abe48ebddecabe6
+      internalID: 983353948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_3
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 389
+        width: 98
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e1217c8de4dcc3c42b53bb85ddef9ddd
+      internalID: 710411791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_4
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 401
+        width: 64
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5d796b2d8e524d4baf45d08bf405671
+      internalID: 1702250607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_5
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 391
+        width: 97
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49673e85f3e5f264ba4f57cb421a6947
+      internalID: -2002036384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_6
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 261
+        width: 98
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b136a98bf950bfc4eb43b1496680f64e
+      internalID: -1953357440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_7
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 273
+        width: 64
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 197fcbcba172b76448eb5c822cada1b1
+      internalID: 5594321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_8
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 263
+        width: 97
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 770357bae3a72934d867d03353816248
+      internalID: 349575481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_9
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 133
+        width: 98
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b9dd2f866f9ae446ba395fb5f292348
+      internalID: 1662037687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_10
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 145
+        width: 64
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a6ec869bad95a7242a283e563e3a0a4b
+      internalID: 1094840913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_11
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 135
+        width: 97
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ef35c104dafc98743882f6c5f6ec149d
+      internalID: 619610419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_12
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 5
+        width: 98
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fdff010b14f06dd4e8c874086eb937e8
+      internalID: 205748594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_13
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 17
+        width: 64
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a57ce3697d3769843b789f6a1e687230
+      internalID: 1249940971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BigRibbons_14
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 7
+        width: 97
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 485c35befbfa5e74dad80b0aaef66f6e
+      internalID: 1043998416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -132,7 +447,22 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      BigRibbons_0: -292713053
+      BigRibbons_1: 163603761
+      BigRibbons_10: 1094840913
+      BigRibbons_11: 619610419
+      BigRibbons_12: 205748594
+      BigRibbons_13: 1249940971
+      BigRibbons_14: 1043998416
+      BigRibbons_2: 983353948
+      BigRibbons_3: 710411791
+      BigRibbons_4: 1702250607
+      BigRibbons_5: -2002036384
+      BigRibbons_6: -1953357440
+      BigRibbons_7: 5594321
+      BigRibbons_8: 349575481
+      BigRibbons_9: 1662037687
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
