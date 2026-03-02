@@ -7,6 +7,7 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private Tilemap waterTilemap;
     [SerializeField] private Tilemap obstacleTilemap;
     [SerializeField] private float cellSize = 1f;
+    [SerializeField] private SpriteRenderer waterBackground;
 
     public ObstacleGrid ObstacleGrid { get; private set; }
 
@@ -39,6 +40,8 @@ public class MapGenerator : MonoBehaviour
 
         ObstacleGrid = new ObstacleGrid(width, height, cellSize, origin);
 
+        FitWaterBackground(width, height, origin);
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -53,5 +56,24 @@ public class MapGenerator : MonoBehaviour
                 ObstacleGrid.SetWalkable(new Vector2Int(x, y), hasGround && !hasObstacle);
             }
         }
+    }
+
+    private void FitWaterBackground(int width, int height, Vector2 origin)
+    {
+        if (waterBackground == null || waterBackground.sprite == null)
+            return;
+
+        float mapWidth  = width  * cellSize;
+        float mapHeight = height * cellSize;
+        var   center    = origin + new Vector2(mapWidth * 0.5f, mapHeight * 0.5f);
+
+        waterBackground.transform.position = new Vector3(center.x, center.y, center.y);
+
+        var spriteSize = waterBackground.sprite.bounds.size;
+        waterBackground.transform.localScale = new Vector3(
+            mapWidth  / spriteSize.x,
+            mapHeight / spriteSize.y,
+            1f
+        );
     }
 }
