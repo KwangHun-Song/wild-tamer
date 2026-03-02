@@ -17,10 +17,11 @@ MonoBehaviour:
   grade: 0
   maxHp: 60
   attackDamage: 12
-  attackRange: 2.5
+  attackRange: 3
   attackCooldown: 1.2
-  detectionRange: 5.5
-  moveSpeed: 3
+  detectionRange: 4
+  moveSpeed: 1.5
+  squadMoveSpeed: 2
   tamingChance: 0.3
   prefab: {fileID: 7956779084935424389, guid: 085ed7b241cf452428656ebb5f6812a0, type: 3}
   squadPrefab: {fileID: 7956779084935424389, guid: 7f57536cd17e4f24c935cc3fd8315571, type: 3}

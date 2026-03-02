@@ -40,8 +40,13 @@ public class GameController
         unitGrid = new SpatialGrid<IUnit>(2f);
 
         // 개체 생성
-        var playerCombat = new UnitCombat(10, 1.5f, 5f, 1f);
-        Player = new Player(playerView, playerCombat, 100);
+        var playerData = Facade.DB.Get<PlayerData>("PlayerData");
+        var playerCombat = playerData != null
+            ? new UnitCombat(playerData.attackDamage, playerData.attackRange, 0f, playerData.attackCooldown)
+            : new UnitCombat(10, 1.5f, 0f, 1f);
+        Player = new Player(playerView, playerCombat, playerData?.maxHp ?? 100);
+        if (playerData != null)
+            playerView.Movement.MoveSpeed = playerData.moveSpeed;
         Squad = new Squad();
 
         // 시스템 생성
@@ -81,16 +86,18 @@ public class GameController
 
         // 1. 입력 → Player (축별 장애물 충돌 체크)
         var rawDir = playerInput.MoveDirection;
+        var resolvedDir = Vector2.zero;
         if (rawDir.magnitude > 0.01f)
-        {            
+        {
             var pos = (Vector2)Player.Transform.position;
-            var resolvedDir = new Vector2(
+            resolvedDir = new Vector2(
                 obstacleGrid.IsWalkable(new Vector2(pos.x + rawDir.x * 0.5f, pos.y)) ? rawDir.x : 0f,
                 obstacleGrid.IsWalkable(new Vector2(pos.x, pos.y + rawDir.y * 0.5f)) ? rawDir.y : 0f
             );
-            Player.Move(resolvedDir);
             Player.Combat.Tick(dt);
         }
+        Player.SetInput(resolvedDir);
+        Player.Update();
 
         // 2. 부대 이동
         Squad.Update(Player.Transform, obstacleGrid, dt);

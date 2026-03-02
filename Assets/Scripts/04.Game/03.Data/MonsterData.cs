@@ -12,6 +12,7 @@ public class MonsterData : ScriptableObject
     public float attackCooldown;
     public float detectionRange;
     public float moveSpeed;
+    public float squadMoveSpeed;
     public float tamingChance;
     public GameObject prefab;
     public GameObject squadPrefab;
