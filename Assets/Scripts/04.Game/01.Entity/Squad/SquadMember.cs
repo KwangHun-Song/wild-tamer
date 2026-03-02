@@ -32,8 +32,20 @@ public class SquadMember : Character
         fsm.ExecuteCommand(SquadMemberTrigger.Die);
     }
 
-    /// <summary>SquadMemberDeadState에서 DeathSequence 완료 후 호출. OnDied를 발생시켜 Despawn을 트리거한다.</summary>
-    public void OnDeathSequenceComplete()
+    /// <summary>CreateState에서 연출 완료 후 호출. Idle 전환을 트리거한다.</summary>
+    public void SignalCreated()
+    {
+        fsm.ExecuteCommand(SquadMemberTrigger.Created);
+    }
+
+    /// <summary>DeadState에서 DeathSequence 완료 후 호출. DestroyState로 전환을 트리거한다.</summary>
+    public void RequestDestroy()
+    {
+        fsm.ExecuteCommand(SquadMemberTrigger.Destroy);
+    }
+
+    /// <summary>SquadMemberDestroyState에서 호출. OnDied 이벤트를 발생시켜 Despawn을 트리거한다.</summary>
+    public void NotifyDied()
     {
         OnDied?.Invoke(this);
     }

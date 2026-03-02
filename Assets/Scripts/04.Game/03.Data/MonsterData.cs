@@ -14,11 +14,9 @@ public class MonsterData : ScriptableObject
     public float moveSpeed;
     public float squadMoveSpeed;
     public float radius = 0.3f;
-    public float tamingChance;
     public GameObject prefab;
     public GameObject squadPrefab;
     public FlockSettingsData flockSettings;
-    public BossPattern[] bossPatterns;
 }
 
 public enum MonsterGrade { Normal, Boss }

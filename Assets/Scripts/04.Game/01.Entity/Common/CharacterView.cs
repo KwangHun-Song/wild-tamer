@@ -21,11 +21,13 @@ public abstract class CharacterView : MonoBehaviour
     private readonly Queue<Vector2> directionQueue = new();
 
     private DeathSequenceData deathSequenceData;
+    private CreateSequenceData createSequenceData;
 
     protected virtual void Awake()
     {
         spriteRenderer.sortingOrder = SortingOrder.Unit;
         deathSequenceData = Facade.DB.Get<DeathSequenceData>("DeathSequence");
+        createSequenceData = Facade.DB.Get<CreateSequenceData>("CreateSequence");
     }
 
     private void OnEnable()
@@ -106,6 +108,34 @@ public abstract class CharacterView : MonoBehaviour
             .AppendInterval(deathSequenceData.fadeDelay)
             .Append(spriteRenderer.DOFade(0f, deathSequenceData.fadeDuration)
                 .SetEase(deathSequenceData.fadeEase))
+            .OnComplete(() => onComplete?.Invoke());
+    }
+
+    /// <summary>
+    /// 스폰 연출 시퀀스.
+    /// 누운 상태(alpha 0, lying 각도)에서 시작 → FadeIn → 일어나는 회전 순서로 재생한다.
+    /// 파라미터는 CreateSequenceData("CreateSequence") 에셋에서 조회한다.
+    /// </summary>
+    public void PlayCreateAnimation(Action onComplete = null)
+    {
+        if (deathSequenceData == null || createSequenceData == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        spriteRenderer.DOKill();
+        transform.DOKill();
+
+        spriteRenderer.color = Color.clear;
+        transform.localRotation = Quaternion.Euler(0f, 0f, deathSequenceData.rotationDegrees);
+
+        DOTween.Sequence()
+            .Append(spriteRenderer.DOFade(1f, createSequenceData.fadeInDuration)
+                .SetEase(createSequenceData.fadeEase))
+            .AppendInterval(createSequenceData.riseDelay)
+            .Append(transform.DOLocalRotate(Vector3.zero, createSequenceData.riseDuration)
+                .SetEase(createSequenceData.riseEase))
             .OnComplete(() => onComplete?.Invoke());
     }
 

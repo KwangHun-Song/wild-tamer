@@ -180,7 +180,7 @@ namespace Base.Tests
 
             public UnsubscribingListener(Notifier notifier)
             {
-                notifier = notifier;
+                this.notifier = notifier;
             }
 
             public void OnEvent(string message)

@@ -10,8 +10,14 @@ public class Monster : Character
     public override float Radius => Data.radius;
     public MonsterData Data { get; }
 
-    /// <summary>MonsterDeadState에서 DeathSequence 완료 후 발생. EntitySpawner가 구독하여 Despawn을 처리한다.</summary>
+    /// <summary>MonsterDestroyState에서 발생. EntitySpawner가 구독하여 Despawn을 처리한다.</summary>
     public event Action<Monster> OnReadyToDespawn;
+
+    /// <summary>테이밍된 몬스터의 DestroyState에서 발생. TamingSystem이 구독하여 SquadMember를 스폰한다.</summary>
+    public event Action<Monster> OnReadyToSpawnTamed;
+
+    public bool IsTamed { get; private set; }
+    public Vector2 TamingSpawnPos { get; private set; }
 
     private readonly MonsterView monsterView;
     private readonly ObstacleGrid obstacleGrid;
@@ -84,22 +90,52 @@ public class Monster : Character
     private void OnHealthDeath()
     {
         monsterView.PlayDeathEffect();
-        fsm?.ExecuteCommand(MonsterTrigger.Die);
+        if (fsm != null)
+        {
+            fsm.ExecuteCommand(MonsterTrigger.Die);
+        }
+        else
+        {
+            // 팔로워: FSM 없음, 직접 애니메이션 재생
+            View.Movement.Move(Vector2.zero);
+            View.PlayDeathSequence(NotifyDestroyReady);
+        }
     }
 
-    /// <summary>MonsterDeadState에서 DeathSequence 완료 후 호출. Despawn을 트리거한다.</summary>
-    public void OnDeathSequenceComplete()
+    /// <summary>TamingSystem에서 호출. 테이밍 성공 시 위치와 플래그를 설정한다.</summary>
+    public void MarkAsTamed(Vector2 pos)
     {
+        IsTamed = true;
+        TamingSpawnPos = pos;
+    }
+
+    /// <summary>CreateState에서 연출 완료 후 호출. Idle/Wander 전환을 트리거한다.</summary>
+    public void SignalCreated()
+    {
+        fsm?.ExecuteCommand(MonsterTrigger.Created);
+    }
+
+    /// <summary>DeadState에서 DeathSequence 완료 후 호출. DestroyState로 전환을 트리거한다.</summary>
+    public void RequestDestroy()
+    {
+        fsm?.ExecuteCommand(MonsterTrigger.Destroy);
+    }
+
+    /// <summary>DestroyState(또는 팔로워 직접 호출)에서 호출. 테이밍 스폰 및 Despawn을 트리거한다.</summary>
+    public void NotifyDestroyReady()
+    {
+        if (IsTamed) OnReadyToSpawnTamed?.Invoke(this);
         OnReadyToDespawn?.Invoke(this);
     }
 
     /// <summary>EntitySpawner.DespawnMonster()에서 호출.</summary>
     public void Cleanup()
     {
-        Health.OnDamaged     -= OnHealthDamaged;
-        Health.OnDeath       -= OnHealthDeath;
-        OnAttackFired        -= View.PlayAttackAnimation;
-        OnReadyToDespawn      = null;
+        Health.OnDamaged      -= OnHealthDamaged;
+        Health.OnDeath        -= OnHealthDeath;
+        OnAttackFired         -= View.PlayAttackAnimation;
+        OnReadyToDespawn       = null;
+        OnReadyToSpawnTamed    = null;
     }
 
     /// <summary>EntitySpawner.Update() 또는 MonsterSquad.Update()에서 매 프레임 호출.</summary>

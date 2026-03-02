@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Player : Character
@@ -6,6 +7,8 @@ public class Player : Character
     public override float Radius { get; }
 
     public Vector2 InputDirection { get; private set; }
+
+    public event Action OnGameOver;
 
     private readonly PlayerFSM fsm;
 
@@ -22,6 +25,24 @@ public class Player : Character
     private void OnHealthDeath()
     {
         fsm.ExecuteCommand(PlayerTrigger.Die);
+    }
+
+    /// <summary>CreateState에서 연출 완료 후 호출. Idle 전환을 트리거한다.</summary>
+    public void SignalCreated()
+    {
+        fsm.ExecuteCommand(PlayerTrigger.Created);
+    }
+
+    /// <summary>DeadState에서 DeathSequence 완료 후 호출. DestroyState로 전환을 트리거한다.</summary>
+    public void RequestDestroy()
+    {
+        fsm.ExecuteCommand(PlayerTrigger.Destroy);
+    }
+
+    /// <summary>PlayerDestroyState에서 호출. 게임오버 이벤트를 발생시킨다.</summary>
+    public void FireGameOver()
+    {
+        OnGameOver?.Invoke();
     }
 
     /// <summary>GameController가 매 프레임 호출. 장애물 보정이 끝난 방향을 전달한다.</summary>

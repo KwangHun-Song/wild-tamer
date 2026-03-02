@@ -11,18 +11,21 @@ public class MonsterLeaderFSM : StateMachine<Monster, MonsterTrigger>
     public SpatialGrid<IUnit> UnitGrid { get; }
     public ObstacleGrid ObstacleGrid { get; }
 
+    private readonly MonsterCreateState create = new();
     private readonly MonsterWanderState wander = new();
     private readonly MonsterChaseState chase = new();
     private readonly MonsterAttackState attack = new();
     private readonly MonsterDeadState dead = new();
+    private readonly MonsterDestroyState destroy = new();
 
-    protected override State<Monster, MonsterTrigger> InitialState => wander;
+    protected override State<Monster, MonsterTrigger> InitialState => create;
 
     protected override State<Monster, MonsterTrigger>[] States
-        => new State<Monster, MonsterTrigger>[] { wander, chase, attack, dead };
+        => new State<Monster, MonsterTrigger>[] { create, wander, chase, attack, dead, destroy };
 
     protected override StateTransition<Monster, MonsterTrigger>[] Transitions => new[]
     {
+        StateTransition<Monster, MonsterTrigger>.Generate(create, wander, MonsterTrigger.Created),
         StateTransition<Monster, MonsterTrigger>.Generate(wander, chase,  MonsterTrigger.DetectEnemy,      EnemyInDetectionRange),
         StateTransition<Monster, MonsterTrigger>.Generate(chase,  attack, MonsterTrigger.InAttackRange,    EnemyInAttackRange),
         StateTransition<Monster, MonsterTrigger>.Generate(chase,  wander, MonsterTrigger.LoseEnemy,        s => !EnemyInDetectionRange(s)),
@@ -30,6 +33,7 @@ public class MonsterLeaderFSM : StateMachine<Monster, MonsterTrigger>
         StateTransition<Monster, MonsterTrigger>.Generate(wander, dead,   MonsterTrigger.Die, s => !s.Owner.Health.IsAlive),
         StateTransition<Monster, MonsterTrigger>.Generate(chase,  dead,   MonsterTrigger.Die, s => !s.Owner.Health.IsAlive),
         StateTransition<Monster, MonsterTrigger>.Generate(attack, dead,   MonsterTrigger.Die, s => !s.Owner.Health.IsAlive),
+        StateTransition<Monster, MonsterTrigger>.Generate(dead,   destroy, MonsterTrigger.Destroy),
     };
 
     public MonsterLeaderFSM(Monster owner, SpatialGrid<IUnit> unitGrid, ObstacleGrid obstacleGrid = null) : base(owner)

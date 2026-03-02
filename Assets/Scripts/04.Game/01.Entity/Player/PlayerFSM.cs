@@ -11,18 +11,20 @@ public class PlayerFSM : StateMachine<Player, PlayerTrigger>
     private readonly PlayerIdleState idle = new();
     private readonly PlayerAttackState attack = new();
     private readonly PlayerDeadState dead = new();
+    private readonly PlayerDestroyState destroy = new();
 
     protected override State<Player, PlayerTrigger> InitialState => idle;
 
     protected override State<Player, PlayerTrigger>[] States
-        => new State<Player, PlayerTrigger>[] { idle, attack, dead };
+        => new State<Player, PlayerTrigger>[] { idle, attack, dead, destroy };
 
     protected override StateTransition<Player, PlayerTrigger>[] Transitions => new[]
     {
-        StateTransition<Player, PlayerTrigger>.Generate(idle,   attack, PlayerTrigger.StartAttack),
-        StateTransition<Player, PlayerTrigger>.Generate(attack, idle,   PlayerTrigger.StopAttack, s => s.Owner.Combat.CanAttack),
-        StateTransition<Player, PlayerTrigger>.Generate(idle,   dead,   PlayerTrigger.Die, s => !s.Owner.Health.IsAlive),
-        StateTransition<Player, PlayerTrigger>.Generate(attack, dead,   PlayerTrigger.Die, s => !s.Owner.Health.IsAlive),
+        StateTransition<Player, PlayerTrigger>.Generate(idle,   attack,  PlayerTrigger.StartAttack),
+        StateTransition<Player, PlayerTrigger>.Generate(attack, idle,    PlayerTrigger.StopAttack, s => s.Owner.Combat.CanAttack),
+        StateTransition<Player, PlayerTrigger>.Generate(idle,   dead,    PlayerTrigger.Die, s => !s.Owner.Health.IsAlive),
+        StateTransition<Player, PlayerTrigger>.Generate(attack, dead,    PlayerTrigger.Die, s => !s.Owner.Health.IsAlive),
+        StateTransition<Player, PlayerTrigger>.Generate(dead,   destroy, PlayerTrigger.Destroy),
     };
 
     public PlayerFSM(Player owner) : base(owner) { }

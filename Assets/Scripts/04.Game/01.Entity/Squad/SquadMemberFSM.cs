@@ -14,18 +14,20 @@ public class SquadMemberFSM : StateMachine<SquadMember, SquadMemberTrigger>
     private readonly SquadMemberIdleState idle = new();
     private readonly SquadMemberAttackState attack = new();
     private readonly SquadMemberDeadState dead = new();
+    private readonly SquadMemberDestroyState destroy = new();
 
     protected override State<SquadMember, SquadMemberTrigger> InitialState => idle;
 
     protected override State<SquadMember, SquadMemberTrigger>[] States
-        => new State<SquadMember, SquadMemberTrigger>[] { idle, attack, dead };
+        => new State<SquadMember, SquadMemberTrigger>[] { idle, attack, dead, destroy };
 
     protected override StateTransition<SquadMember, SquadMemberTrigger>[] Transitions => new[]
     {
-        StateTransition<SquadMember, SquadMemberTrigger>.Generate(idle,   attack, SquadMemberTrigger.StartAttack, EnemyInAttackRange),
-        StateTransition<SquadMember, SquadMemberTrigger>.Generate(attack, idle,   SquadMemberTrigger.StopAttack,  s => !EnemyInAttackRange(s)),
-        StateTransition<SquadMember, SquadMemberTrigger>.Generate(idle,   dead,   SquadMemberTrigger.Die, s => !s.Owner.Health.IsAlive),
-        StateTransition<SquadMember, SquadMemberTrigger>.Generate(attack, dead,   SquadMemberTrigger.Die, s => !s.Owner.Health.IsAlive),
+        StateTransition<SquadMember, SquadMemberTrigger>.Generate(idle,   attack,  SquadMemberTrigger.StartAttack, EnemyInAttackRange),
+        StateTransition<SquadMember, SquadMemberTrigger>.Generate(attack, idle,    SquadMemberTrigger.StopAttack,  s => !EnemyInAttackRange(s)),
+        StateTransition<SquadMember, SquadMemberTrigger>.Generate(idle,   dead,    SquadMemberTrigger.Die, s => !s.Owner.Health.IsAlive),
+        StateTransition<SquadMember, SquadMemberTrigger>.Generate(attack, dead,    SquadMemberTrigger.Die, s => !s.Owner.Health.IsAlive),
+        StateTransition<SquadMember, SquadMemberTrigger>.Generate(dead,   destroy, SquadMemberTrigger.Destroy),
     };
 
     public SquadMemberFSM(SquadMember owner, SpatialGrid<IUnit> unitGrid) : base(owner)

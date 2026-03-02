@@ -10,18 +10,21 @@ public class MonsterStandaloneFSM : StateMachine<Monster, MonsterTrigger>
 {
     public SpatialGrid<IUnit> UnitGrid { get; }
 
+    private readonly MonsterCreateState create = new();
     private readonly MonsterIdleState idle = new();
     private readonly MonsterChaseState chase = new();
     private readonly MonsterAttackState attack = new();
     private readonly MonsterDeadState dead = new();
+    private readonly MonsterDestroyState destroy = new();
 
-    protected override State<Monster, MonsterTrigger> InitialState => idle;
+    protected override State<Monster, MonsterTrigger> InitialState => create;
 
     protected override State<Monster, MonsterTrigger>[] States
-        => new State<Monster, MonsterTrigger>[] { idle, chase, attack, dead };
+        => new State<Monster, MonsterTrigger>[] { create, idle, chase, attack, dead, destroy };
 
     protected override StateTransition<Monster, MonsterTrigger>[] Transitions => new[]
     {
+        StateTransition<Monster, MonsterTrigger>.Generate(create, idle,   MonsterTrigger.Created),
         StateTransition<Monster, MonsterTrigger>.Generate(idle,   chase,  MonsterTrigger.DetectEnemy,      EnemyInDetectionRange),
         StateTransition<Monster, MonsterTrigger>.Generate(chase,  attack, MonsterTrigger.InAttackRange,    EnemyInAttackRange),
         StateTransition<Monster, MonsterTrigger>.Generate(chase,  idle,   MonsterTrigger.LoseEnemy,        s => !EnemyInDetectionRange(s)),
@@ -29,6 +32,7 @@ public class MonsterStandaloneFSM : StateMachine<Monster, MonsterTrigger>
         StateTransition<Monster, MonsterTrigger>.Generate(idle,   dead,   MonsterTrigger.Die, s => !s.Owner.Health.IsAlive),
         StateTransition<Monster, MonsterTrigger>.Generate(chase,  dead,   MonsterTrigger.Die, s => !s.Owner.Health.IsAlive),
         StateTransition<Monster, MonsterTrigger>.Generate(attack, dead,   MonsterTrigger.Die, s => !s.Owner.Health.IsAlive),
+        StateTransition<Monster, MonsterTrigger>.Generate(dead,   destroy, MonsterTrigger.Destroy),
     };
 
     public MonsterStandaloneFSM(Monster owner, SpatialGrid<IUnit> unitGrid) : base(owner)

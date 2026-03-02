@@ -22,13 +22,20 @@ public class TamingSystem : IOnUnitDeathListener, IDisposable
     {
         if (killer.Team != UnitTeam.Player) return;
         if (deadUnit is not Monster monster) return;
-        if (UnityEngine.Random.value > monster.Data.tamingChance) return;
 
-        var member = spawner.SpawnSquadMember(monster.Data, monster.Transform.position);
+        var tamingData = Facade.DB.Get<TamingData>("TamingData");
+        if (UnityEngine.Random.value > tamingData.tamingChance) return;
+
+        monster.MarkAsTamed((Vector2)monster.Transform.position);
+        monster.OnReadyToSpawnTamed += HandleTamingSpawn;
+    }
+
+    private void HandleTamingSpawn(Monster m)
+    {
+        m.OnReadyToSpawnTamed -= HandleTamingSpawn;
+        var member = spawner.SpawnSquadMember(m.Data, m.TamingSpawnPos);
         squad.AddMember(member);
-
-        monster.PlayTamingEffect();
-
-        notifier.Notify<IOnTamingListener>(l => l.OnTamingSuccess(monster, member));
+        member.View.PlayCreateAnimation();
+        notifier.Notify<IOnTamingListener>(l => l.OnTamingSuccess(m, member));
     }
 }
