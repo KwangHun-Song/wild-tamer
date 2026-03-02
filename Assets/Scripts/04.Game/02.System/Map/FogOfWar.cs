@@ -9,66 +9,80 @@ public enum FogState
 
 public class FogOfWar : MonoBehaviour
 {
-    [SerializeField] private int gridWidth = 100;
-    [SerializeField] private int gridHeight = 100;
-    [SerializeField] private float cellSize = 1f;
-    [SerializeField] private int viewRadius = 5;
+    [Header("렌더링")]
     [SerializeField] private SpriteRenderer fogRenderer;
+    [SerializeField] private int viewRadius = 5;
 
+    // 런타임 — Initialize() 이후 확정
     private FogState[,] fogGrid;
-    private Texture2D fogTexture;
-    private Color[] colorBuffer;
-    private bool isDirty;
+    private Texture2D   fogTexture;
+    private Color[]     colorBuffer;
+    private bool        isDirty;
+    private int         width;
+    private int         height;
+    private float       cellSize;
+    private Vector2     origin;
 
-    // 월드 원점 (그리드 좌하단 기준)
-    [SerializeField] private Vector2 origin = Vector2.zero;
-
-    private void Awake()
+    /// <summary>
+    /// MapGenerator.Generate() 직후 InPlayState에서 호출한다.
+    /// ObstacleGrid 치수를 복사해 그리드 불일치를 방지한다.
+    /// </summary>
+    public void Initialize(ObstacleGrid obstacleGrid)
     {
-        InitializeGrid();
-        InitializeTexture();
-    }
+        width    = obstacleGrid.Width;
+        height   = obstacleGrid.Height;
+        cellSize = obstacleGrid.CellSize;
+        origin   = obstacleGrid.Origin;
 
-    private void InitializeGrid()
-    {
-        fogGrid = new FogState[gridWidth, gridHeight];
-        for (var x = 0; x < gridWidth; x++)
-            for (var y = 0; y < gridHeight; y++)
-                fogGrid[x, y] = FogState.Hidden;
-    }
+        // 그리드 초기화 (전부 Hidden)
+        fogGrid     = new FogState[width, height];
+        fogTexture  = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false);
+        fogTexture.filterMode = FilterMode.Point;
+        colorBuffer = new Color[width * height];
 
-    private void InitializeTexture()
-    {
-        fogTexture = new Texture2D(gridWidth, gridHeight, TextureFormat.RGBA32, false);
-        fogTexture.filterMode = FilterMode.Bilinear;
-        colorBuffer = new Color[gridWidth * gridHeight];
-        UpdateTexture();
+        // FogRenderer를 맵 전체에 맞게 배치
         if (fogRenderer != null)
-            fogRenderer.sprite = Sprite.Create(fogTexture, new Rect(0, 0, gridWidth, gridHeight), Vector2.zero, 1f);
+        {
+            fogRenderer.transform.position = (Vector3)(origin + new Vector2(
+                width  * cellSize * 0.5f,
+                height * cellSize * 0.5f));
+            fogRenderer.transform.localScale = new Vector3(
+                width  * cellSize,
+                height * cellSize,
+                1f);
+            fogRenderer.sprite = Sprite.Create(
+                fogTexture,
+                new Rect(0, 0, width, height),
+                new Vector2(0.5f, 0.5f),
+                1f);
+        }
+
+        UpdateTexture();
     }
 
     /// <summary>플레이어 위치 주변 viewRadius 셀을 Visible로 설정한다.</summary>
     public void RevealAround(Vector2 worldPos)
     {
+        if (fogGrid == null) return;
         var center = WorldToGrid(worldPos);
 
-        // 이전 Visible → Explored로 전환
-        for (var x = 0; x < gridWidth; x++)
-            for (var y = 0; y < gridHeight; y++)
+        // Pass 1: 기존 Visible → Explored
+        for (var x = 0; x < width; x++)
+            for (var y = 0; y < height; y++)
                 if (fogGrid[x, y] == FogState.Visible)
                 {
                     fogGrid[x, y] = FogState.Explored;
                     isDirty = true;
                 }
 
-        // viewRadius 내 셀 → Visible
+        // Pass 2: viewRadius 내 셀 → Visible
         for (var dx = -viewRadius; dx <= viewRadius; dx++)
         {
             for (var dy = -viewRadius; dy <= viewRadius; dy++)
             {
                 var gx = center.x + dx;
                 var gy = center.y + dy;
-                if (gx < 0 || gx >= gridWidth || gy < 0 || gy >= gridHeight) continue;
+                if (gx < 0 || gx >= width || gy < 0 || gy >= height) continue;
                 if (dx * dx + dy * dy > viewRadius * viewRadius) continue;
                 if (fogGrid[gx, gy] != FogState.Visible)
                 {
@@ -83,28 +97,31 @@ public class FogOfWar : MonoBehaviour
 
     public bool IsRevealed(Vector2 worldPos)
     {
+        if (fogGrid == null) return false;
         var g = WorldToGrid(worldPos);
-        if (g.x < 0 || g.x >= gridWidth || g.y < 0 || g.y >= gridHeight) return false;
+        if (g.x < 0 || g.x >= width || g.y < 0 || g.y >= height) return false;
         return fogGrid[g.x, g.y] != FogState.Hidden;
     }
 
     public FogState GetState(int x, int y)
     {
-        if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) return FogState.Hidden;
+        if (fogGrid == null) return FogState.Hidden;
+        if (x < 0 || x >= width || y < 0 || y >= height) return FogState.Hidden;
         return fogGrid[x, y];
     }
 
     public FogState[,] CopyFogGrid()
     {
-        var copy = new FogState[gridWidth, gridHeight];
+        if (fogGrid == null) return null;
+        var copy = new FogState[width, height];
         System.Array.Copy(fogGrid, copy, fogGrid.Length);
         return copy;
     }
 
     public void RestoreFogGrid(FogState[,] grid)
     {
-        if (grid == null) return;
-        if (grid.GetLength(0) != gridWidth || grid.GetLength(1) != gridHeight)
+        if (fogGrid == null || grid == null) return;
+        if (grid.GetLength(0) != width || grid.GetLength(1) != height)
         {
             Debug.LogWarning("[FogOfWar] RestoreFogGrid: 크기 불일치로 복원을 건너뜁니다.");
             return;
@@ -116,11 +133,11 @@ public class FogOfWar : MonoBehaviour
 
     private void UpdateTexture()
     {
-        for (var y = 0; y < gridHeight; y++)
+        for (var y = 0; y < height; y++)
         {
-            for (var x = 0; x < gridWidth; x++)
+            for (var x = 0; x < width; x++)
             {
-                colorBuffer[y * gridWidth + x] = fogGrid[x, y] switch
+                colorBuffer[y * width + x] = fogGrid[x, y] switch
                 {
                     FogState.Hidden   => new Color(0f, 0f, 0f, 1f),
                     FogState.Explored => new Color(0f, 0f, 0f, 0.5f),

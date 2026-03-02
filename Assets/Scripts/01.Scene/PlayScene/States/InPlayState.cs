@@ -19,11 +19,12 @@ public class InPlayState : SceneState
     // SceneState는 MonoBehaviour이므로 Update()가 매 프레임 호출된다.
     // 이전 상태(Init, Load, EnterPage) 동안에는 null이므로 no-op으로 안전하다.
     private GameController gameController;
+    private PlayPage playPage;
 
     protected override async UniTask OnExecuteAsync()
     {
         var playStates = (PlayStates)StateMachine;
-        var playPage = playStates.PageChanger.CurrentPage as PlayPage;
+        playPage = playStates.PageChanger.CurrentPage as PlayPage;
 
         if (playPage == null)
         {
@@ -41,6 +42,13 @@ public class InPlayState : SceneState
 
         // 맵 생성
         playPage.WorldMap.MapGenerator.Generate();
+
+        // FogOfWar 초기화 (ObstacleGrid 치수를 그대로 복사해 그리드 일치 보장)
+        var obstacleGrid = playPage.WorldMap.MapGenerator.ObstacleGrid;
+        playPage.FogOfWar?.Initialize(obstacleGrid);
+
+        // Minimap 초기화 (FogOfWar와 동일한 그리드 공유)
+        playPage.Minimap?.Initialize(obstacleGrid, playPage.FogOfWar);
 
         // 플레이어 스폰 위치 적용
         if (playPage.WorldMap.PlayerSpawn != null)
@@ -78,6 +86,16 @@ public class InPlayState : SceneState
     private void Update()
     {
         gameController?.Update();
+
+        if (gameController != null && playPage != null)
+        {
+            playPage.FogOfWar?.RevealAround(gameController.Player.Transform.position);
+            playPage.Minimap?.Refresh(
+                gameController.Player,
+                gameController.Squad.Members,
+                gameController.ActiveMonsters);
+        }
+
         HandleCheatInput();
     }
 
