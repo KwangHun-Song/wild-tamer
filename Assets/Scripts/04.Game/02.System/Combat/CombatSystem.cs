@@ -36,6 +36,7 @@ public class CombatSystem
     {
         RebuildGrid();
         ProcessCombat();
+        ResolveOverlaps();
     }
 
     private void RebuildGrid()
@@ -45,6 +46,37 @@ public class CombatSystem
         {
             if (unit.IsAlive)
                 unitGrid.Insert(unit, unit.Transform.position);
+        }
+    }
+
+    /// <summary>
+    /// 등록된 유닛 간 물리 반경 겹침을 해소한다.
+    /// 두 유닛의 Radius 합보다 거리가 가까울 경우 각각 절반씩 밀어낸다.
+    /// </summary>
+    private void ResolveOverlaps()
+    {
+        for (var i = 0; i < registeredUnits.Count; i++)
+        {
+            var a = registeredUnits[i];
+            if (!a.IsAlive) continue;
+
+            for (var j = i + 1; j < registeredUnits.Count; j++)
+            {
+                var b = registeredUnits[j];
+                if (!b.IsAlive) continue;
+
+                var posA = (Vector2)a.Transform.position;
+                var posB = (Vector2)b.Transform.position;
+                var diff = posA - posB;
+                var dist = diff.magnitude;
+                var minDist = a.Radius + b.Radius;
+
+                if (dist >= minDist || dist < 0.001f) continue;
+
+                var push = diff.normalized * (minDist - dist) * 0.5f;
+                a.Transform.position = (Vector3)(posA + push);
+                b.Transform.position = (Vector3)(posB - push);
+            }
         }
     }
 

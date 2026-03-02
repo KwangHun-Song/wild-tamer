@@ -4,6 +4,7 @@ using UnityEngine;
 public class SquadMember : Character
 {
     public override UnitTeam Team => UnitTeam.Player;
+    public override float Radius => Data.radius;
     public MonsterData Data { get; }
 
     public Vector2 DesiredMoveDirection { get; private set; }

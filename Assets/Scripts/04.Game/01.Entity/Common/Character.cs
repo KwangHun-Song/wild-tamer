@@ -4,6 +4,7 @@ using UnityEngine;
 public abstract class Character : IUnit
 {
     public abstract UnitTeam Team { get; }
+    public abstract float Radius { get; }
     public Transform Transform => View.transform;
     public UnitHealth Health { get; }
     public UnitCombat Combat { get; }

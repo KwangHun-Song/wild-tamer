@@ -3,13 +3,15 @@ using UnityEngine;
 public class Player : Character
 {
     public override UnitTeam Team => UnitTeam.Player;
+    public override float Radius { get; }
 
     public Vector2 InputDirection { get; private set; }
 
     private readonly PlayerFSM fsm;
 
-    public Player(PlayerView view, UnitCombat combat, int maxHp) : base(view, combat)
+    public Player(PlayerView view, UnitCombat combat, int maxHp, float radius = 0.3f) : base(view, combat)
     {
+        Radius = radius;
         Health.Initialize(maxHp);
         Health.OnDeath += OnHealthDeath;
         fsm = new PlayerFSM(this);

@@ -22,4 +22,7 @@ public class PlayerData : ScriptableObject
 
     [Header("이동 속도")]
     public float moveSpeed = 3f;
+
+    [Header("물리 반경 — 유닛 간 겹침 방지에 사용하는 크기 (단위: 월드)")]
+    public float radius = 0.3f;
 }

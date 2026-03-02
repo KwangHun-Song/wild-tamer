@@ -6,6 +6,7 @@ public enum MonsterRole { Standalone, Leader, Follower }
 public class Monster : Character
 {
     public override UnitTeam Team => UnitTeam.Enemy;
+    public override float Radius => Data.radius;
     public MonsterData Data { get; }
 
     private readonly MonsterView monsterView;

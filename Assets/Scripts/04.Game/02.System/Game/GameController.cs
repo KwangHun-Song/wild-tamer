@@ -46,7 +46,7 @@ public class GameController
         var playerCombat = playerData != null
             ? new UnitCombat(playerData.attackDamage, playerData.attackRange, 0f, playerData.attackCooldown)
             : new UnitCombat(10, 1.5f, 0f, 1f);
-        Player = new Player(playerView, playerCombat, playerData?.maxHp ?? 100);
+        Player = new Player(playerView, playerCombat, playerData?.maxHp ?? 100, playerData?.radius ?? 0.3f);
         if (playerData != null)
             playerView.Movement.MoveSpeed = playerData.moveSpeed;
         Squad = new Squad();

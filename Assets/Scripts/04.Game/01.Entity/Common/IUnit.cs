@@ -9,4 +9,5 @@ public interface IUnit
     UnitHealth Health { get; }
     UnitCombat Combat { get; }
     bool IsAlive { get; }
+    float Radius { get; }
 }
