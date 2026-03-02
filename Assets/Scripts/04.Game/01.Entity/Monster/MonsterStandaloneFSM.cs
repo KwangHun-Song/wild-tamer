@@ -38,6 +38,9 @@ public class MonsterStandaloneFSM : StateMachine<Monster, MonsterTrigger>
 
     private bool EnemyInDetectionRange(State<Monster, MonsterTrigger> s)
     {
+        // 피격 어그로 대상이 살아있으면 인식 범위 무관하게 추적 유지
+        if (s.Owner.AggroTarget?.IsAlive == true) return true;
+
         if (UnitGrid == null) return false;
         var pos = (Vector2)s.Owner.Transform.position;
         float range = s.Owner.Combat.DetectionRange;

@@ -14,6 +14,11 @@ public class Monster : Character
 
     private bool isFollowerMoving;
 
+    /// <summary>
+    /// 피격 어그로 대상. 피해를 입힌 유닛을 추적하며, 살아있는 동안 Chase 우선 목표로 사용한다.
+    /// </summary>
+    public IUnit AggroTarget { get; private set; }
+
     /// <summary>스탠드얼론 몬스터용.</summary>
     public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid)
         : this(view, data, unitGrid, MonsterRole.Standalone) { }
@@ -47,6 +52,17 @@ public class Monster : Character
     }
 
     private void OnHealthDamaged(int _) => monsterView.PlayHitEffect();
+
+    /// <summary>
+    /// CombatSystem이 데미지를 입힌 후 호출한다.
+    /// 적 팀 공격자를 AggroTarget으로 설정하고, 인식 범위 밖이어도 Chase를 강제 시작한다.
+    /// </summary>
+    public void NotifyDamagedBy(IUnit attacker)
+    {
+        if (attacker == null || attacker.Team == Team || !Health.IsAlive) return;
+        AggroTarget = attacker;
+        fsm?.ExecuteCommand(MonsterTrigger.DetectEnemy);
+    }
 
     private void OnHealthDeath()
     {

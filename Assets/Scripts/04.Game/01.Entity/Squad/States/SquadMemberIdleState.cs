@@ -23,11 +23,10 @@ public class SquadMemberIdleState : State<SquadMember, SquadMemberTrigger>
         {
             Owner.View.Movement.Move(dir);
             Owner.View.UpdateFacing(dir);
-            if (!wasMoving)
-            {
+            // IsPlayingMoveAnimation() 체크: 공격 애니 등 외부 트리거 후 걷기 애니가 끊겼을 때 재활성화
+            if (!Owner.View.IsPlayingMoveAnimation())
                 Owner.View.PlayMoveAnimation();
-                wasMoving = true;
-            }
+            wasMoving = true;
         }
         else
         {

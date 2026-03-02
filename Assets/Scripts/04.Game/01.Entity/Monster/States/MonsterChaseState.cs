@@ -63,16 +63,34 @@ public class MonsterChaseState : State<Monster, MonsterTrigger>
 
     private IUnit FindClosestEnemy(Vector2 pos, float range)
     {
+        // 피격 어그로 대상이 살아있으면 최우선 추적 (인식 범위 무시)
+        if (Owner.AggroTarget?.IsAlive == true)
+            return Owner.AggroTarget;
+
         if (unitGrid == null) return null;
-        IUnit closest = null;
-        float minDist = float.MaxValue;
+
+        // 스쿼드 멤버를 플레이어보다 우선 타겟팅
+        IUnit squadTarget = null;
+        float squadMinDist = float.MaxValue;
+        IUnit otherTarget = null;
+        float otherMinDist = float.MaxValue;
+
         foreach (var u in unitGrid.Query(pos, range))
         {
             if (u.Team == Owner.Team || !u.IsAlive) continue;
             float d = Vector2.Distance(pos, (Vector2)u.Transform.position);
-            if (d > range || d >= minDist) continue;
-            minDist = d; closest = u;
+            if (d > range) continue;
+
+            if (u is SquadMember)
+            {
+                if (d < squadMinDist) { squadMinDist = d; squadTarget = u; }
+            }
+            else
+            {
+                if (d < otherMinDist) { otherMinDist = d; otherTarget = u; }
+            }
         }
-        return closest;
+
+        return squadTarget ?? otherTarget;
     }
 }

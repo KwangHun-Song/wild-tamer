@@ -64,6 +64,7 @@ public class CombatSystem
                 if (Vector2.Distance(pos, (Vector2)target.Transform.position) > unit.Combat.AttackRange) continue;
                 DamageProcessor.ProcessDamage(unit, target, notifier);
                 (unit as Character)?.FireAttack();
+                (target as Monster)?.NotifyDamagedBy(unit); // 피격 어그로
                 break; // 한 틱에 한 대상만 공격
             }
         }
