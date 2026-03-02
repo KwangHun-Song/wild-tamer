@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27db056d1941f9b42bb3e2abf26554ee, type: 3}
   m_Name: SquadSettings
   m_EditorClassIdentifier: 
-  stopRadius: 0.6
-  memberStopRadius: 0.6
+  stopRadius: 1
+  memberStopRadius: 1
