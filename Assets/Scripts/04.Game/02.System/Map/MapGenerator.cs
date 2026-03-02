@@ -6,6 +6,8 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private Tilemap groundTilemap;
     [SerializeField] private Tilemap waterTilemap;
     [SerializeField] private Tilemap obstacleTilemap;
+    [Tooltip("MapDecorationGenerator가 자동 생성한 장애물 타일맵. null이면 무시한다.")]
+    [SerializeField] private Tilemap generatedObstacleTilemap;
     [SerializeField] private float cellSize = 1f;
     [SerializeField] private SpriteRenderer waterBackground;
 
@@ -51,7 +53,8 @@ public class MapGenerator : MonoBehaviour
                 // Ground 타일이 있고 Obstacle 타일이 없으면 통행 가능
                 // Water 타일맵은 현재 비주얼 전용 — 통행 불가 판단은 Ground 타일 유무로만 결정
                 bool hasGround = groundTilemap.HasTile(cellPos);
-                bool hasObstacle = obstacleTilemap != null && obstacleTilemap.HasTile(cellPos);
+                bool hasObstacle = (obstacleTilemap          != null && obstacleTilemap.HasTile(cellPos))
+                                || (generatedObstacleTilemap != null && generatedObstacleTilemap.HasTile(cellPos));
 
                 ObstacleGrid.SetWalkable(new Vector2Int(x, y), hasGround && !hasObstacle);
             }
