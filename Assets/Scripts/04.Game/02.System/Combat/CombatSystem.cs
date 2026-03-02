@@ -73,9 +73,15 @@ public class CombatSystem
 
                 if (dist >= minDist || dist < 0.001f) continue;
 
-                var push = diff.normalized * (minDist - dist) * 0.5f;
-                a.Transform.position = (Vector3)(posA + push);
-                b.Transform.position = (Vector3)(posB - push);
+                // 플레이어는 인풋 외 이동 금지 — 상대 유닛만 전체 거리를 밀어낸다
+                var pushVec = diff.normalized * (minDist - dist);
+                bool aIsPlayer = a is Player;
+                bool bIsPlayer = b is Player;
+
+                if (!aIsPlayer)
+                    a.Transform.position = (Vector3)(posA + pushVec * (bIsPlayer ? 1f : 0.5f));
+                if (!bIsPlayer)
+                    b.Transform.position = (Vector3)(posB - pushVec * (aIsPlayer ? 1f : 0.5f));
             }
         }
     }
