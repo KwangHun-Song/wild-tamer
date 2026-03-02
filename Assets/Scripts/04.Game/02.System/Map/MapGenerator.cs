@@ -40,6 +40,14 @@ public class MapGenerator : MonoBehaviour
         int height = bounds.size.y;
         var origin = (Vector2)groundTilemap.CellToWorld(bounds.min);
 
+        // generatedObstacleTilemap이 미설정이면 Grid 아래 "GeneratedObstacles"를 자동 탐색
+        if (generatedObstacleTilemap == null)
+        {
+            var gridParent = groundTilemap.transform.parent;
+            var genGO = gridParent != null ? gridParent.Find("GeneratedObstacles") : null;
+            if (genGO != null) generatedObstacleTilemap = genGO.GetComponent<Tilemap>();
+        }
+
         ObstacleGrid = new ObstacleGrid(width, height, cellSize, origin);
 
         FitWaterBackground(width, height, origin);

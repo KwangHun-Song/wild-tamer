@@ -49,6 +49,9 @@ public class MapDecorationGenerator : MonoBehaviour
     [SerializeField] private Transform clearCenter;
 
 #if UNITY_EDITOR
+    /// <summary>배치 스크립트나 외부 에디터 도구에서 호출 가능한 공개 진입점.</summary>
+    public void RunGeneration() => GenerateDecorations();
+
     [ContextMenu("장식 생성")]
     private void GenerateDecorations()
     {
