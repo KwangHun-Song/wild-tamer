@@ -13,6 +13,8 @@ public class InPlayState : SceneState
     [SerializeField] private MonsterData[] initialSquadData;
     [SerializeField] private MonsterData[] initialMonsterData;
     [SerializeField] private MonsterData[] monsterSquadSpawnTable;
+    [Header("치트 — 숫자키 1·2·3…으로 해당 인덱스의 스쿼드 멤버를 플레이어 주변에 스폰")]
+    [SerializeField] private MonsterData[] cheatSquadTypes;
 
     // SceneState는 MonoBehaviour이므로 Update()가 매 프레임 호출된다.
     // 이전 상태(Init, Load, EnterPage) 동안에는 null이므로 no-op으로 안전하다.
@@ -70,5 +72,27 @@ public class InPlayState : SceneState
         }
     }
 
-    private void Update() => gameController?.Update();
+    private void Update()
+    {
+        gameController?.Update();
+        HandleCheatInput();
+    }
+
+    private void HandleCheatInput()
+    {
+        if (gameController == null) return;
+        if (cheatSquadTypes == null || cheatSquadTypes.Length == 0) return;
+
+        int count = Mathf.Min(cheatSquadTypes.Length, 9);
+        for (int i = 0; i < count; i++)
+        {
+            if (!Input.GetKeyDown(KeyCode.Alpha1 + i)) continue;
+            var data = cheatSquadTypes[i];
+            if (data == null) continue;
+            var playerPos = (Vector2)gameController.Player.Transform.position;
+            var spawnPos  = playerPos + (Vector2)Random.insideUnitCircle.normalized * 2f;
+            gameController.CheatSpawnSquadMember(data, spawnPos);
+            break;
+        }
+    }
 }

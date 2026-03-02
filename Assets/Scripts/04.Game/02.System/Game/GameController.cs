@@ -162,6 +162,13 @@ public class GameController
 
     public void SetPhase(GamePhase phase) => Phase = phase;
 
+    /// <summary>치트: 플레이어 주변에 스쿼드 멤버를 즉시 스폰한다.</summary>
+    public void CheatSpawnSquadMember(MonsterData data, Vector2 position)
+    {
+        var member = entitySpawner.SpawnSquadMember(data, position);
+        Squad.AddMember(member);
+    }
+
     /// <summary>테스트용: 게임 시작 시 부대원과 몬스터를 초기 배치한다.</summary>
     public void SpawnTestEntities(MonsterData[] squadData, MonsterData[] monsterData, Vector2 origin)
     {

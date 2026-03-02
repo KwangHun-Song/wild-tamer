@@ -34,13 +34,20 @@ public class Squad
     public void AddMember(SquadMember member)
     {
         members.Add(member);
+        member.OnDied += HandleMemberDied;
         OnMemberAdded?.Invoke(member);
     }
 
     public void RemoveMember(SquadMember member)
     {
+        member.OnDied -= HandleMemberDied;
         members.Remove(member);
         OnMemberRemoved?.Invoke(member);
+    }
+
+    private void HandleMemberDied(SquadMember member)
+    {
+        RemoveMember(member);
     }
 
     public void Clear()
@@ -79,7 +86,7 @@ public class Squad
             }
         }
 
-        // 3단계: 이동
+        // 3단계: 방향 설정 및 FSM 구동
         foreach (var member in members)
         {
             member.Combat.Tick(deltaTime);
@@ -90,12 +97,15 @@ public class Squad
 
             if (stopped.Contains(member))
             {
-                member.Move(Vector2.zero);
-                continue;
+                member.SetMoveDirection(Vector2.zero);
+            }
+            else
+            {
+                var direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
+                member.SetMoveDirection(direction);
             }
 
-            var direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
-            member.Move(direction);
+            member.Update();
         }
     }
 }

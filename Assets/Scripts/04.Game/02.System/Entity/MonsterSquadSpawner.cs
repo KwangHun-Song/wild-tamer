@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Base;
 using UnityEngine;
 
 /// <summary>
@@ -36,6 +37,19 @@ public class MonsterSquadSpawner
         this.playerTransform = playerTransform;
         this.camera = camera;
         this.spawnTable = spawnTable;
+
+        var settings = Facade.DB.Get<SpawnSettingsData>("SpawnSettings");
+        if (settings != null)
+        {
+            MinSquadCount      = settings.minSquadCount;
+            MaxSquadCount      = settings.maxSquadCount;
+            MinMembersPerSquad = settings.minMembersPerSquad;
+            MaxMembersPerSquad = settings.maxMembersPerSquad;
+            SpawnMargin        = settings.spawnMargin;
+            DespawnDistance    = settings.despawnDistance;
+            SpawnInterval      = settings.spawnInterval;
+        }
+
         spawnTimer = SpawnInterval;
     }
 

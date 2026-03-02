@@ -2,7 +2,7 @@
 
 > 상위 문서: [Phase 2 설계](../design.md)
 
-야생 몬스터 개체(Monster), AI 상태 기계(MonsterAI), 기획 데이터(MonsterData), 스폰 관리(EntitySpawner)를 포함한다.
+야생 몬스터 개체(Monster), FSM 기반 AI(`MonsterStandaloneFSM` / `MonsterLeaderFSM`), 기획 데이터(MonsterData), 스폰 관리(EntitySpawner)를 포함한다.
 
 ---
 
@@ -36,145 +36,92 @@ public enum MonsterGrade { Normal, Boss }
 
 ## Monster (pure C#) : Character
 
-MonsterAI를 내부에 소유하며 AI 업데이트를 위임한다. TamingSystem 등 외부에서 View 연출이 필요할 때는 공개 메서드(`PlayTamingEffect`)를 경유한다.
+`MonsterRole`에 따라 적절한 FSM을 생성하여 내부에 소유한다.
+Follower 역할(MonsterSquad 소속)은 FSM 없이 `Move()` 직접 호출로 이동·애님을 처리한다.
 
 ```csharp
+public enum MonsterRole { Standalone, Leader, Follower }
+
 public class Monster : Character
 {
     public override UnitTeam Team => UnitTeam.Enemy;
     public MonsterData Data { get; }
 
-    private readonly MonsterAI ai;
-    private readonly MonsterView monsterView;
+    private StateMachine<Monster, MonsterTrigger> fsm;
 
-    public event Action<Vector2> OnMoveRequested;
-
-    public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid)
+    public Monster(MonsterView view, MonsterData data, SpatialGrid<IUnit> unitGrid, MonsterRole role, ObstacleGrid obstacleGrid = null)
         : base(view, CreateCombat(data))
     {
-        Data = data;
-        monsterView = view;
-
-        view.Health.Initialize(data.maxHp);
-        view.Movement.MoveSpeed = data.moveSpeed;
-        view.Health.OnDamaged += _ => monsterView.PlayHitEffect();
-        view.Health.OnDeath   += monsterView.PlayDeathEffect;
-        view.Subscribe(this);
-
-        ai = new MonsterAI(this, unitGrid);
-        ai.SetUp();
+        // ...
+        fsm = role switch
+        {
+            MonsterRole.Leader   => new MonsterLeaderFSM(this, unitGrid, obstacleGrid),
+            MonsterRole.Follower => null,
+            _                    => new MonsterStandaloneFSM(this, unitGrid),
+        };
+        fsm?.SetUp();
     }
 
-    public void Update() => ai.Update();
+    public void Update() => fsm?.Update();
 
-    public void Move(Vector2 direction) => OnMoveRequested?.Invoke(direction);
+    /// <summary>Follower 전용. FSM 없이 이동·애님을 직접 처리한다.</summary>
+    public void Move(Vector2 direction) { ... }
 
-    /// <summary>외부(TamingSystem 등)에서 View 연출을 트리거할 때 사용한다. View 직접 접근 금지.</summary>
     public void PlayTamingEffect() => monsterView.PlayTamingEffect();
-
-    private static UnitCombat CreateCombat(MonsterData d)
-        => new(d.attackDamage, d.attackRange, d.detectionRange, d.attackCooldown);
 }
 ```
+
+---
+
+## FSM 구조
+
+### MonsterStandaloneFSM
+
+단독 몬스터용. `SpatialGrid`를 통해 적을 탐지한다.
+
+| 상태 | 역할 |
+|---|---|
+| `MonsterIdleState` | idle 애님, 감지 범위 내 적 탐지 시 DetectEnemy |
+| `MonsterChaseState` | move 애님, 가장 가까운 적 추적 이동 |
+| `MonsterAttackState` | attack 애님, 적을 향해 이동하며 공격 |
+| `MonsterDeadState` | 이동 정지, dead 애님 |
+
+### MonsterLeaderFSM
+
+MonsterSquad 리더용. `ObstacleGrid` 기반 장애물 우회를 지원한다.
+
+| 상태 | 역할 |
+|---|---|
+| `MonsterWanderState` | 랜덤 배회, 감지 범위 내 적 탐지 시 DetectEnemy |
+| `MonsterChaseState` | 장애물 우회 추적 이동 |
+| `MonsterAttackState` | 적을 향해 이동하며 공격 |
+| `MonsterDeadState` | 이동 정지, dead 애님 |
+
+**공통 트리거 (`MonsterTrigger`):**
+
+```csharp
+public enum MonsterTrigger { DetectEnemy, LoseEnemy, InAttackRange, OutOfAttackRange, Die }
+```
+
+### Attack 상태 이동
+
+Attack 상태에서도 가장 가까운 적을 향해 이동한다. 정지하지 않고 근접 유지를 시도한다.
 
 ---
 
 ## MonsterView (MonoBehaviour) : CharacterView
 
-Monster 이벤트를 구독하여 Movement를 구동하고, 피격/사망/테이밍 연출을 처리한다.
+FSM States가 직접 호출하는 애님 API를 CharacterView로부터 상속받는다.
+피격·사망·테이밍 VFX 연출 메서드를 추가로 제공한다.
 
 ```csharp
 public class MonsterView : CharacterView
 {
-    public void Subscribe(Monster monster)
-    {
-        monster.OnMoveRequested += direction => Movement.Move(direction);
-    }
-
     public void PlayHitEffect() { ... }
     public void PlayDeathEffect() { ... }
     public void PlayTamingEffect() { ... }
 }
 ```
-
----
-
-## MonsterAI (pure C#)
-
-FSM(`StateMachine<Monster, MonsterTrigger>`) 기반 AI. Idle → Chase → Attack 상태를 전이한다.
-
-탐지·이동·공격 판정 로직은 `MonsterAI.Update()`에 중앙 집중된다. 부모의 `StateMachine.Update()`를 `new` 키워드로 숨기고, 매 프레임 switch 문으로 현재 상태에 따라 SpatialGrid를 조회하여 전이 트리거를 실행한다. 각 State 클래스(`MonsterIdleState`, `MonsterChaseState`, `MonsterAttackState`)는 `OnEnter()` / `OnExit()` 만 구현한다. SpatialGrid 참조는 MonsterAI 생성 시 주입받는다.
-
-```csharp
-public enum MonsterTrigger
-{
-    DetectEnemy, LoseEnemy, InAttackRange, OutOfAttackRange
-}
-
-public class MonsterAI : StateMachine<Monster, MonsterTrigger>
-{
-    public SpatialGrid<IUnit> UnitGrid { get; }    // 탐지에 사용할 공유 SpatialGrid
-
-    private readonly MonsterIdleState idle     = new();
-    private readonly MonsterChaseState chase   = new();
-    private readonly MonsterAttackState attack = new();
-
-    protected override State<Monster, MonsterTrigger> InitialState => idle;
-    protected override State<Monster, MonsterTrigger>[] States
-        => new State<Monster, MonsterTrigger>[] { idle, chase, attack };
-    protected override StateTransition<Monster, MonsterTrigger>[] Transitions => new[]
-    {
-        StateTransition<Monster, MonsterTrigger>.Generate(idle,   chase,  MonsterTrigger.DetectEnemy),
-        StateTransition<Monster, MonsterTrigger>.Generate(chase,  idle,   MonsterTrigger.LoseEnemy),
-        StateTransition<Monster, MonsterTrigger>.Generate(chase,  attack, MonsterTrigger.InAttackRange),
-        StateTransition<Monster, MonsterTrigger>.Generate(attack, chase,  MonsterTrigger.OutOfAttackRange),
-    };
-
-    public MonsterAI(Monster owner, SpatialGrid<IUnit> unitGrid) : base(owner)
-    {
-        UnitGrid = unitGrid;
-    }
-
-    /// <summary>Monster.Update()에서 매 프레임 호출. 상태 전이 판정과 이동을 처리한다.</summary>
-    public new void Update()
-    {
-        var pos = (Vector2)Owner.Transform.position;
-        switch (CurrentState)
-        {
-            case MonsterIdleState _:
-                if (HasEnemyInRange(pos, Owner.Combat.DetectionRange))
-                    ExecuteCommand(MonsterTrigger.DetectEnemy);
-                break;
-            case MonsterChaseState _:
-                // 탐지 범위 이탈 → Idle / 공격 범위 진입 → Attack / 그 외 → 추적 이동
-                break;
-            case MonsterAttackState _:
-                // 공격 범위 이탈 → Chase / CanAttack → ResetCooldown (데미지는 추후 연결)
-                break;
-        }
-    }
-}
-```
-
-각 State 클래스는 `OnEnter()` / `OnExit()` 만 담당한다. 전이 판정은 `MonsterAI.Update()`가 수행한다.
-
-```csharp
-// MonsterIdleState 예시
-public class MonsterIdleState : State<Monster, MonsterTrigger>
-{
-    public override void OnEnter() { /* 대기 애니메이션 */ }
-    public override void OnExit()  { }
-}
-```
-
-### 상태 전이 요약
-
-| 출발 | 도착 | 트리거 | 조건 |
-|------|------|--------|------|
-| Idle | Chase | DetectEnemy | DetectionRange 내 Player 팀 유닛 존재 |
-| Chase | Idle | LoseEnemy | DetectionRange 밖으로 모든 적 이탈 |
-| Chase | Attack | InAttackRange | AttackRange 내 적 존재 |
-| Attack | Chase | OutOfAttackRange | AttackRange 밖으로 적 이탈 |
 
 ---
 
@@ -185,44 +132,14 @@ Monster와 SquadMember 양쪽 스폰/디스폰을 담당한다. `OnMonsterSpawne
 ```csharp
 public class EntitySpawner
 {
-    private readonly List<Monster> activeMonsters = new();
-    private readonly SpatialGrid<IUnit> unitGrid;   // MonsterAI 탐지에 사용
-
-    public IReadOnlyList<Monster> ActiveMonsters => activeMonsters;
-
     public event Action<Monster> OnMonsterSpawned;
     public event Action<Monster> OnMonsterDespawned;
 
-    public EntitySpawner(SpatialGrid<IUnit> unitGrid)
-    {
-        this.unitGrid = unitGrid;
-    }
+    public Monster SpawnMonster(MonsterData data, Vector2 position) { ... }
+    public SquadMember SpawnSquadMember(MonsterData data, Vector2 position) { ... }
+    public void DespawnMonster(Monster monster) { ... }
 
-    public Monster SpawnMonster(MonsterData data, Vector2 position)
-    {
-        var go      = Facade.Pool.Spawn(data.prefab, position);
-        var view    = go.GetComponent<MonsterView>();
-        var monster = new Monster(view, data, unitGrid);
-        activeMonsters.Add(monster);
-        OnMonsterSpawned?.Invoke(monster);
-        return monster;
-    }
-
-    public SquadMember SpawnSquadMember(MonsterData data, Vector2 position)
-    {
-        var go   = Facade.Pool.Spawn(data.squadPrefab, position);
-        var view = go.GetComponent<SquadMemberView>();
-        return new SquadMember(view, data);
-    }
-
-    public void DespawnMonster(Monster monster)
-    {
-        OnMonsterDespawned?.Invoke(monster);
-        activeMonsters.Remove(monster);
-        Facade.Pool.Despawn(monster.Transform.gameObject);
-    }
-
-    /// <summary>GameController.Update()에서 호출. AI 업데이트 및 스폰 주기 처리.</summary>
+    /// <summary>GameController.Update()에서 호출. 몬스터 FSM 업데이트 처리.</summary>
     public void Update(float deltaTime) { ... }
 }
 ```

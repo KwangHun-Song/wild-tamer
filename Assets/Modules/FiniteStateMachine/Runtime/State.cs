@@ -19,6 +19,7 @@ namespace FiniteStateMachine
 
         public virtual void OnEnter() { }
         public virtual void OnExit() { }
+        public virtual void OnUpdate() { }
         public virtual bool OnReceiveCommand(int inCommand, object inData) { return false; }
 
         #region IEquatable

@@ -31,6 +31,7 @@ namespace FiniteStateMachine
 
         public void Update()
         {
+            CurrentState?.OnUpdate();
             TryTransition();
         }
 

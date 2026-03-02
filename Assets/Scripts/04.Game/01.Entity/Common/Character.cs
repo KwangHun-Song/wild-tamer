@@ -9,7 +9,7 @@ public abstract class Character : IUnit
     public UnitCombat Combat { get; }
     public bool IsAlive => Health.IsAlive;
 
-    protected CharacterView View { get; }
+    public CharacterView View { get; }
 
     public event Action OnAttackFired;
 

@@ -2,30 +2,14 @@ using UnityEngine;
 
 public class SquadMemberView : CharacterView
 {
+#if UNITY_EDITOR
     private SquadMember subscribedMember;
 
     public void Subscribe(SquadMember member)
     {
         subscribedMember = member;
-        member.OnMoveRequested += OnMoveRequested;
-        member.OnAttackFired += HandleAttackRequested;
     }
 
-    public void Unsubscribe()
-    {
-        if (subscribedMember != null)
-        {
-            subscribedMember.OnMoveRequested -= OnMoveRequested;
-            subscribedMember.OnAttackFired -= HandleAttackRequested;
-            subscribedMember = null;
-        }
-    }
-
-    private void OnMoveRequested(Vector2 direction) => HandleMoveRequested(direction);
-
-    private void OnDestroy() => Unsubscribe();
-
-#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         if (subscribedMember == null)
