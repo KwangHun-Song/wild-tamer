@@ -104,7 +104,7 @@ public class CombatSystem
                 if (target.Team == unit.Team || !target.IsAlive) continue;
                 if (Vector2.Distance(pos, (Vector2)target.Transform.position) > unit.Combat.AttackRange) continue;
                 var attackDir = ((Vector2)target.Transform.position - pos).normalized;
-                (unit as Character)?.View.UpdateFacing(attackDir);
+                (unit as Character)?.View.SetFacingImmediate(attackDir);
                 DamageProcessor.ProcessDamage(unit, target, notifier);
                 (unit as Character)?.FireAttack();
                 (target as Monster)?.NotifyDamagedBy(unit); // 피격 어그로

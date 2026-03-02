@@ -22,7 +22,6 @@ public class PlayerIdleState : State<Player, PlayerTrigger>
             Owner.View.UpdateFacing(dir);
             if (!Owner.View.IsPlayingMoveAnimation())
             {
-                Facade.Logger?.Log($"[Player] Idle → MOVE ({dir:F2})", LogLevel.Info, DebugColor.Cyan);
                 Owner.View.PlayMoveAnimation();
             }
         }
@@ -31,7 +30,6 @@ public class PlayerIdleState : State<Player, PlayerTrigger>
             if (Owner.View.IsPlayingMoveAnimation())
             {
                 Owner.View.Movement.Move(Vector2.zero);
-                Facade.Logger?.Log("[Player] Idle → IDLE (정지)", LogLevel.Info, DebugColor.Yellow);
                 Owner.View.PlayIdleAnimation();
             }
         }

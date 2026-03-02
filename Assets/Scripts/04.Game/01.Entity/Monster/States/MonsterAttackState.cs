@@ -17,6 +17,14 @@ public class MonsterAttackState : State<Monster, MonsterTrigger>
         originalSpeed = Owner.View.Movement.MoveSpeed;
         Owner.View.Movement.MoveSpeed = originalSpeed * 0.5f;
         Owner.View.PlayAttackAnimation();
+
+        var pos = (Vector2)Owner.Transform.position;
+        var target = FindClosestEnemy(pos, Owner.Combat.AttackRange);
+        if (target != null)
+        {
+            var dir = ((Vector2)target.Transform.position - pos).normalized;
+            Owner.View.SetFacingImmediate(dir);
+        }
     }
 
     public override void OnExit()

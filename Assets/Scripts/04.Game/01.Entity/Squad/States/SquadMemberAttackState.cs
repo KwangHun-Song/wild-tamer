@@ -13,6 +13,14 @@ public class SquadMemberAttackState : State<SquadMember, SquadMemberTrigger>
     public override void OnEnter()
     {
         Owner.View.PlayAttackAnimation();
+
+        var pos = (Vector2)Owner.Transform.position;
+        var target = FindClosestEnemy(pos, Owner.Combat.AttackRange);
+        if (target != null)
+        {
+            var toTarget = ((Vector2)target.Transform.position - pos).normalized;
+            Owner.View.SetFacingImmediate(toTarget);
+        }
     }
 
     public override void OnUpdate()
