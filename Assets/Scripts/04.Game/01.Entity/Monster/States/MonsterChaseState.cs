@@ -70,7 +70,8 @@ public class MonsterChaseState : State<Monster, MonsterTrigger>
         {
             if (u.Team == Owner.Team || !u.IsAlive) continue;
             float d = Vector2.Distance(pos, (Vector2)u.Transform.position);
-            if (d < minDist) { minDist = d; closest = u; }
+            if (d > range || d >= minDist) continue;
+            minDist = d; closest = u;
         }
         return closest;
     }

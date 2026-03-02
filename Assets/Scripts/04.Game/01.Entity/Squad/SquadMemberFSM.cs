@@ -37,8 +37,9 @@ public class SquadMemberFSM : StateMachine<SquadMember, SquadMemberTrigger>
     {
         if (UnitGrid == null) return false;
         var pos = (Vector2)s.Owner.Transform.position;
-        foreach (var u in UnitGrid.Query(pos, s.Owner.Combat.AttackRange))
-            if (u.Team != s.Owner.Team && u.IsAlive) return true;
+        float range = s.Owner.Combat.AttackRange;
+        foreach (var u in UnitGrid.Query(pos, range))
+            if (u.Team != s.Owner.Team && u.IsAlive && Vector2.Distance(pos, (Vector2)u.Transform.position) <= range) return true;
         return false;
     }
 }

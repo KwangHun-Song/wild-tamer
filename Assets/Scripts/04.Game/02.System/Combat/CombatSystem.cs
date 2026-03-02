@@ -56,10 +56,12 @@ public class CombatSystem
         {
             if (!unit.IsAlive || !unit.Combat.CanAttack) continue;
 
-            var nearby = unitGrid.Query((Vector2)unit.Transform.position, unit.Combat.AttackRange);
+            var pos = (Vector2)unit.Transform.position;
+            var nearby = unitGrid.Query(pos, unit.Combat.AttackRange);
             foreach (var target in nearby)
             {
                 if (target.Team == unit.Team || !target.IsAlive) continue;
+                if (Vector2.Distance(pos, (Vector2)target.Transform.position) > unit.Combat.AttackRange) continue;
                 DamageProcessor.ProcessDamage(unit, target, notifier);
                 (unit as Character)?.FireAttack();
                 break; // 한 틱에 한 대상만 공격
