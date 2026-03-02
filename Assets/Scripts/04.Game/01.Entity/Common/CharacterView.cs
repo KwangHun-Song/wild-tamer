@@ -127,7 +127,7 @@ public abstract class CharacterView : MonoBehaviour
         spriteRenderer.DOKill();
         transform.DOKill();
 
-        spriteRenderer.color = Color.clear;
+        spriteRenderer.color = new Color(1f, 1f, 1f, 0f);
         transform.localRotation = Quaternion.Euler(0f, 0f, deathSequenceData.rotationDegrees);
 
         DOTween.Sequence()
