@@ -55,6 +55,9 @@ public class InPlayState : SceneState
             monsterSquadSpawnTable,
             playPage.WorldMap.UnitRoot);
 
+        // HP 바 바인딩
+        playPage.PlayerHpBar?.Bind(gameController.Player.Health);
+
         // 테스트용: 초기 부대원(Purple) · 몬스터(Red) 스폰
         var spawnOrigin = playPage.WorldMap.PlayerSpawn != null
             ? (Vector2)playPage.WorldMap.PlayerSpawn.position

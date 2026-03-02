@@ -18,6 +18,8 @@ public abstract class Character : IUnit
         View = view;
         Combat = combat;
         Health = new UnitHealth();
+        Health.OnDamaged += _ => View.PlayDamageFlash();
+        View.BindHpBar(Health);
     }
 
     public void FireAttack() => OnAttackFired?.Invoke();

@@ -90,6 +90,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerInput: {fileID: 2847561394128374956}
+  initialSquadData:
+  - {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
+  - {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
+  - {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
+  initialMonsterData: []
+  monsterSquadSpawnTable:
+  - {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
+  - {fileID: 11400000, guid: b49f7896aae1dca4089acc0a1278883f, type: 2}
+  - {fileID: 11400000, guid: 09cefa7de91d0d34a8fa927404ce3314, type: 2}
+  cheatSquadTypes:
+  - {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
+  - {fileID: 11400000, guid: 09cefa7de91d0d34a8fa927404ce3314, type: 2}
+  - {fileID: 11400000, guid: b49f7896aae1dca4089acc0a1278883f, type: 2}
 --- !u!114 &2847561394128374956
 MonoBehaviour:
   m_ObjectHideFlags: 0
