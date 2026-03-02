@@ -66,7 +66,12 @@ public class InPlayState : SceneState
         // 카메라 셰이크 (플레이어 피격 시)
         CameraShake cameraShake = null;
         if (quarterViewCamera != null)
-            cameraShake = new CameraShake(quarterViewCamera, gameController.Player, 0.1f, 0.2f, gameController.Notifier);
+        {
+            var shakeData = Facade.DB.Get<CameraShakeData>("CameraShakeData");
+            var intensity = shakeData != null ? shakeData.intensity : 0.1f;
+            var duration  = shakeData != null ? shakeData.duration  : 0.2f;
+            cameraShake = new CameraShake(quarterViewCamera, gameController.Player, intensity, duration, gameController.Notifier);
+        }
 
         // HP 바 바인딩
         playPage.PlayerHpBar?.Bind(gameController.Player.Health);
