@@ -1,3 +1,4 @@
+using Base;
 using UnityEngine;
 
 public enum FogState
@@ -11,9 +12,9 @@ public class FogOfWar : MonoBehaviour
 {
     [Header("렌더링")]
     [SerializeField] private SpriteRenderer fogRenderer;
-    [SerializeField] private int viewRadius = 5;
 
     // 런타임 — Initialize() 이후 확정
+    private FogOfWarData fogData;
     private FogState[,] fogGrid;
     private Texture2D   fogTexture;
     private Color[]     colorBuffer;
@@ -29,6 +30,7 @@ public class FogOfWar : MonoBehaviour
     /// </summary>
     public void Initialize(ObstacleGrid obstacleGrid)
     {
+        fogData  = Facade.DB.Get<FogOfWarData>("FogOfWarData");
         width    = obstacleGrid.Width;
         height   = obstacleGrid.Height;
         cellSize = obstacleGrid.CellSize;
@@ -36,8 +38,10 @@ public class FogOfWar : MonoBehaviour
 
         // 그리드 초기화 (전부 Hidden)
         fogGrid     = new FogState[width, height];
-        fogTexture  = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false);
-        fogTexture.filterMode = FilterMode.Point;
+        fogTexture = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false)
+        {
+            filterMode = FilterMode.Point
+        };
         colorBuffer = new Color[width * height];
 
         // FogRenderer를 맵 전체에 맞게 배치
@@ -47,8 +51,8 @@ public class FogOfWar : MonoBehaviour
                 width  * cellSize * 0.5f,
                 height * cellSize * 0.5f));
             fogRenderer.transform.localScale = new Vector3(
-                width  * cellSize,
-                height * cellSize,
+                cellSize,
+                cellSize,
                 1f);
             fogRenderer.sprite = Sprite.Create(
                 fogTexture,
@@ -76,14 +80,15 @@ public class FogOfWar : MonoBehaviour
                 }
 
         // Pass 2: viewRadius 내 셀 → Visible
-        for (var dx = -viewRadius; dx <= viewRadius; dx++)
+        var radius = fogData?.viewRadius ?? 5;
+        for (var dx = -radius; dx <= radius; dx++)
         {
-            for (var dy = -viewRadius; dy <= viewRadius; dy++)
+            for (var dy = -radius; dy <= radius; dy++)
             {
                 var gx = center.x + dx;
                 var gy = center.y + dy;
                 if (gx < 0 || gx >= width || gy < 0 || gy >= height) continue;
-                if (dx * dx + dy * dy > viewRadius * viewRadius) continue;
+                if (dx * dx + dy * dy > radius * radius) continue;
                 if (fogGrid[gx, gy] != FogState.Visible)
                 {
                     fogGrid[gx, gy] = FogState.Visible;
@@ -139,9 +144,9 @@ public class FogOfWar : MonoBehaviour
             {
                 colorBuffer[y * width + x] = fogGrid[x, y] switch
                 {
-                    FogState.Hidden   => new Color(0f, 0f, 0f, 1f),
-                    FogState.Explored => new Color(0f, 0f, 0f, 0.5f),
-                    FogState.Visible  => new Color(0f, 0f, 0f, 0f),
+                    FogState.Hidden   => fogData?.hiddenColor   ?? new Color(0f, 0f, 0f, 0.95f),
+                    FogState.Explored => fogData?.exploredColor ?? new Color(0f, 0f, 0f, 0.5f),
+                    FogState.Visible  => fogData?.visibleColor  ?? new Color(0f, 0f, 0f, 0f),
                     _                 => Color.black
                 };
             }
