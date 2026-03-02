@@ -6,5 +6,6 @@ namespace Base
     {
         UniTask<T> ShowAsync<T>(string popupName, object enterParam = null);
         bool IsPopupOpen(string popupName);
+        bool IsAnyPopupOpen();
     }
 }

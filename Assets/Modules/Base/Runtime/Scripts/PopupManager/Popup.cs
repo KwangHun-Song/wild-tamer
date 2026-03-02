@@ -1,14 +1,19 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Base
 {
     public abstract class Popup : MonoBehaviour, IPopup
     {
+        [SerializeField] private Button curtain;
+
         private const int SortingOrderInterval = 1000;
 
         public abstract string PopupName { get; }
         public bool IsOpen { get; private set; }
+
+        protected virtual bool CanClickCurtainToClose => true;
 
         protected UniTaskCompletionSource<object> CompletionSource { get; private set; }
 
@@ -20,6 +25,7 @@ namespace Base
         public virtual UniTask ShowAsync(object enterParam = null)
         {
             gameObject.SetActive(true);
+            curtain.onClick.AddListener(OnCurtainClicked);
             return UniTask.CompletedTask;
         }
 
@@ -27,6 +33,7 @@ namespace Base
         {
             IsOpen = false;
             gameObject.SetActive(false);
+            curtain.onClick.RemoveListener(OnCurtainClicked);
             CompletionSource?.TrySetResult(leaveParam);
             CompletionSource = null;
         }
@@ -42,6 +49,24 @@ namespace Base
         internal UniTask<object> WaitForCloseAsync()
         {
             return CompletionSource.Task;
+        }
+
+        internal void OnCurtainClicked()
+        {
+            if (CanClickCurtainToClose)
+                Close(false);
+        }
+
+        private void OnValidate()
+        {
+            if (curtain == null)
+            {
+                var curtainObject = transform.Find("Curtain");
+                if (curtainObject != null)
+                {
+                    curtain = curtainObject.GetComponent<Button>();
+                }
+            }
         }
     }
 }

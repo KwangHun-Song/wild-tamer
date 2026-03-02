@@ -53,5 +53,10 @@ namespace Base
             }
             return false;
         }
+
+        public bool IsAnyPopupOpen()
+        {
+            return popupStack.Count > 0;
+        }
     }
 }
