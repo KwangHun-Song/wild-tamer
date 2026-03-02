@@ -32,6 +32,9 @@ public class InPlayState : SceneState
             return;
         }
 
+        void OnSettingClicked() => OpenSettingPopupAsync(playStates).Forget();
+        playPage.OnSettingClicked += OnSettingClicked;
+
         // Canvas에 UICamera 연결 (Screen Space - Camera)
         playPage.Canvas.worldCamera = playStates.UICamera;
 
@@ -88,6 +91,7 @@ public class InPlayState : SceneState
         }
         finally
         {
+            playPage.OnSettingClicked -= OnSettingClicked;
             cameraShake?.Dispose();
             gameController.Cleanup();
             gameController = null;
@@ -126,5 +130,12 @@ public class InPlayState : SceneState
             gameController.CheatSpawnSquadMember(data, spawnPos);
             break;
         }
+    }
+
+    private async UniTaskVoid OpenSettingPopupAsync(PlayStates playStates)
+    {
+        var param = new CommonPopupParam("설정", "게임이 일시정지됩니다.", hasTwoButtons: false);
+        bool result = await playStates.PopupManager.ShowAsync<bool>("Popups/CommonPopup", param);
+        Facade.Logger.Log($"[InPlayState] 설정 팝업 닫힘: {result}");
     }
 }
