@@ -9,11 +9,13 @@ public class PlayStates : SceneStateMachine
 
     public IPageChanger PageChanger { get; private set; }
     public IPopupManager PopupManager { get; private set; }
+    public Notifier SceneNotifier { get; private set; }
     public Camera UICamera => uiCamera;
 
     private void Awake()
     {
-        PageChanger = new PageChanger(pageRoot);
+        SceneNotifier = new Notifier();
+        PageChanger = new PageChanger(pageRoot, SceneNotifier);
         PopupManager = new PopupManager(popupRoot);
     }
 }

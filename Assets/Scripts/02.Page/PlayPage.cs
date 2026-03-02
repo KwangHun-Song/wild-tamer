@@ -9,8 +9,6 @@ public class PlayPage : Page
 
     [SerializeField] private Button settingButton;
 
-    public event System.Action OnSettingClicked;
-
     [SerializeField] private Transform worldMapRoot;
     [SerializeField] private Canvas canvas;
     [SerializeField] private WorldMap worldMap;
@@ -41,6 +39,6 @@ public class PlayPage : Page
 
     private void OnSettingButtonClicked()
     {
-        OnSettingClicked?.Invoke();
+        Notifier?.Notify<ISettingButtonListener>(l => l.OnSettingButtonClicked());
     }
 }

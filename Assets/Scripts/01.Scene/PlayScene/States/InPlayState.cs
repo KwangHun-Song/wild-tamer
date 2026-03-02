@@ -7,7 +7,7 @@ using UnityEngine;
 /// GameController를 생성·관리하고, Unity Update()로 매 프레임 구동한다.
 /// PlayPage Canvas에 UICamera를 연결한다.
 /// </summary>
-public class InPlayState : SceneState
+public class InPlayState : SceneState, ISettingButtonListener
 {
     [SerializeField] private PlayerInput   playerInput;
     [SerializeField] private MonsterData[] initialSquadData;
@@ -20,10 +20,11 @@ public class InPlayState : SceneState
     // 이전 상태(Init, Load, EnterPage) 동안에는 null이므로 no-op으로 안전하다.
     private GameController gameController;
     private PlayPage playPage;
+    private PlayStates playStates;
 
     protected override async UniTask OnExecuteAsync()
     {
-        var playStates = (PlayStates)StateMachine;
+        playStates = (PlayStates)StateMachine;
         playPage = playStates.PageChanger.CurrentPage as PlayPage;
 
         if (playPage == null)
@@ -32,8 +33,7 @@ public class InPlayState : SceneState
             return;
         }
 
-        void OnSettingClicked() => OpenSettingPopupAsync(playStates).Forget();
-        playPage.OnSettingClicked += OnSettingClicked;
+        playStates.SceneNotifier.Subscribe(this);
 
         // Canvas에 UICamera 연결 (Screen Space - Camera)
         playPage.Canvas.worldCamera = playStates.UICamera;
@@ -91,7 +91,7 @@ public class InPlayState : SceneState
         }
         finally
         {
-            playPage.OnSettingClicked -= OnSettingClicked;
+            playStates.SceneNotifier.Unsubscribe(this);
             cameraShake?.Dispose();
             gameController.Cleanup();
             gameController = null;
@@ -132,7 +132,12 @@ public class InPlayState : SceneState
         }
     }
 
-    private async UniTaskVoid OpenSettingPopupAsync(PlayStates playStates)
+    public void OnSettingButtonClicked()
+    {
+        OpenSettingPopupAsync().Forget();
+    }
+
+    private async UniTaskVoid OpenSettingPopupAsync()
     {
         if (playStates.PopupManager.IsPopupOpen("Popups/CommonPopup")) return;
         var param = new CommonPopupParam("설정", "게임이 일시정지됩니다.", hasTwoButtons: false);
