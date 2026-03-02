@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Base;
 using DG.Tweening;
 using UnityEngine;
 
@@ -18,9 +19,12 @@ public abstract class CharacterView : MonoBehaviour
     private const int QueueSize = 5;
     private readonly Queue<Vector2> directionQueue = new();
 
+    private DeathSequenceData deathSequenceData;
+
     protected virtual void Awake()
     {
         spriteRenderer.sortingOrder = SortingOrder.Unit;
+        deathSequenceData = Facade.DB.Get<DeathSequenceData>("DeathSequence");
     }
 
     private void OnEnable()
@@ -70,7 +74,8 @@ public abstract class CharacterView : MonoBehaviour
 
     /// <summary>
     /// 사망 연출 시퀀스.
-    /// Idle로 전환 + Flip 해제 → Z축 90도 회전 → FadeOut 순서로 재생한다.
+    /// Idle로 전환 + Flip 해제 → Z축 회전 → FadeOut 순서로 재생한다.
+    /// 파라미터는 DeathSequenceData("DeathSequence") 에셋에서 조회한다.
     /// </summary>
     public void PlayDeathSequence()
     {
@@ -80,10 +85,20 @@ public abstract class CharacterView : MonoBehaviour
         spriteRenderer.DOKill();
         transform.DOKill();
 
+        if (deathSequenceData == null)
+        {
+            Debug.LogWarning("[CharacterView] DeathSequenceData를 찾을 수 없습니다. Resources/DeathSequence.asset을 확인하세요.");
+            return;
+        }
+
         DOTween.Sequence()
-            .Append(transform.DOLocalRotate(new Vector3(0f, 0f, 90f), 0.4f).SetEase(Ease.OutQuad))
-            .AppendInterval(0.1f)
-            .Append(spriteRenderer.DOFade(0f, 0.5f).SetEase(Ease.InQuad));
+            .Append(transform.DOLocalRotate(
+                new Vector3(0f, 0f, deathSequenceData.rotationDegrees),
+                deathSequenceData.rotateDuration)
+                .SetEase(deathSequenceData.rotateEase))
+            .AppendInterval(deathSequenceData.fadeDelay)
+            .Append(spriteRenderer.DOFade(0f, deathSequenceData.fadeDuration)
+                .SetEase(deathSequenceData.fadeEase));
     }
 
     private void SetTriggerSafe(string triggerName)

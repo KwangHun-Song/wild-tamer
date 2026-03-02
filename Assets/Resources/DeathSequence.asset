@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d5aaa37b3b63c84884089ad3892aa06, type: 3}
+  m_Name: DeathSequence
+  m_EditorClassIdentifier: 
+  rotationDegrees: 90
+  rotateDuration: 0.4
+  rotateEase: 5
+  fadeDelay: 0.1
+  fadeDuration: 0.5
+  fadeEase: 4
