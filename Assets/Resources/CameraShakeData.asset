@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87735f40fed8bbb4a9360efb9c5db5c3, type: 3}
   m_Name: CameraShakeData
   m_EditorClassIdentifier: 
-  intensity: 0.1
+  intensity: 0.02
   duration: 0.2
