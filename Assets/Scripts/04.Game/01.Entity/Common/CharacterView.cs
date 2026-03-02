@@ -35,6 +35,7 @@ public abstract class CharacterView : MonoBehaviour
         spriteRenderer.flipX = false;
         transform.DOKill();
         transform.localRotation = Quaternion.identity;
+        directionQueue.Clear();
         OnSpawnedFromPool();
     }
 
@@ -43,6 +44,9 @@ public abstract class CharacterView : MonoBehaviour
 
     /// <summary>HP 바 뷰를 Health에 바인딩한다. HP 바가 있는 서브클래스에서 오버라이드한다.</summary>
     public virtual void BindHpBar(UnitHealth health) { }
+
+    /// <summary>HP 바를 숨긴다. HP 바가 있는 서브클래스에서 오버라이드한다.</summary>
+    protected virtual void HideHpBar() { }
 
     private void LateUpdate()
     {
@@ -80,6 +84,7 @@ public abstract class CharacterView : MonoBehaviour
     /// </summary>
     public void PlayDeathSequence(Action onComplete = null)
     {
+        HideHpBar();
         PlayIdleAnimation();
         spriteRenderer.flipX = false;
 
@@ -125,6 +130,18 @@ public abstract class CharacterView : MonoBehaviour
         }
 #endif
         animator.SetTrigger(triggerName);
+    }
+
+    /// <summary>
+    /// 방향 큐를 비우고 즉시 dir 방향으로 flipX를 설정한다.
+    /// 공격 상태 진입처럼 순간적인 방향 전환이 필요한 경우 OnEnter에서 호출한다.
+    /// </summary>
+    public void SetFacingImmediate(Vector2 dir)
+    {
+        directionQueue.Clear();
+        directionQueue.Enqueue(dir);
+        if (dir.x < 0) spriteRenderer.flipX = true;
+        else if (dir.x > 0) spriteRenderer.flipX = false;
     }
 
     /// <summary>
