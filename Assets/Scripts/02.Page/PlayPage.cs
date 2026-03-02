@@ -8,6 +8,9 @@ public class PlayPage : Page
     public override string PageName => "PlayPage";
 
     [SerializeField] private Button settingButton;
+
+    public event System.Action OnSettingClicked;
+
     [SerializeField] private Transform worldMapRoot;
     [SerializeField] private Canvas canvas;
     [SerializeField] private WorldMap worldMap;
@@ -38,7 +41,6 @@ public class PlayPage : Page
 
     private void OnSettingButtonClicked()
     {
-        // TODO: 세팅 팝업 열기 (Phase 3에서 구현)
-        Facade.Logger.Log("Setting button clicked");
+        OnSettingClicked?.Invoke();
     }
 }
