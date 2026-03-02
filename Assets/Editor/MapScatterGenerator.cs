@@ -67,6 +67,12 @@ public static class MapScatterGenerator
             genObsTrans = go.transform;
         }
         var genObstacleTilemap = genObsTrans.GetComponent<Tilemap>();
+
+        // 이전 자동 생성 타일을 Obstacles 타일맵에서 먼저 제거한다 (수작업 타일은 보존).
+        // genObstacleTilemap이 이전 산포에서 마킹한 위치만 알고 있으므로 안전하게 식별 가능.
+        foreach (var pos in genObstacleTilemap.cellBounds.allPositionsWithin)
+            if (genObstacleTilemap.HasTile(pos))
+                obstacleTilemap.SetTile(pos, null);
         genObstacleTilemap.ClearAllTiles(); // 이전 생성분 초기화
 
         // ── 장애물 마커 타일 결정 ─────────────────────────────
@@ -169,6 +175,13 @@ public static class MapScatterGenerator
         }
 
         Debug.Log($"[MapScatterGenerator] 완료 — 나무:{trees}  바위:{rocks}  덤불:{bushes}");
+
+        // 자동 생성 장애물 타일을 Obstacles 타일맵에도 반영한다.
+        // 이로써 에디터에서 Obstacles 레이어를 선택하면 나무·바위 위치를 바로 확인할 수 있다.
+        genObstacleTilemap.CompressBounds();
+        foreach (var pos in genObstacleTilemap.cellBounds.allPositionsWithin)
+            if (genObstacleTilemap.HasTile(pos))
+                obstacleTilemap.SetTile(pos, genObstacleTilemap.GetTile(pos));
     }
 
     // ── 배치 헬퍼 ────────────────────────────────────────────
