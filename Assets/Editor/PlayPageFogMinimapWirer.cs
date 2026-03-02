@@ -67,7 +67,7 @@ public static class PlayPageFogMinimapWirer
         rendererGO.transform.SetParent(fogGO.transform, worldPositionStays: false);
         var sr = rendererGO.AddComponent<SpriteRenderer>();
         sr.color        = Color.white;
-        sr.sortingOrder = 100;   // 지형(0) 위, 유닛 아래
+        sr.sortingOrder = SortingOrder.Fog;
 
         // FogOfWar.fogRenderer 연결
         var fogSo = new SerializedObject(fogOfWar);

@@ -59,6 +59,7 @@ public class FogOfWar : MonoBehaviour
                 new Rect(0, 0, width, height),
                 new Vector2(0.5f, 0.5f),
                 1f);
+            fogRenderer.sortingOrder = SortingOrder.Fog;
         }
 
         UpdateTexture();
