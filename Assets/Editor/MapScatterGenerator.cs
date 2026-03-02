@@ -108,11 +108,11 @@ public static class MapScatterGenerator
             "Assets/Graphic/Sprites/Terrain/Decorations/Rocks/Rock3.png",
             "Assets/Graphic/Sprites/Terrain/Decorations/Rocks/Rock4.png"
         );
-        var bushSprites = LoadSprites(
-            "Assets/Graphic/Sprites/Terrain/Decorations/Bushes/Bushe1.png",
-            "Assets/Graphic/Sprites/Terrain/Decorations/Bushes/Bushe2.png",
-            "Assets/Graphic/Sprites/Terrain/Decorations/Bushes/Bushe3.png",
-            "Assets/Graphic/Sprites/Terrain/Decorations/Bushes/Bushe4.png"
+        var bushPrefabs = LoadPrefabs(
+            "Assets/Prefabs/WorldMap/Bushes/Bush1View.prefab",
+            "Assets/Prefabs/WorldMap/Bushes/Bush2View.prefab",
+            "Assets/Prefabs/WorldMap/Bushes/Bush3View.prefab",
+            "Assets/Prefabs/WorldMap/Bushes/Bush4View.prefab"
         );
 
         // ── 클리어 반경 중심 ──────────────────────────────────
@@ -158,9 +158,9 @@ public static class MapScatterGenerator
                     PlaceRock(cellPos, worldPos, rockSprites, rocksParent, genObstacleTilemap, obstacleTile, rng);
                     rocks++;
                 }
-                else if (bushSprites.Length > 0 && roll < TreeDensity + RockDensity + BushDensity)
+                else if (bushPrefabs.Length > 0 && roll < TreeDensity + RockDensity + BushDensity)
                 {
-                    PlaceBush(worldPos, bushSprites, bushesParent, rng);
+                    PlaceBush(cellPos, worldPos, bushPrefabs, bushesParent, rng);
                     bushes++;
                 }
             }
@@ -198,23 +198,19 @@ public static class MapScatterGenerator
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
-        sr.sortingOrder = 1000 - Mathf.RoundToInt(worldPos.y * 10);
+        sr.sortingOrder = 2000 - Mathf.RoundToInt(worldPos.y * 10);
 
         if (tile != null) genTilemap.SetTile(cell, tile);
     }
 
-    private static void PlaceBush(Vector2 worldPos, Sprite[] sprites, Transform parent, System.Random rng)
+    private static void PlaceBush(Vector3Int cell, Vector2 worldPos, GameObject[] prefabs, Transform parent, System.Random rng)
     {
-        var sprite = sprites[rng.Next(sprites.Length)];
-        if (sprite == null) return;
+        var prefab = prefabs[rng.Next(prefabs.Length)];
+        if (prefab == null) return;
 
-        var go = new GameObject($"Gen_Bush_{Mathf.RoundToInt(worldPos.x)}_{Mathf.RoundToInt(worldPos.y)}");
-        go.transform.SetParent(parent, false);
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+        go.name = $"Gen_Bush_{cell.x}_{cell.y}";
         go.transform.position = new Vector3(worldPos.x, worldPos.y, worldPos.y);
-
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = sprite;
-        sr.sortingOrder = 900 - Mathf.RoundToInt(worldPos.y * 10);
     }
 
     // ── 유틸리티 ─────────────────────────────────────────────
