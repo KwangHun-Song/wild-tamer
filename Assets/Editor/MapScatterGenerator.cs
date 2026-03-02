@@ -69,12 +69,14 @@ public static class MapScatterGenerator
         var genObstacleTilemap = genObsTrans.GetComponent<Tilemap>();
         genObstacleTilemap.ClearAllTiles(); // 이전 생성분 초기화
 
-        // ── 장애물 타일 에셋 결정 ────────────────────────────
-        // 기존 Obstacles 타일맵에서 사용 중인 타일을 재사용, 없으면 Shadow.asset 사용
+        // ── 장애물 마커 타일 결정 ─────────────────────────────
+        // Ground 타일맵에서 잔디 타일을 가져와 GeneratedObstacles 마커로 사용한다.
+        // HasTile() 유무만 검사하므로 타일 종류는 관계없으나, 에디터에서 확인하기 쉽도록
+        // 잔디(Ground) 타일을 사용한다. 없으면 Shadow.asset 폴백.
         TileBase obstacleTile = null;
-        foreach (var pos in obstacleTilemap.cellBounds.allPositionsWithin)
+        foreach (var pos in groundTilemap.cellBounds.allPositionsWithin)
         {
-            if (obstacleTilemap.HasTile(pos)) { obstacleTile = obstacleTilemap.GetTile(pos); break; }
+            if (groundTilemap.HasTile(pos)) { obstacleTile = groundTilemap.GetTile(pos); break; }
         }
         if (obstacleTile == null)
             obstacleTile = AssetDatabase.LoadAssetAtPath<TileBase>("Assets/Prefabs/WorldMap/Tiles/Shadow.asset");
