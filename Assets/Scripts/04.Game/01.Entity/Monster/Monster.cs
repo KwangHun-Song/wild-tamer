@@ -58,7 +58,7 @@ public class Monster : Character
     /// <summary>리더 승계 시 호출. 팔로워에게 리더 AI를 부여한다.</summary>
     public void PromoteToLeader(SpatialGrid<IUnit> unitGrid)
     {
-        fsm = new MonsterLeaderFSM(this, unitGrid, obstacleGrid);
+        fsm = new MonsterLeaderFSM(this, unitGrid, obstacleGrid, skipCreate: true);
         fsm.SetUp();
     }
 

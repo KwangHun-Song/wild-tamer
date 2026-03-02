@@ -18,7 +18,9 @@ public class MonsterLeaderFSM : StateMachine<Monster, MonsterTrigger>
     private readonly MonsterDeadState dead = new();
     private readonly MonsterDestroyState destroy = new();
 
-    protected override State<Monster, MonsterTrigger> InitialState => create;
+    private readonly State<Monster, MonsterTrigger> initialState;
+
+    protected override State<Monster, MonsterTrigger> InitialState => initialState;
 
     protected override State<Monster, MonsterTrigger>[] States
         => new State<Monster, MonsterTrigger>[] { create, wander, chase, attack, dead, destroy };
@@ -36,10 +38,11 @@ public class MonsterLeaderFSM : StateMachine<Monster, MonsterTrigger>
         StateTransition<Monster, MonsterTrigger>.Generate(dead,   destroy, MonsterTrigger.Destroy),
     };
 
-    public MonsterLeaderFSM(Monster owner, SpatialGrid<IUnit> unitGrid, ObstacleGrid obstacleGrid = null) : base(owner)
+    public MonsterLeaderFSM(Monster owner, SpatialGrid<IUnit> unitGrid, ObstacleGrid obstacleGrid = null, bool skipCreate = false) : base(owner)
     {
         UnitGrid = unitGrid;
         ObstacleGrid = obstacleGrid;
+        initialState = skipCreate ? (State<Monster, MonsterTrigger>)wander : create;
     }
 
     private bool EnemyInDetectionRange(State<Monster, MonsterTrigger> s)
