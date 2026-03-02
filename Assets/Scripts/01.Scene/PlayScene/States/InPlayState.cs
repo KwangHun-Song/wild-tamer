@@ -100,6 +100,8 @@ public class InPlayState : SceneState, ISettingButtonListener
 
     private void Update()
     {
+        if (playStates.PopupManager.IsAnyPopupOpen()) return;
+
         gameController?.Update();
 
         if (gameController != null && playPage != null)
