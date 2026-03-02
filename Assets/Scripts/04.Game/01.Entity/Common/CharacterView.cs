@@ -27,6 +27,9 @@ public abstract class CharacterView : MonoBehaviour
     {
         spriteRenderer.DOKill();
         spriteRenderer.color = Color.white;
+        spriteRenderer.flipX = false;
+        transform.DOKill();
+        transform.localRotation = Quaternion.identity;
         OnSpawnedFromPool();
     }
 
@@ -64,6 +67,24 @@ public abstract class CharacterView : MonoBehaviour
     public void PlayMoveAnimation() => SetTriggerSafe(moveAnimTrigger);
     public void PlayAttackAnimation() => SetTriggerSafe(attackAnimTrigger);
     public void PlayDeadAnimation() => SetTriggerSafe(deadAnimTrigger);
+
+    /// <summary>
+    /// 사망 연출 시퀀스.
+    /// Idle로 전환 + Flip 해제 → Z축 90도 회전 → FadeOut 순서로 재생한다.
+    /// </summary>
+    public void PlayDeathSequence()
+    {
+        PlayIdleAnimation();
+        spriteRenderer.flipX = false;
+
+        spriteRenderer.DOKill();
+        transform.DOKill();
+
+        DOTween.Sequence()
+            .Append(transform.DOLocalRotate(new Vector3(0f, 0f, 90f), 0.4f).SetEase(Ease.OutQuad))
+            .AppendInterval(0.1f)
+            .Append(spriteRenderer.DOFade(0f, 0.5f).SetEase(Ease.InQuad));
+    }
 
     private void SetTriggerSafe(string triggerName)
     {
