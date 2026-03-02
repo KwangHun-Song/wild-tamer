@@ -19,9 +19,19 @@ public class MapGenerator : MonoBehaviour
             return;
         }
 
-        // Ground 타일맵 기준으로 전체 맵 크기 결정
+        // Ground + Water 타일맵 합산으로 전체 맵 경계 결정
         groundTilemap.CompressBounds();
         var bounds = groundTilemap.cellBounds;
+
+        if (waterTilemap != null && waterTilemap.cellBounds.size != Vector3Int.zero)
+        {
+            waterTilemap.CompressBounds();
+            var waterBounds = waterTilemap.cellBounds;
+            bounds.SetMinMax(
+                Vector3Int.Min(bounds.min, waterBounds.min),
+                Vector3Int.Max(bounds.max, waterBounds.max)
+            );
+        }
 
         int width = bounds.size.x;
         int height = bounds.size.y;
@@ -35,14 +45,12 @@ public class MapGenerator : MonoBehaviour
             {
                 var cellPos = new Vector3Int(bounds.min.x + x, bounds.min.y + y, 0);
 
-                // Ground 타일이 없으면 빈 공간 → 통행 불가
+                // Ground 타일이 있고 Obstacle 타일이 없으면 통행 가능
+                // Water 타일맵은 현재 비주얼 전용 — 통행 불가 판단은 Ground 타일 유무로만 결정
                 bool hasGround = groundTilemap.HasTile(cellPos);
-                // Obstacle 타일이 있으면 → 통행 불가
                 bool hasObstacle = obstacleTilemap != null && obstacleTilemap.HasTile(cellPos);
-                // Water 타일이 있으면 → 통행 불가
-                bool hasWater = waterTilemap != null && waterTilemap.HasTile(cellPos);
 
-                ObstacleGrid.SetWalkable(new Vector2Int(x, y), hasGround && !hasObstacle && !hasWater);
+                ObstacleGrid.SetWalkable(new Vector2Int(x, y), hasGround && !hasObstacle);
             }
         }
     }

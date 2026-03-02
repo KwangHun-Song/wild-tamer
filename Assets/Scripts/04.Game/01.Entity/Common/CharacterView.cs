@@ -24,6 +24,8 @@ public abstract class CharacterView : MonoBehaviour
 
     private void LateUpdate()
     {
+        //: 같은 레이어의 오브젝트들은 z축을 이용해 뎁스를 조절.
+        //: y를 이용해, y방향으로 낮은 오브젝트가 더 위에 그려지도록 한다.
         var pos = transform.position;
         transform.position = new Vector3(pos.x, pos.y, pos.y);
     }
@@ -42,11 +44,18 @@ public abstract class CharacterView : MonoBehaviour
         float speed = direction.magnitude * Movement.MoveSpeed;
 
         // 이동 상태 변화 시에만 트리거 (매 프레임 SetTrigger 방지)
+        // 조기 반환 전에 체크해야 direction=zero 시 idle 트리거가 발동됨
         bool moving = speed > 0.05f && direction.magnitude > 0.01f;
         if (moving != isMovingState)
         {
             animator.SetTrigger(moving ? moveAnimTrigger : idleAnimTrigger);
             isMovingState = moving;
+        }
+
+        if (speed <= float.Epsilon)
+        {
+            Movement.Move(Vector2.zero);
+            return;
         }
 
         // 몇프레임동안 같은 방향을 유지했는지 체크한다.
