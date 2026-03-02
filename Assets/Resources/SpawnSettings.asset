@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b2c0023936ed2e4092e277e69fc1994, type: 3}
   m_Name: SpawnSettings
   m_EditorClassIdentifier: 
-  minSquadCount: 3
-  maxSquadCount: 8
+  minSquadCount: 2
+  maxSquadCount: 6
   minMembersPerSquad: 1
   maxMembersPerSquad: 8
   spawnMargin: 3

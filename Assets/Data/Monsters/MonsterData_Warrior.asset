@@ -17,7 +17,7 @@ MonoBehaviour:
   grade: 0
   maxHp: 80
   attackDamage: 3
-  attackRange: 0.25
+  attackRange: 1
   attackCooldown: 1
   detectionRange: 2
   moveSpeed: 1.5

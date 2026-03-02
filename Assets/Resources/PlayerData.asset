@@ -11,9 +11,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d7aa428a44f31b408986437bfbb6b9d, type: 3}
   m_Name: PlayerData
-  m_EditorClassIdentifier:
-  maxHp: 100
+  m_EditorClassIdentifier: 
+  maxHp: 300
   attackDamage: 10
-  attackRange: 1.5
+  attackRange: 2
   attackCooldown: 1
-  moveSpeed: 3
+  moveSpeed: 2.5

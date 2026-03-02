@@ -18,5 +18,5 @@ MonoBehaviour:
   followWeight: 2
   avoidanceWeight: 2
   neighborRadius: 3
-  arrivalRadius: 1
+  arrivalRadius: 0.5
   minSeparationDistance: 0.8

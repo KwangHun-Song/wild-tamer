@@ -636,26 +636,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 1394668187}
     m_Modifications:
     - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: initialSquadData.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: initialMonsterData.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: initialSquadData.Array.data[0]
-      value: 
-      objectReference: {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: initialSquadData.Array.data[1]
-      value: 
-      objectReference: {fileID: 11400000, guid: b49f7896aae1dca4089acc0a1278883f, type: 2}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: initialSquadData.Array.data[2]
-      value: 
-      objectReference: {fileID: 11400000, guid: 09cefa7de91d0d34a8fa927404ce3314, type: 2}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
       propertyPath: initialMonsterData.Array.data[0]
       value: 
       objectReference: {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
@@ -665,22 +645,6 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: b49f7896aae1dca4089acc0a1278883f, type: 2}
     - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
       propertyPath: initialMonsterData.Array.data[2]
-      value: 
-      objectReference: {fileID: 11400000, guid: 09cefa7de91d0d34a8fa927404ce3314, type: 2}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: monsterSquadSpawnTable.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: monsterSquadSpawnTable.Array.data[0]
-      value: 
-      objectReference: {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: monsterSquadSpawnTable.Array.data[1]
-      value: 
-      objectReference: {fileID: 11400000, guid: b49f7896aae1dca4089acc0a1278883f, type: 2}
-    - target: {fileID: 116752902937109154, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
-      propertyPath: monsterSquadSpawnTable.Array.data[2]
       value: 
       objectReference: {fileID: 11400000, guid: 09cefa7de91d0d34a8fa927404ce3314, type: 2}
     - target: {fileID: 5027260176176937609, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
