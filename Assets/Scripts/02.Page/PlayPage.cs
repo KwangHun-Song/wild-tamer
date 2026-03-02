@@ -13,12 +13,16 @@ public class PlayPage : Page
     [SerializeField] private WorldMap worldMap;
     [SerializeField] private PlayerView playerView;
     [SerializeField] private PlayerHpBarView playerHpBar;
+    [SerializeField] private FogOfWar fogOfWar;
+    [SerializeField] private Minimap minimap;
 
     public Transform WorldMapRoot => worldMapRoot;
     public Canvas Canvas => canvas;
     public WorldMap WorldMap => worldMap;
     public PlayerView PlayerView => playerView;
     public PlayerHpBarView PlayerHpBar => playerHpBar;
+    public FogOfWar FogOfWar => fogOfWar;
+    public Minimap Minimap => minimap;
 
     public override UniTask ShowAsync(object param = null)
     {

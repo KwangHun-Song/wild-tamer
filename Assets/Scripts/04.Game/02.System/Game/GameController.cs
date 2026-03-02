@@ -22,6 +22,7 @@ public class GameController
 
     // 공유 자원
     private readonly SpatialGrid<IUnit> unitGrid;
+    public IReadOnlyList<Monster> ActiveMonsters => entitySpawner.ActiveMonsters;
     public Notifier Notifier { get; } = new();
     public GamePhase Phase { get; private set; } = GamePhase.Play;
 

@@ -22,6 +22,17 @@ public class ObstacleGrid
                 walkable[x, y] = true;
     }
 
+    public int     Width    => width;
+    public int     Height   => height;
+    public float   CellSize => cellSize;
+    public Vector2 Origin   => origin;
+
+    public bool IsWalkableAtGrid(int x, int y)
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height) return false;
+        return walkable[x, y];
+    }
+
     public bool IsWalkable(Vector2 worldPos)
     {
         var grid = WorldToGrid(worldPos);
