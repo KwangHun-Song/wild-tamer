@@ -9,11 +9,13 @@ namespace Base
         public IPage CurrentPage { get; private set; }
 
         private readonly Transform container;
+        private readonly Notifier notifier;
         private readonly Stack<string> history = new();
 
-        public PageChanger(Transform container)
+        public PageChanger(Transform container, Notifier notifier = null)
         {
             this.container = container;
+            this.notifier = notifier;
         }
 
         public async UniTask ChangePageAsync(string pageName, object param = null)
@@ -58,6 +60,8 @@ namespace Base
             }
 
             CurrentPage = page;
+            if (notifier != null && page is Page basePage)
+                basePage.Notifier = notifier;
             await page.ShowAsync(param);
         }
     }

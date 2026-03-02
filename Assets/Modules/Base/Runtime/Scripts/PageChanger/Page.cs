@@ -7,6 +7,7 @@ namespace Base
     {
         public abstract string PageName { get; }
         public bool IsVisible => gameObject.activeSelf;
+        public Notifier Notifier { get; internal set; }
 
         public GameObject GetGameObject() => gameObject;
 
