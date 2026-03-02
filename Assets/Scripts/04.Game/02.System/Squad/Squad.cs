@@ -87,12 +87,14 @@ public class Squad
         }
 
         // 3단계: 방향 설정 및 FSM 구동
+        var context = new SquadContext(members, leader, obstacleGrid);
+
         foreach (var member in members)
         {
             member.Combat.Tick(deltaTime);
 
 #if UNITY_EDITOR
-            member.SetFlockDebug(flock.ComputeDebugData(member, members, leader, obstacleGrid));
+            member.SetFlockDebug(flock.ComputeDebugData(member, in context));
 #endif
 
             if (stopped.Contains(member))
@@ -101,7 +103,7 @@ public class Squad
             }
             else
             {
-                var direction = flock.CalculateDirection(member, members, leader, obstacleGrid);
+                var direction = flock.CalculateDirection(member, in context);
                 member.SetMoveDirection(direction);
             }
 

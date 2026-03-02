@@ -61,12 +61,16 @@ public class MonsterSquad
 
         // 팔로워: FlockBehavior로 리더 추종 — ToList()로 한 번만 구체화해 O(N²) 방지
         var aliveMembers = members.Where(m => m.IsAlive).ToList();
+        var context = new SquadContext(aliveMembers, leaderTf, obstacleGrid);
 
         foreach (var follower in members)
         {
             if (follower == leader || !follower.IsAlive) continue;
 
             follower.Combat.Tick(deltaTime);
+
+            // 팔로워가 적을 탐지하면 리더에게 알림
+            TryNotifyLeaderFromFollower(follower);
 
             // 리더 근처이면 정지
             if (Vector2.Distance((Vector2)follower.Transform.position, leaderPos) <= StopRadius)
@@ -75,13 +79,31 @@ public class MonsterSquad
                 continue;
             }
 
-            var dir = flock.CalculateDirection(follower, aliveMembers, leaderTf, obstacleGrid);
+            var dir = flock.CalculateDirection(follower, in context);
             var followerPos = (Vector2)follower.Transform.position;
             var resolved = obstacleGrid == null ? dir : new Vector2(
                 obstacleGrid.IsWalkable(new Vector2(followerPos.x + dir.x * 0.5f, followerPos.y)) ? dir.x : 0f,
                 obstacleGrid.IsWalkable(new Vector2(followerPos.x, followerPos.y + dir.y * 0.5f)) ? dir.y : 0f
             );
             follower.Move(resolved);
+        }
+    }
+
+    private void TryNotifyLeaderFromFollower(Monster follower)
+    {
+        if (leader.AggroTarget?.IsAlive == true) return;
+
+        var pos = (Vector2)follower.Transform.position;
+        float range = follower.Data.detectionRange;
+
+        foreach (var u in unitGrid.Query(pos, range))
+        {
+            if (u.Team == follower.Team || !u.IsAlive) continue;
+            if (Vector2.Distance(pos, (Vector2)u.Transform.position) <= range)
+            {
+                leader.NotifyEnemyDetected(u);
+                return;
+            }
         }
     }
 

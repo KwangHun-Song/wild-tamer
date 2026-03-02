@@ -38,16 +38,12 @@ public class FlockBehavior
     /// <summary>
     /// 각 힘을 가중합산하고 정규화한 최종 이동 방향을 반환한다.
     /// </summary>
-    public Vector2 CalculateDirection(
-        IUnit self,
-        IEnumerable<IUnit> neighbors,
-        Transform leader,
-        ObstacleGrid obstacleGrid)
+    public Vector2 CalculateDirection(IUnit self, in SquadContext context)
     {
         // NeighborRadius 이내의 이웃만 수집
         neighborsCache.Clear();
         var selfPos2D = (Vector2)self.Transform.position;
-        foreach (var neighbor in neighbors)
+        foreach (var neighbor in context.Members)
         {
             if (neighbor == self) continue;
             float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
@@ -58,8 +54,8 @@ public class FlockBehavior
         var alignment = CalculateAlignment(self, neighborsCache) * AlignmentWeight;
         var cohesion = CalculateCohesion(self, neighborsCache) * CohesionWeight;
         var separation = CalculateSeparation(self, neighborsCache) * SeparationWeight;
-        var follow = CalculateFollow(self, leader) * FollowWeight;
-        var avoidance = CalculateAvoidance(self, obstacleGrid) * AvoidanceWeight;
+        var follow = CalculateFollow(self, context.LeaderTransform) * FollowWeight;
+        var avoidance = CalculateAvoidance(self, context.ObstacleGrid) * AvoidanceWeight;
 
         var combined = alignment + cohesion + separation + follow + avoidance;
 
@@ -210,15 +206,11 @@ public class FlockBehavior
     /// <summary>
     /// 기즈모 시각화용 디버그 데이터를 계산한다. (에디터 전용)
     /// </summary>
-    public FlockDebugData ComputeDebugData(
-        IUnit self,
-        IEnumerable<IUnit> neighbors,
-        Transform leader,
-        ObstacleGrid obstacleGrid)
+    public FlockDebugData ComputeDebugData(IUnit self, in SquadContext context)
     {
         neighborsCache.Clear();
         var selfPos2D = (Vector2)self.Transform.position;
-        foreach (var neighbor in neighbors)
+        foreach (var neighbor in context.Members)
         {
             if (neighbor == self) continue;
             float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
@@ -228,8 +220,8 @@ public class FlockBehavior
 
         var cohesion = CalculateCohesion(self, neighborsCache) * CohesionWeight;
         var separation = CalculateSeparation(self, neighborsCache) * SeparationWeight;
-        var follow = CalculateFollow(self, leader) * FollowWeight;
-        var avoidance = CalculateAvoidance(self, obstacleGrid) * AvoidanceWeight;
+        var follow = CalculateFollow(self, context.LeaderTransform) * FollowWeight;
+        var avoidance = CalculateAvoidance(self, context.ObstacleGrid) * AvoidanceWeight;
         var alignment = CalculateAlignment(self, neighborsCache) * AlignmentWeight;
         var combined = alignment + cohesion + separation + follow + avoidance;
 

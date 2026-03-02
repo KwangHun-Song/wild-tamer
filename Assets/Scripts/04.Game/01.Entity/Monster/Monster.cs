@@ -55,6 +55,18 @@ public class Monster : Character
     private void OnHealthDamaged(int _) => monsterView.PlayHitEffect();
 
     /// <summary>
+    /// 팔로워 멤버가 적을 탐지했을 때 리더(자신)에게 호출한다.
+    /// 이미 어그로가 활성 중이면 무시한다.
+    /// </summary>
+    public void NotifyEnemyDetected(IUnit enemy)
+    {
+        if (enemy == null || enemy.Team == Team || !Health.IsAlive) return;
+        if (AggroTarget?.IsAlive == true) return;
+        AggroTarget = enemy;
+        fsm?.ExecuteCommand(MonsterTrigger.DetectEnemy);
+    }
+
+    /// <summary>
     /// CombatSystem이 데미지를 입힌 후 호출한다.
     /// 적 팀 공격자를 AggroTarget으로 설정하고, 인식 범위 밖이어도 Chase를 강제 시작한다.
     /// </summary>
