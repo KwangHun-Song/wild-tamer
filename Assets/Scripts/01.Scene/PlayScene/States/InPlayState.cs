@@ -134,8 +134,9 @@ public class InPlayState : SceneState
 
     private async UniTaskVoid OpenSettingPopupAsync(PlayStates playStates)
     {
+        if (playStates.PopupManager.IsPopupOpen("Popups/CommonPopup")) return;
         var param = new CommonPopupParam("설정", "게임이 일시정지됩니다.", hasTwoButtons: false);
         bool result = await playStates.PopupManager.ShowAsync<bool>("Popups/CommonPopup", param);
-        Facade.Logger.Log($"[InPlayState] 설정 팝업 닫힘: {result}");
+        Facade.Logger?.Log($"[InPlayState] 설정 팝업 닫힘: {result}");
     }
 }

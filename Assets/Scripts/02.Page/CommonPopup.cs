@@ -21,6 +21,10 @@ public class CommonPopup : Popup
             contentText.text = param.Content;
             cancelButton.gameObject.SetActive(param.HasTwoButtons);
         }
+        else
+        {
+            Facade.Logger?.Log("[CommonPopup] enterParam이 CommonPopupParam이 아닙니다.", LogLevel.Warning);
+        }
 
         okButton.onClick.AddListener(OnOkClicked);
         cancelButton.onClick.AddListener(OnCancelClicked);
