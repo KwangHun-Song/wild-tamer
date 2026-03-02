@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace Base
         {
             SetUpAll();
             var children = CollectDirectChildStates(transform);
-            await ExecuteChildrenAsync(children);
+            await ExecuteChildrenAsync(children, this.GetCancellationTokenOnDestroy());
         }
 
         private void SetUpAll()
@@ -26,15 +27,15 @@ namespace Base
             }
         }
 
-        private async UniTask ExecuteChildrenAsync(List<SceneState> children)
+        private async UniTask ExecuteChildrenAsync(List<SceneState> children, CancellationToken cancellationToken)
         {
             foreach (var child in children)
             {
-                await ExecuteStateAsync(child);
+                await ExecuteStateAsync(child, cancellationToken);
             }
         }
 
-        private async UniTask ExecuteStateAsync(SceneState state)
+        private async UniTask ExecuteStateAsync(SceneState state, CancellationToken cancellationToken)
         {
             if (!state.CanEnter())
                 return;
@@ -45,15 +46,18 @@ namespace Base
 
             try
             {
-                await state.ExecuteAsync();
+                await state.ExecuteAsync().AttachExternalCancellation(cancellationToken);
 
                 var childStates = CollectDirectChildStates(state.transform);
-                await ExecuteChildrenAsync(childStates);
+                await ExecuteChildrenAsync(childStates, cancellationToken);
             }
             finally
             {
-                Notifier.Notify<ISceneStateExitEvent>(l => l.OnSceneStateExit(state));
-                state.gameObject.SetActive(false);
+                if (state != null)
+                {
+                    Notifier.Notify<ISceneStateExitEvent>(l => l.OnSceneStateExit(state));
+                    state.gameObject.SetActive(false);
+                }
             }
         }
 
