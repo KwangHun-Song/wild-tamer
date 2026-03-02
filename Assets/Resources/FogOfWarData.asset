@@ -11,8 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0a1d4b26c8e9f3a5b7c2d0e1f4a6b8c, type: 3}
   m_Name: FogOfWarData
-  m_EditorClassIdentifier:
-  viewRadius: 5
+  m_EditorClassIdentifier: 
+  viewRadius: 6
   hiddenColor: {r: 0, g: 0, b: 0, a: 0.95}
   exploredColor: {r: 0, g: 0, b: 0, a: 0.5}
   visibleColor: {r: 0, g: 0, b: 0, a: 0}
