@@ -221,6 +221,7 @@ public class GameController
             bossSpawnSystem.OnBossDied    -= HandleBossDied;
         }
         tamingSystem.Dispose();
+        Squad.Dispose();
     }
 
     public void SetPhase(GamePhase phase) => Phase = phase;
