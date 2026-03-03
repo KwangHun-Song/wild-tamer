@@ -18,6 +18,7 @@ public class MonsterSquad
     private readonly FlockBehavior flock;
     private readonly List<Monster> aliveMembers = new();
     private readonly List<IUnit>   queryBuffer  = new();
+    private Vector2[] memberPosCache = System.Array.Empty<Vector2>();
 
     public float StopRadius = 0.6f; // 리더 근처 팔로워 정지 반경
 
@@ -65,7 +66,14 @@ public class MonsterSquad
         aliveMembers.Clear();
         foreach (var m in members)
             if (m.IsAlive) aliveMembers.Add(m);
-        var context = new SquadContext(aliveMembers, leaderTf, obstacleGrid);
+
+        // 위치 사전 캐싱 (CollectNeighbors Transform 접근 제거)
+        if (memberPosCache.Length < aliveMembers.Count)
+            memberPosCache = new Vector2[aliveMembers.Count];
+        for (int i = 0; i < aliveMembers.Count; i++)
+            memberPosCache[i] = aliveMembers[i].Transform.position;
+
+        var context = new SquadContext(aliveMembers, memberPosCache, leaderTf, obstacleGrid);
 
         foreach (var follower in members)
         {

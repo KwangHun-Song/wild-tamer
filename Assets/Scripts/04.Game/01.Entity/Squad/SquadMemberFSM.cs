@@ -12,6 +12,8 @@ public class SquadMemberFSM : StateMachine<SquadMember, SquadMemberTrigger>
 {
     public SpatialGrid<IUnit>   UnitGrid { get; }
     private readonly List<IUnit> queryBuffer = new();
+    private bool cachedEnemyResult;
+    private int  lastEnemyCheckFrame = -1;
 
     private readonly SquadMemberIdleState idle = new();
     private readonly SquadMemberAttackState attack = new();
@@ -39,13 +41,25 @@ public class SquadMemberFSM : StateMachine<SquadMember, SquadMemberTrigger>
 
     private bool EnemyInAttackRange(State<SquadMember, SquadMemberTrigger> s)
     {
-        if (UnitGrid == null) return false;
-        var pos = (Vector2)s.Owner.Transform.position;
+        // 같은 프레임 내 Idle→Attack + Attack→Idle 두 번 호출되므로 프레임 캐시로 쿼리 50% 절감
+        int frame = Time.frameCount;
+        if (frame == lastEnemyCheckFrame) return cachedEnemyResult;
+        lastEnemyCheckFrame = frame;
+
+        if (UnitGrid == null) { cachedEnemyResult = false; return false; }
+        var pos   = (Vector2)s.Owner.Transform.position;
         float range = s.Owner.Combat.AttackRange;
         queryBuffer.Clear();
         UnitGrid.Query(pos, range, queryBuffer);
         foreach (var u in queryBuffer)
-            if (u.Team != s.Owner.Team && u.IsAlive && Vector2.Distance(pos, (Vector2)u.Transform.position) <= range) return true;
+        {
+            if (u.Team != s.Owner.Team && u.IsAlive && Vector2.Distance(pos, (Vector2)u.Transform.position) <= range)
+            {
+                cachedEnemyResult = true;
+                return true;
+            }
+        }
+        cachedEnemyResult = false;
         return false;
     }
 }

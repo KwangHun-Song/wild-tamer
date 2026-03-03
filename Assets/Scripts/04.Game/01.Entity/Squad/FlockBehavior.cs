@@ -66,20 +66,22 @@ public class FlockBehavior
 
     /// <summary>
     /// NeighborRadius 이내 이웃을 수집하고 위치를 neighborPosCache에 사전 저장한다.
-    /// sqrMagnitude 비교로 sqrt를 회피한다.
+    /// context.MemberPositions 배열을 읽어 Transform 접근을 완전히 제거한다.
     /// </summary>
     private void CollectNeighbors(IUnit self, in SquadContext context)
     {
         neighborsCache.Clear();
         neighborPosCache.Clear();
 
-        var selfPos       = (Vector2)self.Transform.position;
-        float sqrRadius   = NeighborRadius * NeighborRadius;
+        var selfPos     = (Vector2)self.Transform.position;
+        float sqrRadius = NeighborRadius * NeighborRadius;
+        int count       = context.Members.Count;
 
-        foreach (var neighbor in context.Members)
+        for (int i = 0; i < count; i++)
         {
+            var neighbor = context.Members[i];
             if (neighbor == self) continue;
-            var neighborPos = (Vector2)neighbor.Transform.position; // Transform 1회만 읽음
+            var neighborPos = context.MemberPositions[i]; // Transform 접근 없음
             if ((neighborPos - selfPos).sqrMagnitude <= sqrRadius)
             {
                 neighborsCache.Add(neighbor);
@@ -90,7 +92,8 @@ public class FlockBehavior
 
     /// <summary>
     /// 이웃과 최소 거리(MinSeparationDistance)를 유지하려는 힘.
-    /// sqrMagnitude 사전 필터링 후 sqrt를 1회만 실행 (기존 2회 → 1회).
+    /// 역제곱 법칙 diff * (sqrMinSep - sqrDist) / (sqrDist * sqrMinSep) 으로 sqrt 완전 제거.
+    /// 경계(sqrDist=sqrMinSep)에서 0, 거리 0에서 최대값이 되어 기존 선형 모델과 동일 방향성 유지.
     /// </summary>
     private Vector2 CalculateSeparation(Vector2 selfPos)
     {
@@ -104,8 +107,8 @@ public class FlockBehavior
 
             if (sqrDist > 0f && sqrDist < sqrMinSep)
             {
-                float distance = Mathf.Sqrt(sqrDist);                                           // sqrt 1회
-                separationSum += (diff / distance) * ((MinSeparationDistance - distance) / MinSeparationDistance);
+                // sqrt 없음: diff * (sqrMinSep - sqrDist) / (sqrDist * sqrMinSep)
+                separationSum += diff * ((sqrMinSep - sqrDist) / (sqrDist * sqrMinSep));
             }
         }
 

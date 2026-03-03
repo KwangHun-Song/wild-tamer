@@ -9,6 +9,7 @@ public class Squad
     private readonly FlockBehavior flock;
     private readonly HashSet<SquadMember> stopped      = new();
     private readonly List<SquadMember>    stopSnapshot = new();
+    private Vector2[] memberPosCache = System.Array.Empty<Vector2>();
 
     public float StopRadius = 0.6f;       // 리더 근처 완전 정지 반경
     public float MemberStopRadius = 0.6f; // 정지 멤버 근처 연쇄 정지 반경
@@ -85,28 +86,40 @@ public class Squad
             }
         }
 
-        // 3단계: 방향 설정 및 FSM 구동
-        var context = new SquadContext(members, leader, obstacleGrid);
+        // 3단계: 멤버 위치 사전 캐싱 (CollectNeighbors Transform 접근 완전 제거)
+        if (memberPosCache.Length < members.Count)
+            memberPosCache = new Vector2[members.Count];
+        for (int i = 0; i < members.Count; i++)
+            memberPosCache[i] = members[i].Transform.position;
 
-        foreach (var member in members)
+        var context = new SquadContext(members, memberPosCache, leader, obstacleGrid);
+
+        int frameBucket = Time.frameCount % 5;
+
+        for (int i = 0; i < members.Count; i++)
         {
+            var member = members[i];
             member.Combat.Tick(deltaTime);
 
 #if UNITY_EDITOR
-            // 기즈모는 매 프레임 갱신 불필요 — 10프레임마다 재계산해 CPU 부하 감소
+            // 기즈모는 10프레임마다 재계산
             if (Time.frameCount % 10 == 0)
                 member.SetFlockDebug(flock.ComputeDebugData(member, in context));
 #endif
 
             if (stopped.Contains(member))
             {
+                // 정지는 매 프레임 즉시 반영
                 member.SetMoveDirection(Vector2.zero);
             }
-            else
+            else if (i % 5 == frameBucket)
             {
+                // 스태거드 업데이트: 멤버를 5버킷으로 나눠 매 프레임 1/5만 재계산
+                // → FlockBehavior 비용 80% 절감, 버킷별로 분산되어 시각적 끊김 없음
                 var direction = flock.CalculateDirection(member, in context);
                 member.SetMoveDirection(direction);
             }
+            // else: 이전 프레임 방향(DesiredMoveDirection) 유지
 
             member.Update();
         }
