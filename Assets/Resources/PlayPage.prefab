@@ -876,6 +876,8 @@ MonoBehaviour:
   fogOfWar: {fileID: 4077928891006890821}
   minimap: {fileID: 5935932838181062490}
   bossTimerView: {fileID: 6345647496951068499}
+  bossWarningView: {fileID: 5732637885272331219}
+  bossHpBarView: {fileID: 5003768022144224713}
 --- !u!1 &8219126627743191374
 GameObject:
   m_ObjectHideFlags: 0
@@ -1141,6 +1143,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 02164d51d7989d940815646c9a3cb45f, type: 3}
+--- !u!114 &5732637885272331219 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8185868718404147417, guid: 02164d51d7989d940815646c9a3cb45f, type: 3}
+  m_PrefabInstance: {fileID: 4473314619970849546}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e0e24cf17ea7764fb73da7659bd461d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &8887756429114721010 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4991044537779440120, guid: 02164d51d7989d940815646c9a3cb45f, type: 3}
@@ -1471,6 +1484,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4844002897535213813, guid: d31aaece45c453447a159bcb7f97b1f8, type: 3}
   m_PrefabInstance: {fileID: 7180050901556348087}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5003768022144224713 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2797965454379895166, guid: d31aaece45c453447a159bcb7f97b1f8, type: 3}
+  m_PrefabInstance: {fileID: 7180050901556348087}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c039dc3b63a82f342bc043ad5ef77057, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7421653692091225680
 PrefabInstance:
   m_ObjectHideFlags: 0
