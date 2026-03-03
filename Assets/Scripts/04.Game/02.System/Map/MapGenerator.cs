@@ -78,7 +78,7 @@ public class MapGenerator : MonoBehaviour
         float mapHeight = height * cellSize;
         var   center    = origin + new Vector2(mapWidth * 0.5f, mapHeight * 0.5f);
 
-        waterBackground.transform.position = new Vector3(center.x, center.y, center.y);
+        waterBackground.transform.position = new Vector3(center.x, center.y, 0f);
 
         var spriteSize = waterBackground.sprite.bounds.size;
         waterBackground.transform.localScale = new Vector3(

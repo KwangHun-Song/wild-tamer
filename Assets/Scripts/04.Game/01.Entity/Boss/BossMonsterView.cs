@@ -55,7 +55,7 @@ public class BossMonsterView : MonsterView
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
         lineIndicator.Show(pos, width, distance);
         lineIndicator.transform.SetPositionAndRotation(
-            new Vector3(pos.x, pos.y, pos.y),
+            new Vector3(pos.x, pos.y, 0f),
             Quaternion.Euler(0f, 0f, angle));
     }
 

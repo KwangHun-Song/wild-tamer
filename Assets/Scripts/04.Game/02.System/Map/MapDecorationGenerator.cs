@@ -152,7 +152,7 @@ public class MapDecorationGenerator : MonoBehaviour
         if (prefab == null) return;
 
         var go = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab, decorationRoot);
-        go.transform.position = new Vector3(worldPos.x, worldPos.y, worldPos.y);
+        go.transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
         UnityEditor.Undo.RegisterCreatedObjectUndo(go, "Place Tree");
 
         MarkObstacle(cellPos);
@@ -166,12 +166,12 @@ public class MapDecorationGenerator : MonoBehaviour
 
         var go = new GameObject($"Rock_Gen_{x_of(cellPos)}_{y_of(cellPos)}");
         go.transform.SetParent(decorationRoot);
-        go.transform.position = new Vector3(worldPos.x, worldPos.y, worldPos.y);
+        go.transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
         UnityEditor.Undo.RegisterCreatedObjectUndo(go, "Place Rock");
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
-        sr.sortingOrder = Mathf.RoundToInt(-worldPos.y * 100) + 5000;
+        sr.sortingOrder = SortingOrder.Obstacle;
 
         MarkObstacle(cellPos);
     }
@@ -184,12 +184,12 @@ public class MapDecorationGenerator : MonoBehaviour
 
         var go = new GameObject($"Bush_Gen_{Mathf.RoundToInt(worldPos.x)}_{Mathf.RoundToInt(worldPos.y)}");
         go.transform.SetParent(decorationRoot);
-        go.transform.position = new Vector3(worldPos.x, worldPos.y, worldPos.y);
+        go.transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
         UnityEditor.Undo.RegisterCreatedObjectUndo(go, "Place Bush");
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
-        sr.sortingOrder = Mathf.RoundToInt(-worldPos.y * 100) + 4000;
+        sr.sortingOrder = SortingOrder.Obstacle;
     }
 
     private void MarkObstacle(Vector3Int cellPos)

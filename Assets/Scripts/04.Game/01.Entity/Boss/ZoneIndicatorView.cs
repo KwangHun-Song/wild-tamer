@@ -16,7 +16,7 @@ public class ZoneIndicatorView : MonoBehaviour
     /// <summary>지정 위치·스케일로 인디케이터를 활성화한다.</summary>
     public void Show(Vector2 worldPos, float scaleX, float scaleY)
     {
-        transform.position   = new Vector3(worldPos.x, worldPos.y, worldPos.y);
+        transform.position   = new Vector3(worldPos.x, worldPos.y, 0f);
         transform.localScale = new Vector3(scaleX, scaleY, 1f);
         foreach (var sr in Renderers) 
         { 
@@ -28,7 +28,7 @@ public class ZoneIndicatorView : MonoBehaviour
     /// <summary>위치만 갱신한다 (Warning 단계 추적 패턴 전용).</summary>
     public void UpdatePosition(Vector2 worldPos)
     {
-        transform.position = new Vector3(worldPos.x, worldPos.y, worldPos.y);
+        transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
     }
 
     /// <summary>경고색 → 빨간색 0.3초 DOTween. 활성화 직전 호출.</summary>

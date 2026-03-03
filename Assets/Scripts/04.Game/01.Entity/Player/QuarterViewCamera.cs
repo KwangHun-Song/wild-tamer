@@ -9,6 +9,16 @@ public class QuarterViewCamera : MonoBehaviour
     public Transform Target { set => target = value; }
     public Vector3 ShakeOffset { get; set; }
 
+    private void Awake()
+    {
+        var cam = GetComponent<Camera>();
+        if (cam != null)
+        {
+            cam.transparencySortMode = TransparencySortMode.CustomAxis;
+            cam.transparencySortAxis = new Vector3(0f, 1f, 0f);
+        }
+    }
+
     private void LateUpdate()
     {
         if (target == null) return;

@@ -195,7 +195,7 @@ public static class MapScatterGenerator
 
         var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
         go.name = $"Gen_Tree_{cell.x}_{cell.y}";
-        go.transform.position = new Vector3(worldPos.x, worldPos.y, worldPos.y);
+        go.transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
 
         if (tile != null) genTilemap.SetTile(cell, tile);
     }
@@ -209,11 +209,11 @@ public static class MapScatterGenerator
 
         var go = new GameObject($"Gen_Rock_{cell.x}_{cell.y}");
         go.transform.SetParent(parent, false);
-        go.transform.position = new Vector3(worldPos.x, worldPos.y, worldPos.y);
+        go.transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
-        sr.sortingOrder = 2000 - Mathf.RoundToInt(worldPos.y * 10);
+        sr.sortingOrder = SortingOrder.Obstacle;
 
         if (tile != null) genTilemap.SetTile(cell, tile);
     }
@@ -225,7 +225,7 @@ public static class MapScatterGenerator
 
         var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
         go.name = $"Gen_Bush_{cell.x}_{cell.y}";
-        go.transform.position = new Vector3(worldPos.x, worldPos.y, worldPos.y);
+        go.transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
     }
 
     // ── 유틸리티 ─────────────────────────────────────────────

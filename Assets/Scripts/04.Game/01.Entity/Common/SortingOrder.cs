@@ -7,6 +7,6 @@ public static class SortingOrder
     public const int Water = 0;
     public const int Ground = 1000;
     public const int Obstacle = 2000;
-    public const int Unit = 2000; // Obstacle과 동일 레이어 — z=y로 Y-소팅
+    public const int Unit = 2000; // Obstacle과 동일 레이어 — Camera CustomAxis(Y)로 소팅
     public const int Fog  = 3000; // 모든 지형·유닛 위에 렌더링
 }
