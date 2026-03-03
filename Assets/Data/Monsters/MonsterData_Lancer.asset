@@ -16,14 +16,13 @@ MonoBehaviour:
   displayName: "\uCC3D\uBCD1"
   grade: 0
   maxHp: 60
-  attackDamage: 2
+  attackDamage: 3
   attackRange: 1.5
   attackCooldown: 1.2
   detectionRange: 2.5
   moveSpeed: 1.5
   squadMoveSpeed: 2
-  tamingChance: 0.3
+  radius: 0.3
   prefab: {fileID: 7956779084935424389, guid: 085ed7b241cf452428656ebb5f6812a0, type: 3}
   squadPrefab: {fileID: 7956779084935424389, guid: 7f57536cd17e4f24c935cc3fd8315571, type: 3}
   flockSettings: {fileID: 11400000, guid: b972d8f7bbbe4fb428b1f077ee7cd148, type: 2}
-  bossPatterns: []

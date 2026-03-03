@@ -21,12 +21,12 @@ MonoBehaviour:
   width: 1
   chargeDistance: 7
   chargeWidth: 1.5
-  chargeSpeed: 12
+  chargeSpeed: 9
   projectileSpeed: 3
   projectileCount: 3
   spreadAngle: 15
   fireInterval: 0.5
   maxDistance: 8
-  summonCount: 3
-  summonData: {fileID: 0}
+  summonCount: 2
+  summonData: {fileID: 11400000, guid: 09cefa7de91d0d34a8fa927404ce3314, type: 2}
   summonRadius: 4

@@ -7,6 +7,8 @@ public class BossPatternData : ScriptableObject
 
     [Header("타이밍")]
     public float warningDuration;
+    [Tooltip("Warning 종료 후 데미지 발동 전 인디케이터가 점멸·고정되는 대기 시간")]
+    public float lockDuration = 0.8f;
     public float activeDuration;
     public float cooldown;
 

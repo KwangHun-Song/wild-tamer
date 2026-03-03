@@ -8,7 +8,11 @@ public static class DamageProcessor
 {
     public static void ProcessDamage(IUnit attacker, IUnit target, Notifier notifier)
     {
-        var damage = attacker.Combat.AttackDamage;
+        ProcessDamage(attacker, target, attacker.Combat.AttackDamage, notifier);
+    }
+
+    public static void ProcessDamage(IUnit attacker, IUnit target, int damage, Notifier notifier)
+    {
         target.Health.TakeDamage(damage);
         attacker.Combat.ResetCooldown();
 

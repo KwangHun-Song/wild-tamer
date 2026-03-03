@@ -15,6 +15,7 @@ public class Player : Character
     public Player(PlayerView view, UnitCombat combat, int maxHp, float radius = 0.3f) : base(view, combat)
     {
         Radius = radius;
+        view.UnitOwner = this;
         Health.Initialize(maxHp);
         Health.OnDeath += OnHealthDeath;
         fsm = new PlayerFSM(this);

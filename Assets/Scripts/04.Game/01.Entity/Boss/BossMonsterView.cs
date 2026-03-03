@@ -86,26 +86,37 @@ public class BossMonsterView : MonsterView
 
     public void RegisterChargeComplete(Action onComplete) => chargeCompleteCallback = onComplete;
 
-    public void StartCharge(Vector2 direction, BossPatternData data, Action<List<IUnit>> onHit)
+    public void StartCharge(Vector2 direction, BossPatternData data, IUnit owner,
+                            SpatialGrid<IUnit> unitGrid, Action<List<IUnit>> onHit)
     {
         if (isCharging) return;
-        StartCoroutine(ChargeRoutine(direction, data, onHit));
+        StartCoroutine(ChargeRoutine(direction, data, owner, unitGrid, onHit));
     }
 
-    private IEnumerator ChargeRoutine(Vector2 dir, BossPatternData data, Action<List<IUnit>> onHit)
+    private IEnumerator ChargeRoutine(Vector2 dir, BossPatternData data, IUnit owner,
+                                      SpatialGrid<IUnit> unitGrid, Action<List<IUnit>> onHit)
     {
-        isCharging      = true;
+        isCharging         = true;
         originalMoveSpeed  = Movement.MoveSpeed;
         Movement.MoveSpeed = data.chargeSpeed;
 
-        float elapsed  = 0f;
-        float duration = data.chargeDistance / data.chargeSpeed;
-        var   hitUnits = new List<IUnit>();
+        float elapsed   = 0f;
+        float duration  = data.chargeDistance / data.chargeSpeed;
+        float hitRadius = data.chargeWidth * 0.5f;
+        var   hitUnits  = new List<IUnit>();
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             Movement.Move(dir);
+
+            foreach (var u in unitGrid.Query((Vector2)transform.position, hitRadius))
+            {
+                if (u == owner || u.Team == owner.Team || !u.IsAlive) continue;
+                if (!hitUnits.Contains(u))
+                    hitUnits.Add(u);
+            }
+
             yield return null;
         }
 

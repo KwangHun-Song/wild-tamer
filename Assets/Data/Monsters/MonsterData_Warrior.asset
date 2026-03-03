@@ -16,14 +16,13 @@ MonoBehaviour:
   displayName: "\uC804\uC0AC"
   grade: 0
   maxHp: 80
-  attackDamage: 3
+  attackDamage: 10
   attackRange: 1
   attackCooldown: 1
   detectionRange: 2
   moveSpeed: 1.5
   squadMoveSpeed: 2
-  tamingChance: 0.3
+  radius: 0.3
   prefab: {fileID: 7956779084935424389, guid: a0428258c935c4140adcd96f31c81f8c, type: 3}
   squadPrefab: {fileID: 7956779084935424389, guid: 0e18bb04e8ce0554fbf8c81211086e1b, type: 3}
   flockSettings: {fileID: 11400000, guid: f98ccc717bd59b542b8a51f6274844a1, type: 2}
-  bossPatterns: []

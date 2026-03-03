@@ -28,5 +28,5 @@ MonoBehaviour:
   fireInterval: 0.5
   maxDistance: 8
   summonCount: 3
-  summonData: {fileID: 0}
+  summonData: {fileID: 11400000, guid: b49f7896aae1dca4089acc0a1278883f, type: 2}
   summonRadius: 4

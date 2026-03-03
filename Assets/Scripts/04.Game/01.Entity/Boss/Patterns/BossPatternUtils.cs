@@ -26,7 +26,7 @@ internal static class BossPatternUtils
     internal static void DamageLineArea(Vector2 origin, Vector2 dir, BossPatternData data,
                                         BossMonster boss, SpatialGrid<IUnit> unitGrid, Notifier notifier)
     {
-        float halfWidth  = data.width * 0.5f;
+        float halfWidth   = data.width * 0.5f;
         float queryRadius = data.range + halfWidth;
 
         foreach (var u in unitGrid.Query(origin, queryRadius))
@@ -39,7 +39,7 @@ internal static class BossPatternUtils
 
             var perp = toUnit - dir * along;
             if (perp.magnitude <= halfWidth)
-                DamageProcessor.ProcessDamage(boss, u, notifier);
+                DamageProcessor.ProcessDamage(boss, u, data.damage, notifier);
         }
     }
 }

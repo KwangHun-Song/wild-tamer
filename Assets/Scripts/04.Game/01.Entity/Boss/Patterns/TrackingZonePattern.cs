@@ -20,7 +20,7 @@ public class TrackingZonePattern : IBossPattern
         {
             if (u.Team == boss.Team || !u.IsAlive) continue;
             if (Vector2.Distance(lockedTarget, (Vector2)u.Transform.position) <= data.range)
-                DamageProcessor.ProcessDamage(boss, u, notifier);
+                DamageProcessor.ProcessDamage(boss, u, data.damage, notifier);
         }
     }
 }

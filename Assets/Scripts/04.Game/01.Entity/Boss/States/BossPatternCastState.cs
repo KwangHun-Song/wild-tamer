@@ -12,6 +12,7 @@ public class BossPatternCastState : State<BossMonster, BossTrigger>
     private Vector2         lockedTarget;
     private float           phaseTimer;
     private bool            isWarning;
+    private bool            isLocked;
     private bool            chargeComplete;
 
     public void SetPattern(BossPatternData selected, IBossPattern h)
@@ -19,6 +20,7 @@ public class BossPatternCastState : State<BossMonster, BossTrigger>
         pattern        = selected;
         handler        = h;
         isWarning      = true;
+        isLocked       = false;
         chargeComplete = false;
     }
 
@@ -46,6 +48,16 @@ public class BossPatternCastState : State<BossMonster, BossTrigger>
             if (phaseTimer <= 0f)
             {
                 isWarning  = false;
+                isLocked   = true;
+                phaseTimer = pattern.lockDuration;
+                Owner.BossView.FlashIndicator(pattern.type);
+            }
+        }
+        else if (isLocked)
+        {
+            if (phaseTimer <= 0f)
+            {
+                isLocked   = false;
                 phaseTimer = pattern.activeDuration;
                 ActivatePattern();
             }
@@ -64,7 +76,6 @@ public class BossPatternCastState : State<BossMonster, BossTrigger>
 
     private void ActivatePattern()
     {
-        Owner.BossView.FlashIndicator(pattern.type);
         handler?.Activate(Owner, pattern, lockedTarget, Owner.UnitGrid, Owner.Notifier, Owner.BossView);
         if (pattern.type == BossPatternType.Charge)
             Owner.BossView.RegisterChargeComplete(() => chargeComplete = true);

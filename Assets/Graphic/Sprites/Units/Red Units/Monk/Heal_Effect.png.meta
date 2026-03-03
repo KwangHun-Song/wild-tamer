@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 50
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -366,6 +366,7 @@ TextureImporter:
     nameFileIdTable:
       Heal_Effect_0: 1514256601236103480
       Heal_Effect_1: 3060253573424797444
+      Heal_Effect_10: -8229875072455402043
       Heal_Effect_2: -2223939802122116888
       Heal_Effect_3: -1595662400139900143
       Heal_Effect_4: 1801578862589333883
@@ -374,7 +375,6 @@ TextureImporter:
       Heal_Effect_7: -2158960877188302011
       Heal_Effect_8: -6630056583889611369
       Heal_Effect_9: 7343857803018536980
-      Heal_Effect_10: -8229875072455402043
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

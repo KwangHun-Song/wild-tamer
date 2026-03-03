@@ -25,10 +25,7 @@ public class BossSpawnSystem
     public event Action<BossMonster> OnBossSpawned;
     public event Action<BossMonster> OnBossDied;
 
-    private const float SpawnTime    = 180f;
-    private const float RespawnDelay = 240f;
-    private const float WarnDuration = 2.5f;
-    private const float SpawnOffset  = 15f;
+    private readonly BossSpawnConfig config;
 
     public BossSpawnSystem(BossMonsterData[]  bossPool,
                            EntitySpawner      entitySpawner,
@@ -38,7 +35,8 @@ public class BossSpawnSystem
                            SpatialGrid<IUnit> unitGrid,
                            ObstacleGrid       obstacleGrid,
                            Transform          playerTransform,
-                           Notifier           notifier)
+                           Notifier           notifier,
+                           BossSpawnConfig    config = null)
     {
         this.bossPool        = bossPool;
         this.entitySpawner   = entitySpawner;
@@ -49,6 +47,7 @@ public class BossSpawnSystem
         this.obstacleGrid    = obstacleGrid;
         this.playerTransform = playerTransform;
         this.notifier        = notifier;
+        this.config          = config != null ? config : ScriptableObject.CreateInstance<BossSpawnConfig>();
         respawnTimer         = -1f;
     }
 
@@ -59,10 +58,10 @@ public class BossSpawnSystem
         elapsedTime  += deltaTime;
         respawnTimer -= deltaTime;
 
-        if (elapsedTime < SpawnTime)
-            timerView?.SetTime(SpawnTime - elapsedTime);
+        if (elapsedTime < config.spawnTime)
+            timerView?.SetTime(config.spawnTime - elapsedTime);
 
-        if (elapsedTime >= SpawnTime && respawnTimer <= 0f)
+        if (elapsedTime >= config.spawnTime && respawnTimer <= 0f)
             StartSpawnSequence();
     }
 
@@ -73,7 +72,7 @@ public class BossSpawnSystem
         var data = bossPool[UnityEngine.Random.Range(0, bossPool.Length)];
 
         if (warningView != null)
-            warningView.Show(data.displayName, data.icon, WarnDuration, () => SpawnBoss(data));
+            warningView.Show(data.displayName, data.icon, config.warnDuration, () => SpawnBoss(data));
         else
             SpawnBoss(data);
     }
@@ -97,7 +96,7 @@ public class BossSpawnSystem
         entitySpawner.UnregisterBoss(boss);
         OnBossDied?.Invoke(boss);
         activeBoss   = null;
-        respawnTimer = RespawnDelay;
+        respawnTimer = config.respawnDelay;
     }
 
     private Vector2 FindSpawnPosition()
@@ -106,9 +105,9 @@ public class BossSpawnSystem
         for (int i = 0; i < 20; i++)
         {
             var dir = UnityEngine.Random.insideUnitCircle.normalized;
-            var pos = center + dir * SpawnOffset;
+            var pos = center + dir * config.spawnOffset;
             if (obstacleGrid.IsWalkable(pos)) return pos;
         }
-        return center + Vector2.right * SpawnOffset;
+        return center + Vector2.right * config.spawnOffset;
     }
 }

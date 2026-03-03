@@ -7,6 +7,9 @@ using UnityEngine;
 
 public abstract class CharacterView : MonoBehaviour
 {
+    /// <summary>이 View를 소유하는 순수 C# 엔티티. BossProjectile 등 충돌 처리에서 IUnit 탐색에 사용.</summary>
+    public IUnit UnitOwner { get; set; }
+
     [SerializeField] private UnitMovement movement;
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;

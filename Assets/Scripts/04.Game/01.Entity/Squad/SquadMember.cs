@@ -16,6 +16,7 @@ public class SquadMember : Character
     public SquadMember(SquadMemberView view, MonsterData data, SpatialGrid<IUnit> unitGrid) : base(view, CreateCombat(data))
     {
         Data = data;
+        view.UnitOwner = this;
         Health.Initialize(data.maxHp);
         View.Movement.MoveSpeed = data.squadMoveSpeed;
         fsm = new SquadMemberFSM(this, unitGrid);

@@ -16,7 +16,9 @@ public class PlayPage : Page
     [SerializeField] private PlayerHpBarView playerHpBar;
     [SerializeField] private FogOfWar fogOfWar;
     [SerializeField] private Minimap minimap;
-    [SerializeField] private BossTimerView bossTimerView;
+    [SerializeField] private BossTimerView   bossTimerView;
+    [SerializeField] private BossWarningView bossWarningView;
+    [SerializeField] private BossHpBarView   bossHpBarView;
 
     public Transform WorldMapRoot => worldMapRoot;
     public Canvas Canvas => canvas;
@@ -26,6 +28,8 @@ public class PlayPage : Page
     public FogOfWar FogOfWar => fogOfWar;
     public Minimap Minimap => minimap;
     public BossTimerView BossTimerView => bossTimerView;
+    public BossWarningView BossWarningView => bossWarningView;
+    public BossHpBarView BossHpBarView => bossHpBarView;
 
     public override UniTask ShowAsync(object param = null)
     {

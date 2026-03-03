@@ -24,12 +24,12 @@ public class ChargePattern : IBossPattern
                          SpatialGrid<IUnit> unitGrid, Notifier notifier, BossMonsterView view)
     {
         // lockedTarget은 방향 벡터. 돌진 이동은 View 코루틴이 처리하고 완료 시 콜백 호출.
-        view.StartCharge(lockedTarget, data, (hitUnits) =>
+        view.StartCharge(lockedTarget, data, boss, unitGrid, (hitUnits) =>
         {
             foreach (var u in hitUnits)
             {
                 if (u.Team == boss.Team || !u.IsAlive) continue;
-                DamageProcessor.ProcessDamage(boss, u, notifier);
+                DamageProcessor.ProcessDamage(boss, u, data.damage, notifier);
             }
         });
     }

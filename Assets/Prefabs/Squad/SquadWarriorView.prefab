@@ -96,6 +96,7 @@ GameObject:
   - component: {fileID: 6478356431217392929}
   - component: {fileID: 5846652100252353806}
   - component: {fileID: 8244988490624634828}
+  - component: {fileID: 5175520489492768747}
   m_Layer: 0
   m_Name: SquadWarriorView
   m_TagString: Untagged
@@ -136,6 +137,9 @@ MonoBehaviour:
   spriteRenderer: {fileID: 5279148376336422103}
   moveAnimTrigger: move
   idleAnimTrigger: idle
+  attackAnimTrigger: attack
+  deadAnimTrigger: dead
+  moveAnimStateName: Run
 --- !u!114 &5846652100252353806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -170,3 +174,38 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!58 &5175520489492768747
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7956779084935424389}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.25

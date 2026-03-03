@@ -21,7 +21,7 @@ MonoBehaviour:
   width: 1
   chargeDistance: 7
   chargeWidth: 1.5
-  chargeSpeed: 12
+  chargeSpeed: 9
   projectileSpeed: 3
   projectileCount: 3
   spreadAngle: 15

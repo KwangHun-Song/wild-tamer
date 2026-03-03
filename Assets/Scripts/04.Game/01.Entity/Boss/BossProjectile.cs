@@ -35,16 +35,12 @@ public class BossProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // CharacterView를 보유한 오브젝트만 처리
-        if (!other.TryGetComponent<CharacterView>(out _)) return;
+        if (!other.TryGetComponent<CharacterView>(out var cv)) return;
 
-        // View 루트에서 IUnit 탐색 (PlayerView → Player, SquadMemberView → SquadMember)
-        var unit = other.GetComponentInParent<Player>()       as IUnit
-                ?? other.GetComponentInParent<SquadMember>()  as IUnit;
-
+        var unit = cv.UnitOwner;
         if (unit == null || unit.Team == owner.Team || !unit.IsAlive) return;
 
-        DamageProcessor.ProcessDamage(owner, unit, notifier);
+        DamageProcessor.ProcessDamage(owner, unit, damage, notifier);
         Destroy(gameObject);
     }
 }
