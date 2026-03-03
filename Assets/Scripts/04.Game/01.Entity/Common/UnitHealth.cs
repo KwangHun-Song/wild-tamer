@@ -15,6 +15,12 @@ public class UnitHealth
         CurrentHp = maxHp;
     }
 
+    /// <summary>저장 데이터 복원 전용. CurrentHp를 직접 설정한다.</summary>
+    public void SetHp(int hp)
+    {
+        CurrentHp = Math.Max(0, Math.Min(hp, MaxHp));
+    }
+
     public void TakeDamage(int damage)
     {
         if (!IsAlive || damage <= 0) return;

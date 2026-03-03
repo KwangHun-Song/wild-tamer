@@ -25,6 +25,16 @@ public class BossSpawnSystem
     public event Action<BossMonster> OnBossSpawned;
     public event Action<BossMonster> OnBossDied;
 
+    public float ElapsedTime  => elapsedTime;
+    public float RespawnTimer => respawnTimer;
+    public bool  IsBossActive => activeBoss != null;
+
+    public void RestoreTimers(float elapsed, float respawn)
+    {
+        elapsedTime  = elapsed;
+        respawnTimer = respawn;
+    }
+
     private readonly BossSpawnConfig config;
 
     public BossSpawnSystem(BossMonsterData[]  bossPool,

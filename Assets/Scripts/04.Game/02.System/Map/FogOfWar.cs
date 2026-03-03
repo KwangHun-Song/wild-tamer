@@ -124,6 +124,38 @@ public class FogOfWar : MonoBehaviour
         return copy;
     }
 
+    /// <summary>Hidden이 아닌 셀의 선형 인덱스(y*width+x)를 FogSaveData로 반환한다.</summary>
+    public FogSaveData CreateSaveData()
+    {
+        if (fogGrid == null) return null;
+        var indices = new System.Collections.Generic.List<int>();
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                if (fogGrid[x, y] != FogState.Hidden)
+                    indices.Add(y * width + x);
+        return new FogSaveData { width = width, height = height, exploredIndices = indices.ToArray() };
+    }
+
+    /// <summary>FogSaveData로 fogGrid를 복원한다. 모두 Explored로 설정하며, Visible은 RevealAround()에서 자연 갱신된다.</summary>
+    public void RestoreFrom(FogSaveData data)
+    {
+        if (fogGrid == null || data == null) return;
+        if (data.width != width || data.height != height)
+        {
+            Debug.LogWarning("[FogOfWar] RestoreFrom: 맵 크기 불일치로 복원을 건너뜁니다.");
+            return;
+        }
+        foreach (var idx in data.exploredIndices)
+        {
+            int x = idx % width;
+            int y = idx / width;
+            if (x >= 0 && x < width && y >= 0 && y < height)
+                fogGrid[x, y] = FogState.Explored;
+        }
+        isDirty = true;
+        UpdateTexture();
+    }
+
     public void RestoreFogGrid(FogState[,] grid)
     {
         if (fogGrid == null || grid == null) return;

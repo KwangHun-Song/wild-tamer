@@ -66,6 +66,9 @@ public class GameController
         // CombatSystem 유닛 등록
         combatSystem.RegisterUnit(Player);
 
+        // 게임 오버 시 세이브 삭제
+        Player.OnGameOver += HandleGameOver;
+
         // Squad ↔ CombatSystem 자동 등록
         Squad.OnMemberAdded += combatSystem.RegisterUnit;
         Squad.OnMemberRemoved += combatSystem.UnregisterUnit;
@@ -172,6 +175,11 @@ public class GameController
             entitySpawner.SpawnMonster(monsterSnap.Data, monsterSnap.Position);
     }
 
+    private void HandleGameOver()
+    {
+        GameSaveManager.Delete();
+    }
+
     private void HandleBossSpawned(BossMonster boss)
     {
         // 보스 등장 시 기존 몬스터 전체 제거
@@ -192,6 +200,7 @@ public class GameController
     /// <summary>GameLoop.OnDestroy()에서 호출. 이벤트 구독을 해제하여 메모리 누수를 방지한다.</summary>
     public void Cleanup()
     {
+        Player.OnGameOver -= HandleGameOver;
         Squad.OnMemberAdded -= combatSystem.RegisterUnit;
         Squad.OnMemberRemoved -= combatSystem.UnregisterUnit;
         entitySpawner.OnMonsterSpawned -= combatSystem.RegisterUnit;
@@ -205,6 +214,71 @@ public class GameController
     }
 
     public void SetPhase(GamePhase phase) => Phase = phase;
+
+    // ── 데이터 영속성 ────────────────────────────────────────────────
+
+    /// <summary>보스 전투 중에는 저장 불가.</summary>
+    public bool CanSave => bossSpawnSystem == null || !bossSpawnSystem.IsBossActive;
+
+    /// <summary>현재 게임 상태를 직렬화 가능한 GameSaveData로 반환한다. fog는 호출자가 주입.</summary>
+    public GameSaveData CreateSaveData()
+    {
+        var playerPos = (Vector2)Player.Transform.position;
+        var members   = new SquadMemberSaveData[Squad.Members.Count];
+        for (int i = 0; i < Squad.Members.Count; i++)
+        {
+            var m = Squad.Members[i];
+            members[i] = new SquadMemberSaveData
+            {
+                monsterId = m.Data.id,
+                offsetX   = m.Transform.position.x - playerPos.x,
+                offsetY   = m.Transform.position.y - playerPos.y,
+                currentHp = m.Health.CurrentHp
+            };
+        }
+        return new GameSaveData
+        {
+            playerPosX       = playerPos.x,
+            playerPosY       = playerPos.y,
+            playerHp         = Player.Health.CurrentHp,
+            squadMembers     = members,
+            bossElapsedTime  = bossSpawnSystem?.ElapsedTime  ?? 0f,
+            bossRespawnTimer = bossSpawnSystem?.RespawnTimer ?? -1f,
+        };
+    }
+
+    /// <summary>GameSaveData로 게임 상태를 복원한다. fog 복원은 호출 전 FogOfWar.RestoreFrom()으로 처리.</summary>
+    public void RestoreFrom(GameSaveData data)
+    {
+        foreach (var sq in entitySpawner.ActiveSquads.ToList())
+            entitySpawner.DespawnMonsterSquad(sq);
+        foreach (var m in entitySpawner.ActiveMonsters.ToList())
+            entitySpawner.DespawnMonster(m);
+
+        var playerPos = new Vector2(data.playerPosX, data.playerPosY);
+        Player.SetPosition(playerPos);
+        Player.Health.SetHp(data.playerHp);
+
+        Squad.Clear();
+        if (data.squadMembers != null)
+        {
+            foreach (var ms in data.squadMembers)
+            {
+                var monsterData = Facade.DB.Get<MonsterData>(ms.monsterId);
+                if (monsterData == null)
+                {
+                    UnityEngine.Debug.LogWarning($"[GameController] MonsterData '{ms.monsterId}' 조회 실패. 멤버 스킵.");
+                    continue;
+                }
+                var pos    = playerPos + new Vector2(ms.offsetX, ms.offsetY);
+                var member = entitySpawner.SpawnSquadMember(monsterData, pos);
+                member.Health.SetHp(ms.currentHp);
+                Squad.AddMember(member);
+            }
+        }
+
+        bossSpawnSystem?.RestoreTimers(data.bossElapsedTime, data.bossRespawnTimer);
+    }
 
     /// <summary>치트: 플레이어 주변에 스쿼드 멤버를 즉시 스폰한다.</summary>
     public void CheatSpawnSquadMember(MonsterData data, Vector2 position)

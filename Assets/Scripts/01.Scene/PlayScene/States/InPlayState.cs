@@ -87,11 +87,20 @@ public class InPlayState : SceneState, ISettingButtonListener
         // HP 바 바인딩
         playPage.PlayerHpBar?.Bind(gameController.Player.Health);
 
-        // 테스트용: 초기 부대원(Purple) · 몬스터(Red) 스폰
-        var spawnOrigin = playPage.WorldMap.PlayerSpawn != null
-            ? (Vector2)playPage.WorldMap.PlayerSpawn.position
-            : Vector2.zero;
-        gameController.SpawnTestEntities(initialSquadData, initialMonsterData, spawnOrigin);
+        // 저장 데이터가 있으면 복원, 없으면 신규 게임 시작
+        var saveData = GameSaveManager.HasSave() ? GameSaveManager.Load() : null;
+        if (saveData != null)
+        {
+            playPage.FogOfWar?.RestoreFrom(saveData.fog);
+            gameController.RestoreFrom(saveData);
+        }
+        else
+        {
+            var spawnOrigin = playPage.WorldMap.PlayerSpawn != null
+                ? (Vector2)playPage.WorldMap.PlayerSpawn.position
+                : Vector2.zero;
+            gameController.SpawnTestEntities(initialSquadData, initialMonsterData, spawnOrigin);
+        }
 
         try
         {
@@ -122,6 +131,24 @@ public class InPlayState : SceneState, ISettingButtonListener
         }
 
         HandleCheatInput();
+    }
+
+    private void OnApplicationPause(bool paused)
+    {
+        if (paused) TrySave();
+    }
+
+    private void OnApplicationFocus(bool focused)
+    {
+        if (!focused) TrySave();
+    }
+
+    private void TrySave()
+    {
+        if (gameController == null || !gameController.CanSave) return;
+        var data = gameController.CreateSaveData();
+        data.fog = playPage?.FogOfWar?.CreateSaveData();
+        GameSaveManager.Save(data);
     }
 
     private void HandleCheatInput()
