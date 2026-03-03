@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FiniteStateMachine;
 using UnityEngine;
 
@@ -8,7 +9,8 @@ using UnityEngine;
 /// </summary>
 public class MonsterStandaloneFSM : StateMachine<Monster, MonsterTrigger>
 {
-    public SpatialGrid<IUnit> UnitGrid { get; }
+    public SpatialGrid<IUnit>   UnitGrid { get; }
+    private readonly List<IUnit> queryBuffer = new();
 
     private readonly MonsterCreateState create = new();
     private readonly MonsterIdleState idle = new();
@@ -48,7 +50,9 @@ public class MonsterStandaloneFSM : StateMachine<Monster, MonsterTrigger>
         if (UnitGrid == null) return false;
         var pos = (Vector2)s.Owner.Transform.position;
         float range = s.Owner.Combat.DetectionRange;
-        foreach (var u in UnitGrid.Query(pos, range))
+        queryBuffer.Clear();
+        UnitGrid.Query(pos, range, queryBuffer);
+        foreach (var u in queryBuffer)
             if (u.Team != s.Owner.Team && u.IsAlive && Vector2.Distance(pos, (Vector2)u.Transform.position) <= range) return true;
         return false;
     }
@@ -58,7 +62,9 @@ public class MonsterStandaloneFSM : StateMachine<Monster, MonsterTrigger>
         if (UnitGrid == null) return false;
         var pos = (Vector2)s.Owner.Transform.position;
         float range = s.Owner.Combat.AttackRange;
-        foreach (var u in UnitGrid.Query(pos, range))
+        queryBuffer.Clear();
+        UnitGrid.Query(pos, range, queryBuffer);
+        foreach (var u in queryBuffer)
             if (u.Team != s.Owner.Team && u.IsAlive && Vector2.Distance(pos, (Vector2)u.Transform.position) <= range) return true;
         return false;
     }

@@ -93,7 +93,9 @@ public class Squad
             member.Combat.Tick(deltaTime);
 
 #if UNITY_EDITOR
-            member.SetFlockDebug(flock.ComputeDebugData(member, in context));
+            // 기즈모는 매 프레임 갱신 불필요 — 10프레임마다 재계산해 CPU 부하 감소
+            if (Time.frameCount % 10 == 0)
+                member.SetFlockDebug(flock.ComputeDebugData(member, in context));
 #endif
 
             if (stopped.Contains(member))
