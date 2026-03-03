@@ -157,8 +157,10 @@ public class Minimap : MonoBehaviour
     {
         float u = Mathf.Clamp01((worldPos.x - mapOrigin.x) / mapWorldWidth);
         float v = Mathf.Clamp01((worldPos.y - mapOrigin.y) / mapWorldHeight);
+        // 아이콘 anchor가 iconContainer 중앙(0.5, 0.5)이므로
+        // anchoredPosition 기준점도 중앙 기준으로 맞춘다.
         var size = iconContainer.rect.size;
-        return new Vector2(u * size.x, v * size.y);
+        return new Vector2((u - 0.5f) * size.x, (v - 0.5f) * size.y);
     }
 
     private Vector2Int WorldToGrid(Vector2 worldPos)
