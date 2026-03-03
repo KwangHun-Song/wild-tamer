@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Base;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 /// <summary>
@@ -28,6 +30,12 @@ public class GameController
     public IReadOnlyList<Monster> ActiveMonsters => entitySpawner.ActiveMonsters;
     public Notifier Notifier { get; } = new();
     public GamePhase Phase { get; private set; } = GamePhase.Play;
+
+    private readonly UniTaskCompletionSource<GameResult> gameEndTcs = new();
+
+    /// <summary>게임 종료(플레이어 사망 또는 보스 처치)까지 대기한다.</summary>
+    public UniTask<GameResult> WaitForGameEndAsync(CancellationToken ct)
+        => gameEndTcs.Task.AttachExternalCancellation(ct);
 
     public GameController(
         PlayerView playerView,
@@ -178,6 +186,7 @@ public class GameController
     private void HandleGameOver()
     {
         GameSaveManager.Delete();
+        gameEndTcs.TrySetResult(GameResult.Lose);
     }
 
     private void HandleBossSpawned(BossMonster boss)
@@ -195,6 +204,7 @@ public class GameController
     private void HandleBossDied(BossMonster boss)
     {
         squadSpawner?.SetSuspended(false);
+        gameEndTcs.TrySetResult(GameResult.Win);
     }
 
     /// <summary>GameLoop.OnDestroy()에서 호출. 이벤트 구독을 해제하여 메모리 누수를 방지한다.</summary>
@@ -281,6 +291,9 @@ public class GameController
 
         bossSpawnSystem?.RestoreTimers(data.bossElapsedTime, data.bossRespawnTimer);
     }
+
+    /// <summary>치트: 보스 스폰까지 남은 시간을 seconds로 설정한다.</summary>
+    public void CheatSetBossTimer(float seconds) => bossSpawnSystem?.CheatSetBossTimer(seconds);
 
     /// <summary>치트: 플레이어 주변에 스쿼드 멤버를 즉시 스폰한다.</summary>
     public void CheatSpawnSquadMember(MonsterData data, Vector2 position)

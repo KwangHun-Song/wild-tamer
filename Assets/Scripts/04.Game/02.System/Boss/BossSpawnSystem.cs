@@ -35,6 +35,12 @@ public class BossSpawnSystem
         respawnTimer = respawn;
     }
 
+    /// <summary>보스 스폰까지 남은 시간을 seconds로 설정한다 (치트용).</summary>
+    public void CheatSetBossTimer(float seconds)
+    {
+        elapsedTime = config.spawnTime - Mathf.Max(0f, seconds);
+    }
+
     private readonly BossSpawnConfig config;
 
     public BossSpawnSystem(BossMonsterData[]  bossPool,

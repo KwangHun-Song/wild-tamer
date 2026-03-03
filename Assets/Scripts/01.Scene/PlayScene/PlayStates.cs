@@ -8,6 +8,7 @@ public class PlayStates : SceneStateMachine
     [SerializeField] private Camera uiCamera;
 
     public Camera UICamera => uiCamera;
+    public GameResult? LastResult { get; set; }
 
     private void Awake()
     {

@@ -10,11 +10,21 @@ namespace Base
         public Notifier Notifier { get; } = new();
         public SceneState CurrentState { get; private set; }
 
+        private bool restartRequested;
+
+        public void RequestRestart() => restartRequested = true;
+
         public async UniTask ExecuteAsync()
         {
             SetUpAll();
             var children = CollectDirectChildStates(transform);
-            await ExecuteChildrenAsync(children, this.GetCancellationTokenOnDestroy());
+            var ct = this.GetCancellationTokenOnDestroy();
+            do
+            {
+                restartRequested = false;
+                await ExecuteChildrenAsync(children, ct);
+            }
+            while (restartRequested);
         }
 
         private void SetUpAll()
@@ -47,6 +57,7 @@ namespace Base
             try
             {
                 await state.ExecuteAsync().AttachExternalCancellation(cancellationToken);
+                state.OnLeave();
 
                 var childStates = CollectDirectChildStates(state.transform);
                 await ExecuteChildrenAsync(childStates, cancellationToken);

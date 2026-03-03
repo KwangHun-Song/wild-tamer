@@ -2,12 +2,18 @@ using Base;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+public interface ICheatListener : IListener
+{
+    void OnCheatSpawnSquadMember(string id);
+    void OnCheatSetBossTimer(float seconds);
+}
+
 /// <summary>
 /// 게임 플레이 상태의 오케스트레이터.
 /// GameController를 생성·관리하고, Unity Update()로 매 프레임 구동한다.
 /// PlayPage Canvas에 UICamera를 연결한다.
 /// </summary>
-public class InPlayState : SceneState
+public class InPlayState : SceneState, ICheatListener
 {
     [SerializeField] private PlayerInput   playerInput;
     [SerializeField] private MonsterData[] initialSquadData;
@@ -29,6 +35,7 @@ public class InPlayState : SceneState
     {
         playStates = (PlayStates)StateMachine;
         playPage = Facade.PageChanger.CurrentPage as PlayPage;
+        GlobalNotifier.Subscribe(this);
 
         if (playPage == null)
         {
@@ -107,7 +114,8 @@ public class InPlayState : SceneState
         GameSaveManager.OnSaveRequested += TrySave;
         try
         {
-            await UniTask.WaitUntil(() => false, cancellationToken: this.GetCancellationTokenOnDestroy());
+            var result = await gameController.WaitForGameEndAsync(this.GetCancellationTokenOnDestroy());
+            playStates.LastResult = result;
         }
         finally
         {
@@ -116,6 +124,11 @@ public class InPlayState : SceneState
             gameController.Cleanup();
             gameController = null;
         }
+    }
+
+    public override void OnLeave()
+    {
+        GlobalNotifier.Unsubscribe(this);
     }
 
     private void Update()
@@ -153,12 +166,30 @@ public class InPlayState : SceneState
         for (int i = 0; i < count; i++)
         {
             if (!Input.GetKeyDown(KeyCode.Alpha1 + i)) continue;
-            var data = cheatSquadTypes[i];
-            if (data == null) continue;
-            var playerPos = (Vector2)gameController.Player.Transform.position;
-            var spawnPos  = playerPos + (Vector2)Random.insideUnitCircle.normalized * 2f;
-            gameController.CheatSpawnSquadMember(data, spawnPos);
+            if (cheatSquadTypes[i] != null) SpawnSquadMember(cheatSquadTypes[i]);
             break;
         }
+    }
+
+    #region ICheatListener
+
+    public void OnCheatSpawnSquadMember(string id)
+    {
+        var data = Facade.DB.Get<MonsterData>(id);
+        if (data != null) SpawnSquadMember(data);
+    }
+
+    public void OnCheatSetBossTimer(float seconds)
+    {
+        gameController?.CheatSetBossTimer(seconds);
+    }
+
+    #endregion
+
+    private void SpawnSquadMember(MonsterData data)
+    {
+        var playerPos = (Vector2)gameController.Player.Transform.position;
+        var spawnPos  = playerPos + (Vector2)Random.insideUnitCircle.normalized * 2f;
+        gameController.CheatSpawnSquadMember(data, spawnPos);
     }
 }

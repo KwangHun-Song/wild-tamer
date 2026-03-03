@@ -21,4 +21,26 @@ public class SettingPopup : Popup
             await Facade.PopupManager.ShowAsync<bool>("Popups/CollectionPopup");
         }
     }
+
+    // ── 치트 ──────────────────────────────────────────────────────────
+
+    public void OnClickSpawnWarrior()
+    {
+        GlobalNotifier.Notify<ICheatListener>(l => l.OnCheatSpawnSquadMember("MonsterData_Warrior"));
+    }
+
+    public void OnClickSpawnArcher()
+    {
+        GlobalNotifier.Notify<ICheatListener>(l => l.OnCheatSpawnSquadMember("MonsterData_Archer"));
+    }
+
+    public void OnClickSpawnLancer()
+    {
+        GlobalNotifier.Notify<ICheatListener>(l => l.OnCheatSpawnSquadMember("MonsterData_Lancer"));
+    }
+
+    public void OnClickSetBossTimer10()
+    {
+        GlobalNotifier.Notify<ICheatListener>(l => l.OnCheatSetBossTimer(10f));
+    }
 }
