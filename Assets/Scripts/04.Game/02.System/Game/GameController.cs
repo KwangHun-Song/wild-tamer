@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Base;
 using UnityEngine;
 
@@ -90,6 +91,8 @@ public class GameController
             bossSpawnSystem = new BossSpawnSystem(
                 bossPool, entitySpawner, bossWarningView, bossHpBarView, bossTimerView,
                 unitGrid, obstacleGrid, Player.Transform, Notifier, bossSpawnConfig);
+            bossSpawnSystem.OnBossSpawned += HandleBossSpawned;
+            bossSpawnSystem.OnBossDied    += HandleBossDied;
         }
     }
 
@@ -169,6 +172,23 @@ public class GameController
             entitySpawner.SpawnMonster(monsterSnap.Data, monsterSnap.Position);
     }
 
+    private void HandleBossSpawned(BossMonster boss)
+    {
+        // 보스 등장 시 기존 몬스터 전체 제거
+        foreach (var squad in entitySpawner.ActiveSquads.ToList())
+            entitySpawner.DespawnMonsterSquad(squad);
+        foreach (var monster in entitySpawner.ActiveMonsters.ToList())
+            entitySpawner.DespawnMonster(monster);
+
+        // 보스 전투 중 일반 몬스터 스폰 정지
+        squadSpawner?.SetSuspended(true);
+    }
+
+    private void HandleBossDied(BossMonster boss)
+    {
+        squadSpawner?.SetSuspended(false);
+    }
+
     /// <summary>GameLoop.OnDestroy()에서 호출. 이벤트 구독을 해제하여 메모리 누수를 방지한다.</summary>
     public void Cleanup()
     {
@@ -176,6 +196,11 @@ public class GameController
         Squad.OnMemberRemoved -= combatSystem.UnregisterUnit;
         entitySpawner.OnMonsterSpawned -= combatSystem.RegisterUnit;
         entitySpawner.OnMonsterDespawned -= combatSystem.UnregisterUnit;
+        if (bossSpawnSystem != null)
+        {
+            bossSpawnSystem.OnBossSpawned -= HandleBossSpawned;
+            bossSpawnSystem.OnBossDied    -= HandleBossDied;
+        }
         tamingSystem.Dispose();
     }
 

@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   warningDuration: 1.5
+  lockDuration: 0.8
   activeDuration: 0.5
   cooldown: 8
-  damage: 60
+  damage: 30
   range: 6
   width: 1
   chargeDistance: 7

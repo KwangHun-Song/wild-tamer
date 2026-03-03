@@ -24,6 +24,9 @@ public class MonsterSquadSpawner
     private readonly MonsterData[] spawnTable;
 
     private float spawnTimer;
+    private bool  suspended;
+
+    public void SetSuspended(bool value) => suspended = value;
 
     public MonsterSquadSpawner(
         EntitySpawner entitySpawner,
@@ -63,12 +66,15 @@ public class MonsterSquadSpawner
         // 2. 원거리 스쿼드 자동 디스폰
         TryDespawnFarSquads();
 
-        // 3. 스폰 주기 체크
-        spawnTimer -= deltaTime;
-        if (spawnTimer <= 0f)
+        // 3. 스폰 주기 체크 (보스 전투 중 정지)
+        if (!suspended)
         {
-            TrySpawnSquad();
-            spawnTimer = SpawnInterval;
+            spawnTimer -= deltaTime;
+            if (spawnTimer <= 0f)
+            {
+                TrySpawnSquad();
+                spawnTimer = SpawnInterval;
+            }
         }
     }
 

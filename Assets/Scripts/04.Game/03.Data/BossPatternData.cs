@@ -22,6 +22,8 @@ public class BossPatternData : ScriptableObject
     [Header("P2 — 돌진")]
     public float chargeDistance = 7f;
     public float chargeWidth    = 1.5f;
+    [Tooltip("실제 피해 판정 너비. 0이면 chargeWidth를 그대로 사용.")]
+    public float chargeHitWidth = 0f;
     public float chargeSpeed    = 12f;
 
     [Header("P6 — 투사체")]

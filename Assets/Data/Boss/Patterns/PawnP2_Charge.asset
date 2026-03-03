@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 1
   warningDuration: 1.5
+  lockDuration: 0.8
   activeDuration: 2
   cooldown: 7
-  damage: 70
+  damage: 35
   range: 0
   width: 1
   chargeDistance: 8
-  chargeWidth: 0.8
+  chargeWidth: 0.5
   chargeSpeed: 9
   projectileSpeed: 3
   projectileCount: 3

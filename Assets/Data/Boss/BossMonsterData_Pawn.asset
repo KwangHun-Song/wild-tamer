@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: BossMonsterData_Pawn
   m_EditorClassIdentifier: 
   id: boss_pawn
-  displayName: "\uC878\uAC1C \uC6B0\uB450\uBA38\uB9AC"
+  displayName: Pawn King
   icon: {fileID: 21300000, guid: 16221e9aba20f1d4780a3f8e884314a8, type: 3}
   maxHp: 500
-  moveSpeed: 2
+  moveSpeed: 1.5
   attackDamage: 10
   attackRange: 1.2
   detectionRange: 999

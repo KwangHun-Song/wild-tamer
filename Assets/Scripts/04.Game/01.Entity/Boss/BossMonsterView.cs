@@ -22,6 +22,9 @@ public class BossMonsterView : MonsterView
     private bool   isCharging;
     private float  originalMoveSpeed;
 
+    /// <summary>보스는 BossHud에서 HP를 표시하므로 MonsterView의 인라인 HP 바를 사용하지 않는다.</summary>
+    public override void BindHpBar(UnitHealth health) { }
+
     // ── 인디케이터 API ──────────────────────────────────────────────
 
     /// <summary>Warning 시작 시 인디케이터를 표시한다.</summary>
@@ -102,7 +105,7 @@ public class BossMonsterView : MonsterView
 
         float elapsed   = 0f;
         float duration  = data.chargeDistance / data.chargeSpeed;
-        float hitRadius = data.chargeWidth * 0.5f;
+        float hitRadius = (data.chargeHitWidth > 0f ? data.chargeHitWidth : data.chargeWidth) * 0.5f;
         var   hitUnits  = new List<IUnit>();
 
         while (elapsed < duration)
