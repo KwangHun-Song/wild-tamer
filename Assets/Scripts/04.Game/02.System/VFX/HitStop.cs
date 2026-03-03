@@ -7,12 +7,14 @@ public class HitStop : IOnHitListener
     private readonly float duration;
     private readonly Notifier notifier;
     private bool isActive;
+    private readonly WaitForSecondsRealtime waitRealtime;
 
     public HitStop(float duration, Notifier notifier)
     {
         this.duration = duration;
         this.notifier = notifier;
         this.isActive = false;
+        this.waitRealtime = new WaitForSecondsRealtime(duration);
         notifier.Subscribe(this);
     }
 
@@ -36,7 +38,7 @@ public class HitStop : IOnHitListener
         isActive = true;
         var previousTimeScale = Time.timeScale;
         Time.timeScale = 0f;
-        yield return new WaitForSecondsRealtime(duration);
+        yield return waitRealtime;
         Time.timeScale = previousTimeScale;
         isActive = false;
     }

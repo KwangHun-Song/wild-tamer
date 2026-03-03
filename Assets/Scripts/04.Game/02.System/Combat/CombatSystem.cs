@@ -11,6 +11,7 @@ public class CombatSystem
     private readonly SpatialGrid<IUnit> unitGrid;
     private readonly Notifier notifier;
     private readonly List<IUnit> registeredUnits = new();
+    private readonly List<IUnit> queryBuffer      = new();
 
     /// <summary>MonsterAI 탐지를 위해 읽기 전용으로 unitGrid를 노출한다.</summary>
     public SpatialGrid<IUnit> UnitGrid => unitGrid;
@@ -98,8 +99,9 @@ public class CombatSystem
             if (!unit.IsAlive || !unit.Combat.CanAttack) continue;
 
             var pos = (Vector2)unit.Transform.position;
-            var nearby = unitGrid.Query(pos, unit.Combat.AttackRange);
-            foreach (var target in nearby)
+            queryBuffer.Clear();
+            unitGrid.Query(pos, unit.Combat.AttackRange, queryBuffer);
+            foreach (var target in queryBuffer)
             {
                 if (target.Team == unit.Team || !target.IsAlive) continue;
                 if (Vector2.Distance(pos, (Vector2)target.Transform.position) > unit.Combat.AttackRange) continue;

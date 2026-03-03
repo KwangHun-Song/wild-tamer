@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Base;
 using UnityEngine;
 
@@ -25,6 +24,7 @@ public class MonsterSquadSpawner
 
     private float spawnTimer;
     private bool  suspended;
+    private readonly List<MonsterSquad> despawnQueue = new();
 
     public void SetSuspended(bool value) => suspended = value;
 
@@ -93,13 +93,17 @@ public class MonsterSquadSpawner
     {
         Vector2 playerPos = playerTransform.position;
 
-        foreach (var squad in entitySpawner.ActiveSquads.ToList())
+        despawnQueue.Clear();
+        foreach (var squad in entitySpawner.ActiveSquads)
         {
             if (squad.Leader == null) continue;
             float dist = Vector2.Distance(playerPos, (Vector2)squad.Leader.Transform.position);
             if (dist > DespawnDistance)
-                entitySpawner.DespawnMonsterSquad(squad);
+                despawnQueue.Add(squad);
         }
+
+        foreach (var squad in despawnQueue)
+            entitySpawner.DespawnMonsterSquad(squad);
     }
 
     private Vector2 FindSpawnPositionOutsideCamera()

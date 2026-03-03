@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using FiniteStateMachine;
 using UnityEngine;
 
 public class MonsterChaseState : State<Monster, MonsterTrigger>
 {
-    private SpatialGrid<IUnit> unitGrid;
-    private ObstacleGrid obstacleGrid;
+    private SpatialGrid<IUnit>   unitGrid;
+    private ObstacleGrid         obstacleGrid;
+    private readonly List<IUnit> queryBuffer = new();
 
     protected override void OnSetUp()
     {
@@ -75,7 +77,9 @@ public class MonsterChaseState : State<Monster, MonsterTrigger>
         IUnit otherTarget = null;
         float otherMinDist = float.MaxValue;
 
-        foreach (var u in unitGrid.Query(pos, range))
+        queryBuffer.Clear();
+        unitGrid.Query(pos, range, queryBuffer);
+        foreach (var u in queryBuffer)
         {
             if (u.Team == Owner.Team || !u.IsAlive) continue;
             float d = Vector2.Distance(pos, (Vector2)u.Transform.position);

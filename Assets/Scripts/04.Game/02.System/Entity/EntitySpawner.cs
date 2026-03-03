@@ -15,6 +15,7 @@ public class EntitySpawner
     private readonly List<Monster> activeMonsters = new();
     private readonly List<MonsterSquad> activeSquads = new();
     private BossMonster activeBoss;
+    private readonly List<Monster> updateSnapshot = new();
 
     public IReadOnlyList<Monster> ActiveMonsters => activeMonsters;
     public IReadOnlyList<MonsterSquad> ActiveSquads => activeSquads;
@@ -141,8 +142,9 @@ public class EntitySpawner
     public void Update(float deltaTime)
     {
         // 순회 중 DespawnMonster 호출에 의한 컬렉션 변경을 방지하기 위해 스냅샷 복사
-        var snapshot = new List<Monster>(activeMonsters);
-        foreach (var monster in snapshot)
+        updateSnapshot.Clear();
+        updateSnapshot.AddRange(activeMonsters);
+        foreach (var monster in updateSnapshot)
         {
             monster.Combat.Tick(deltaTime);
             monster.Update();

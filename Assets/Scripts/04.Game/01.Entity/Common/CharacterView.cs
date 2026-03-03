@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Base;
 using DG.Tweening;
 using UnityEngine;
@@ -52,14 +51,6 @@ public abstract class CharacterView : MonoBehaviour
 
     /// <summary>HP 바를 숨긴다. HP 바가 있는 서브클래스에서 오버라이드한다.</summary>
     protected virtual void HideHpBar() { }
-
-    private void LateUpdate()
-    {
-        //: 같은 레이어의 오브젝트들은 z축을 이용해 뎁스를 조절.
-        //: y를 이용해, y방향으로 낮은 오브젝트가 더 위에 그려지도록 한다.
-        var pos = transform.position;
-        transform.position = new Vector3(pos.x, pos.y, pos.y);
-    }
 
     public UnitMovement Movement => movement;
 
@@ -188,7 +179,9 @@ public abstract class CharacterView : MonoBehaviour
         if (directionQueue.Count > QueueSize)
             directionQueue.Dequeue();
 
-        var averageDirection = directionQueue.Aggregate((a, b) => a + b) / directionQueue.Count;
+        var sum = Vector2.zero;
+        foreach (var d in directionQueue) sum += d;
+        var averageDirection = sum / directionQueue.Count;
 
         var xAxisAbs = Mathf.Abs(averageDirection.x);
         var yAxisAbs = Mathf.Abs(averageDirection.y);

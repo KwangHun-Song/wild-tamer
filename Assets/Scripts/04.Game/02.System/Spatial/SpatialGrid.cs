@@ -50,6 +50,27 @@ public class SpatialGrid<T> where T : class
         return result;
     }
 
+    /// <summary>GC-free 오버로드: 결과를 호출자가 제공한 리스트에 채운다. 호출 전 Clear()는 호출자 책임.</summary>
+    public void Query(Vector2 center, float radius, List<T> result)
+    {
+        int range = Mathf.CeilToInt(radius / cellSize);
+        float sqRadius = radius * radius;
+        var centerCell = WorldToCell(center);
+
+        for (int x = centerCell.x - range; x <= centerCell.x + range; x++)
+        {
+            for (int y = centerCell.y - range; y <= centerCell.y + range; y++)
+            {
+                if (!cells.TryGetValue(new Vector2Int(x, y), out var items)) continue;
+                foreach (var (item, pos) in items)
+                {
+                    if ((pos - center).sqrMagnitude <= sqRadius)
+                        result.Add(item);
+                }
+            }
+        }
+    }
+
     private Vector2Int WorldToCell(Vector2 pos)
     {
         return new Vector2Int(

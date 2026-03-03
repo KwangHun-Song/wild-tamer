@@ -11,6 +11,8 @@ public class BossChaseState : State<BossMonster, BossTrigger>
     private SpatialGrid<IUnit> unitGrid;
     private ObstacleGrid       obstacleGrid;
     private float[]            cooldowns;
+    private int[]              readyIndices;
+    private int                readyCount;
 
     private readonly Dictionary<BossPatternType, IBossPattern> handlers = new()
     {
@@ -28,7 +30,8 @@ public class BossChaseState : State<BossMonster, BossTrigger>
         unitGrid     = fsm.UnitGrid;
         obstacleGrid = fsm.ObstacleGrid;
         handlers[BossPatternType.SummonMinions] = new SummonMinionsPattern(fsm.EntitySpawner, fsm.ObstacleGrid);
-        cooldowns = new float[Owner.BossData.patterns.Length];
+        cooldowns    = new float[Owner.BossData.patterns.Length];
+        readyIndices = new int[Owner.BossData.patterns.Length];
     }
 
     public override void OnEnter() => Owner.View.PlayMoveAnimation();
@@ -54,13 +57,13 @@ public class BossChaseState : State<BossMonster, BossTrigger>
     private void TryFirePattern()
     {
         var patterns = Owner.BossData.patterns;
-        var ready    = new List<int>();
+        readyCount = 0;
         for (int i = 0; i < patterns.Length; i++)
-            if (cooldowns[i] <= 0f) ready.Add(i);
+            if (cooldowns[i] <= 0f) readyIndices[readyCount++] = i;
 
-        if (ready.Count == 0) return;
+        if (readyCount == 0) return;
 
-        int idx      = ready[Random.Range(0, ready.Count)];
+        int idx      = readyIndices[Random.Range(0, readyCount)];
         var selected = patterns[idx];
         float mult   = Owner.IsEnraged ? Owner.BossData.enrageCooldownMultiplier : 1f;
         cooldowns[idx] = selected.cooldown * mult;

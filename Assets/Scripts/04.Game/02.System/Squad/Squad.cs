@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Base;
 using UnityEngine;
 
@@ -8,6 +7,8 @@ public class Squad
 {
     private readonly List<SquadMember> members = new();
     private readonly FlockBehavior flock;
+    private readonly HashSet<SquadMember> stopped      = new();
+    private readonly List<SquadMember>    stopSnapshot = new();
 
     public float StopRadius = 0.6f;       // 리더 근처 완전 정지 반경
     public float MemberStopRadius = 0.6f; // 정지 멤버 근처 연쇄 정지 반경
@@ -52,11 +53,8 @@ public class Squad
 
     public void Clear()
     {
-        var copy = members.ToList();
-        foreach (SquadMember member in copy)
-        {
-            RemoveMember(member);
-        }
+        for (int i = members.Count - 1; i >= 0; i--)
+            RemoveMember(members[i]);
     }
 
     public void Update(Transform leader, ObstacleGrid obstacleGrid, float deltaTime)
@@ -64,7 +62,7 @@ public class Squad
         Vector2 leaderPos = leader.position;
 
         // 1단계: 리더 근처 멤버 정지 판정
-        var stopped = new List<SquadMember>();
+        stopped.Clear();
         foreach (var member in members)
         {
             if (Vector2.Distance((Vector2)member.Transform.position, leaderPos) <= StopRadius)
@@ -72,7 +70,8 @@ public class Squad
         }
 
         // 2단계: 정지 멤버 근처 멤버 연쇄 정지 (스냅샷 기반으로 1패스만 수행)
-        var stopSnapshot = new List<SquadMember>(stopped);
+        stopSnapshot.Clear();
+        foreach (var s in stopped) stopSnapshot.Add(s);
         foreach (var member in members)
         {
             if (stopped.Contains(member)) continue;

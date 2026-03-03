@@ -16,6 +16,8 @@ public class MonsterSquad
     private Monster leader;
     private readonly SpatialGrid<IUnit> unitGrid;
     private readonly FlockBehavior flock;
+    private readonly List<Monster> aliveMembers = new();
+    private readonly List<IUnit>   queryBuffer  = new();
 
     public float StopRadius = 0.6f; // 리더 근처 팔로워 정지 반경
 
@@ -59,8 +61,10 @@ public class MonsterSquad
         leader.Combat.Tick(deltaTime);
         leader.Update();
 
-        // 팔로워: FlockBehavior로 리더 추종 — ToList()로 한 번만 구체화해 O(N²) 방지
-        var aliveMembers = members.Where(m => m.IsAlive).ToList();
+        // 팔로워: FlockBehavior로 리더 추종 — 필드 List를 Clear/Add 패턴으로 재사용해 GC 제거
+        aliveMembers.Clear();
+        foreach (var m in members)
+            if (m.IsAlive) aliveMembers.Add(m);
         var context = new SquadContext(aliveMembers, leaderTf, obstacleGrid);
 
         foreach (var follower in members)
@@ -96,7 +100,9 @@ public class MonsterSquad
         var pos = (Vector2)follower.Transform.position;
         float range = follower.Data.detectionRange;
 
-        foreach (var u in unitGrid.Query(pos, range))
+        queryBuffer.Clear();
+        unitGrid.Query(pos, range, queryBuffer);
+        foreach (var u in queryBuffer)
         {
             if (u.Team == follower.Team || !u.IsAlive) continue;
             if (Vector2.Distance(pos, (Vector2)u.Transform.position) <= range)
@@ -121,7 +127,8 @@ public class MonsterSquad
         if (dead == leader)
         {
             leader = null;
-            var next = members.FirstOrDefault(m => m.IsAlive);
+            Monster next = null;
+        foreach (var m in members) { if (m.IsAlive) { next = m; break; } }
             if (next != null)
                 PromoteLeader(next);
         }

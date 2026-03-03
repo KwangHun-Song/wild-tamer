@@ -34,7 +34,7 @@ public class AutoDespawn : MonoBehaviour
 
     private IEnumerator WaitForParticle()
     {
-        yield return new WaitUntil(() => !particle.IsAlive(withChildren: true));
+        while (particle.IsAlive(withChildren: true)) yield return null;
         Despawn();
     }
 

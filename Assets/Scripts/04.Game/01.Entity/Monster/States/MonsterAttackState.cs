@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using FiniteStateMachine;
 using UnityEngine;
 
 public class MonsterAttackState : State<Monster, MonsterTrigger>
 {
-    private SpatialGrid<IUnit> unitGrid;
-    private float originalSpeed;
+    private SpatialGrid<IUnit>   unitGrid;
+    private float                originalSpeed;
+    private readonly List<IUnit> queryBuffer = new();
 
     protected override void OnSetUp()
     {
@@ -58,7 +60,9 @@ public class MonsterAttackState : State<Monster, MonsterTrigger>
         if (unitGrid == null) return null;
         IUnit closest = null;
         float minDist = float.MaxValue;
-        foreach (var u in unitGrid.Query(pos, range))
+        queryBuffer.Clear();
+        unitGrid.Query(pos, range, queryBuffer);
+        foreach (var u in queryBuffer)
         {
             if (u.Team == Owner.Team || !u.IsAlive) continue;
             float d = Vector2.Distance(pos, (Vector2)u.Transform.position);
