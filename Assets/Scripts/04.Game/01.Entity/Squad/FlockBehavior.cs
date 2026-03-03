@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -8,16 +7,22 @@ using UnityEngine;
 /// </summary>
 public class FlockBehavior
 {
-    public float AlignmentWeight = 1f;
-    public float CohesionWeight = 1f;
-    public float SeparationWeight = 1.5f;
-    public float FollowWeight = 2f;
-    public float AvoidanceWeight = 2f;
-    public float NeighborRadius = 3f;
-    public float ArrivalRadius = 1f;           // Follow 감속 반경 — 이내에서 거리에 비례해 Follow 약화
-    public float MinSeparationDistance = 0.8f; // 캐릭터 간 최소 유지 거리
+    public float AlignmentWeight      = 1f;
+    public float CohesionWeight       = 1f;
+    public float SeparationWeight     = 1.5f;
+    public float FollowWeight         = 2f;
+    public float AvoidanceWeight      = 2f;
+    public float NeighborRadius       = 3f;
+    public float ArrivalRadius        = 1f;           // Follow 감속 반경 — 이내에서 거리에 비례해 Follow 약화
+    public float MinSeparationDistance = 0.8f;        // 캐릭터 간 최소 유지 거리
 
-    private readonly List<IUnit> neighborsCache = new();
+    private readonly List<IUnit>   neighborsCache   = new();
+    /// <summary>이웃 위치를 사전 캐싱한다. CollectNeighbors()에서 Transform.position을 1회만 읽어 저장.</summary>
+    private readonly List<Vector2> neighborPosCache = new();
+
+    // 장애물 회피 방향 — 매 호출마다 new[] 생성하지 않도록 static 캐싱
+    private static readonly Vector2[] AvoidDirections =
+        { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
 
     public FlockBehavior() { }
 
@@ -25,13 +30,13 @@ public class FlockBehavior
     public FlockBehavior(FlockSettingsData settings)
     {
         if (settings == null) return;
-        AlignmentWeight      = settings.alignmentWeight;
-        CohesionWeight       = settings.cohesionWeight;
-        SeparationWeight     = settings.separationWeight;
-        FollowWeight         = settings.followWeight;
-        AvoidanceWeight      = settings.avoidanceWeight;
-        NeighborRadius       = settings.neighborRadius;
-        ArrivalRadius        = settings.arrivalRadius;
+        AlignmentWeight       = settings.alignmentWeight;
+        CohesionWeight        = settings.cohesionWeight;
+        SeparationWeight      = settings.separationWeight;
+        FollowWeight          = settings.followWeight;
+        AvoidanceWeight       = settings.avoidanceWeight;
+        NeighborRadius        = settings.neighborRadius;
+        ArrivalRadius         = settings.arrivalRadius;
         MinSeparationDistance = settings.minSeparationDistance;
     }
 
@@ -40,134 +45,116 @@ public class FlockBehavior
     /// </summary>
     public Vector2 CalculateDirection(IUnit self, in SquadContext context)
     {
-        // NeighborRadius 이내의 이웃만 수집
-        neighborsCache.Clear();
-        var selfPos2D = (Vector2)self.Transform.position;
-        foreach (var neighbor in context.Members)
-        {
-            if (neighbor == self) continue;
-            float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
-            if (dist <= NeighborRadius)
-                neighborsCache.Add(neighbor);
-        }
+        CollectNeighbors(self, context);
 
-        var alignment = CalculateAlignment(self, neighborsCache) * AlignmentWeight;
-        var cohesion = CalculateCohesion(self, neighborsCache) * CohesionWeight;
-        var separation = CalculateSeparation(self, neighborsCache) * SeparationWeight;
-        var follow = CalculateFollow(self, context.LeaderTransform) * FollowWeight;
-        var avoidance = CalculateAvoidance(self, context.ObstacleGrid) * AvoidanceWeight;
+        var selfPos = (Vector2)self.Transform.position;
 
-        var combined = alignment + cohesion + separation + follow + avoidance;
+        var combined = CalculateSeparation(selfPos) * SeparationWeight
+                     + CalculateCohesion(selfPos)   * CohesionWeight
+                     // Alignment 미구현 (항상 zero) — 구현 시 여기에 추가
+                     + CalculateFollow(self, context.LeaderTransform)   * FollowWeight
+                     + CalculateAvoidance(self, context.ObstacleGrid)   * AvoidanceWeight;
 
-        // x, y값을 각각 오프셋 미만이면 0으로 치환
-        var offsetMin = 0.2F;
-        combined.x = Mathf.Abs(combined.x) < offsetMin ? 0F : combined.x;
-        combined.y = Mathf.Abs(combined.y) < offsetMin ? 0F : combined.y;
+        // x, y값을 오프셋 미만이면 0으로 치환
+        combined.x = Mathf.Abs(combined.x) < 0.2f ? 0f : combined.x;
+        combined.y = Mathf.Abs(combined.y) < 0.2f ? 0f : combined.y;
 
-        if (combined == Vector2.zero)
-            return Vector2.zero;
-
-        if (combined.magnitude > 1F)
-            return combined.normalized;
-
+        if (combined == Vector2.zero) return Vector2.zero;
+        if (combined.sqrMagnitude > 1f) return combined.normalized;
         return combined;
     }
 
     /// <summary>
-    /// 이웃의 평균 이동 방향에 맞추려는 힘. (현재 미구현 — MoveDirection 노출 시 확장)
+    /// NeighborRadius 이내 이웃을 수집하고 위치를 neighborPosCache에 사전 저장한다.
+    /// sqrMagnitude 비교로 sqrt를 회피한다.
     /// </summary>
-    private Vector2 CalculateAlignment(IUnit self, List<IUnit> neighbors)
+    private void CollectNeighbors(IUnit self, in SquadContext context)
     {
-        return Vector2.zero;
-    }
+        neighborsCache.Clear();
+        neighborPosCache.Clear();
 
-    /// <summary>
-    /// 이웃의 무게중심 방향으로 모이려는 힘.
-    /// </summary>
-    private Vector2 CalculateCohesion(IUnit self, List<IUnit> neighbors)
-    {
-        if (neighbors.Count == 0)
-            return Vector2.zero;
+        var selfPos       = (Vector2)self.Transform.position;
+        float sqrRadius   = NeighborRadius * NeighborRadius;
 
-        Vector2 selfPos = self.Transform.position;
-        var centerSum = Vector2.zero;
-        int count = 0;
-
-        foreach (var neighbor in neighbors)
+        foreach (var neighbor in context.Members)
         {
-            // 최소 유지 거리 이내의 이웃은 이미 충분히 가까우므로 응집 계산에서 제외한다.
-            float dist = Vector2.Distance(selfPos, (Vector2)neighbor.Transform.position);
-            if (dist < MinSeparationDistance) continue;
-
-            centerSum += (Vector2)neighbor.Transform.position;
-            count++;
+            if (neighbor == self) continue;
+            var neighborPos = (Vector2)neighbor.Transform.position; // Transform 1회만 읽음
+            if ((neighborPos - selfPos).sqrMagnitude <= sqrRadius)
+            {
+                neighborsCache.Add(neighbor);
+                neighborPosCache.Add(neighborPos);
+            }
         }
-
-        if (count == 0)
-            return Vector2.zero;
-
-        var center = centerSum / count;
-        var toCenter = center - selfPos;
-
-        if (toCenter == Vector2.zero)
-            return Vector2.zero;
-
-        if (toCenter.magnitude > 1F)
-            return toCenter.normalized;
-
-        return toCenter;
     }
 
     /// <summary>
     /// 이웃과 최소 거리(MinSeparationDistance)를 유지하려는 힘.
-    /// 거리가 가까울수록 반발력이 강해지는 선형 모델.
+    /// sqrMagnitude 사전 필터링 후 sqrt를 1회만 실행 (기존 2회 → 1회).
     /// </summary>
-    private Vector2 CalculateSeparation(IUnit self, List<IUnit> neighbors)
+    private Vector2 CalculateSeparation(Vector2 selfPos)
     {
-        if (neighbors.Count == 0)
-            return Vector2.zero;
-
-        Vector2 selfPos = self.Transform.position;
         var separationSum = Vector2.zero;
+        float sqrMinSep   = MinSeparationDistance * MinSeparationDistance;
 
-        foreach (var neighbor in neighbors)
+        for (int i = 0; i < neighborPosCache.Count; i++)
         {
-            var diff = selfPos - (Vector2)neighbor.Transform.position;
-            float distance = diff.magnitude;
+            var diff      = selfPos - neighborPosCache[i];
+            float sqrDist = diff.sqrMagnitude;
 
-            // 최소 거리 이내일 때만 선형 반발력 적용 (distance=0에서 최대, MinSeparationDistance에서 0)
-            if (distance > 0f && distance < MinSeparationDistance)
-                separationSum += diff.normalized * (MinSeparationDistance - distance) / MinSeparationDistance;
+            if (sqrDist > 0f && sqrDist < sqrMinSep)
+            {
+                float distance = Mathf.Sqrt(sqrDist);                                           // sqrt 1회
+                separationSum += (diff / distance) * ((MinSeparationDistance - distance) / MinSeparationDistance);
+            }
         }
 
-        if (separationSum == Vector2.zero)
-            return Vector2.zero;
-
-        if (separationSum.magnitude > 1F)
-            return separationSum.normalized;
-
+        if (separationSum == Vector2.zero) return Vector2.zero;
+        if (separationSum.sqrMagnitude > 1f) return separationSum.normalized;
         return separationSum;
+    }
+
+    /// <summary>
+    /// 이웃의 무게중심 방향으로 모이려는 힘.
+    /// neighborPosCache를 사용해 Transform 재접근 없이 처리한다.
+    /// </summary>
+    private Vector2 CalculateCohesion(Vector2 selfPos)
+    {
+        if (neighborPosCache.Count == 0) return Vector2.zero;
+
+        var centerSum   = Vector2.zero;
+        int count       = 0;
+        float sqrMinSep = MinSeparationDistance * MinSeparationDistance;
+
+        for (int i = 0; i < neighborPosCache.Count; i++)
+        {
+            var np = neighborPosCache[i];
+            // 최소 유지 거리 이내는 응집 계산에서 제외 — sqrMagnitude로 sqrt 회피
+            if ((np - selfPos).sqrMagnitude < sqrMinSep) continue;
+            centerSum += np;
+            count++;
+        }
+
+        if (count == 0) return Vector2.zero;
+
+        var toCenter = centerSum / count - selfPos;
+        if (toCenter == Vector2.zero) return Vector2.zero;
+        if (toCenter.sqrMagnitude > 1f) return toCenter.normalized;
+        return toCenter;
     }
 
     /// <summary>
     /// 리더(플레이어)를 따라가려는 힘.
     /// ArrivalRadius 이내에서는 거리에 비례해 힘을 감소시켜 Separation과 자연스러운 평형점을 형성한다.
-    /// (단절 방식은 ArrivalRadius 경계에서 진동을 유발하므로 선형 감소 방식을 사용)
     /// </summary>
     private Vector2 CalculateFollow(IUnit self, Transform leader)
     {
         var toLeader = (Vector2)leader.position - (Vector2)self.Transform.position;
-        float dist = toLeader.magnitude;
+        float dist   = toLeader.magnitude;
 
-        // 충분히 가까워졌으면 더 이상 리더에 가까이 가지 않는다.
-        if (dist < ArrivalRadius)
-            return Vector2.zero;
+        if (dist < ArrivalRadius) return Vector2.zero;
+        if (dist > ArrivalRadius * 2f) return toLeader;
 
-        // 멀면 충분한 힘으로 리더를 따라가려고 한다.
-        if (dist > ArrivalRadius * 2)
-            return toLeader;
-
-        // 중간 거리에서는 보간 사용
         return Vector2.Lerp(Vector2.zero, toLeader, (dist - ArrivalRadius) / ArrivalRadius);
     }
 
@@ -176,20 +163,16 @@ public class FlockBehavior
     /// </summary>
     private Vector2 CalculateAvoidance(IUnit self, ObstacleGrid obstacleGrid)
     {
-        Vector2 selfPos = self.Transform.position;
-        var avoidance = Vector2.zero;
+        Vector2 selfPos  = self.Transform.position;
+        var avoidance    = Vector2.zero;
 
-        Vector2[] directions = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
-
-        foreach (var dir in directions)
+        foreach (var dir in AvoidDirections)
         {
             if (!obstacleGrid.IsWalkable(selfPos + dir))
                 avoidance -= dir;
         }
 
-        if (avoidance == Vector2.zero)
-            return Vector2.zero;
-
+        if (avoidance == Vector2.zero) return Vector2.zero;
         return avoidance.normalized;
     }
 
@@ -205,36 +188,29 @@ public class FlockBehavior
 
     /// <summary>
     /// 기즈모 시각화용 디버그 데이터를 계산한다. (에디터 전용)
+    /// CollectNeighbors()를 공유해 CalculateDirection과 중복 계산을 방지한다.
     /// </summary>
     public FlockDebugData ComputeDebugData(IUnit self, in SquadContext context)
     {
-        neighborsCache.Clear();
-        var selfPos2D = (Vector2)self.Transform.position;
-        foreach (var neighbor in context.Members)
-        {
-            if (neighbor == self) continue;
-            float dist = Vector2.Distance(selfPos2D, (Vector2)neighbor.Transform.position);
-            if (dist <= NeighborRadius)
-                neighborsCache.Add(neighbor);
-        }
+        CollectNeighbors(self, context);
 
-        var cohesion = CalculateCohesion(self, neighborsCache) * CohesionWeight;
-        var separation = CalculateSeparation(self, neighborsCache) * SeparationWeight;
-        var follow = CalculateFollow(self, context.LeaderTransform) * FollowWeight;
-        var avoidance = CalculateAvoidance(self, context.ObstacleGrid) * AvoidanceWeight;
-        var alignment = CalculateAlignment(self, neighborsCache) * AlignmentWeight;
-        var combined = alignment + cohesion + separation + follow + avoidance;
+        var selfPos    = (Vector2)self.Transform.position;
+        var cohesion   = CalculateCohesion(selfPos)   * CohesionWeight;
+        var separation = CalculateSeparation(selfPos)  * SeparationWeight;
+        var follow     = CalculateFollow(self, context.LeaderTransform)  * FollowWeight;
+        var avoidance  = CalculateAvoidance(self, context.ObstacleGrid)  * AvoidanceWeight;
+        var combined   = cohesion + separation + follow + avoidance;
 
-        combined.x = Mathf.Abs(combined.x) < 0.1F ? 0F : combined.x;
-        combined.y = Mathf.Abs(combined.y) < 0.1F ? 0F : combined.y;
+        combined.x = Mathf.Abs(combined.x) < 0.1f ? 0f : combined.x;
+        combined.y = Mathf.Abs(combined.y) < 0.1f ? 0f : combined.y;
 
         return new FlockDebugData
         {
-            Cohesion = cohesion,
+            Cohesion   = cohesion,
             Separation = separation,
-            Follow = follow,
-            Avoidance = avoidance,
-            Combined = combined == Vector2.zero ? Vector2.zero : combined.normalized,
+            Follow     = follow,
+            Avoidance  = avoidance,
+            Combined   = combined == Vector2.zero ? Vector2.zero : combined.normalized,
         };
     }
 #endif
