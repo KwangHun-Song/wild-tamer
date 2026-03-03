@@ -55,7 +55,6 @@ namespace Base
             {
                 if (state != null)
                 {
-                    state.OnLeave();
                     Notifier.Notify<ISceneStateExitEvent>(l => l.OnSceneStateExit(state));
                     state.gameObject.SetActive(false);
                 }

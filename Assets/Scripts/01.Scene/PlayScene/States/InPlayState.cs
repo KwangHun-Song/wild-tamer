@@ -1,86 +1,41 @@
-using System;
-using System.Threading;
 using Base;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public interface ICheatListener : IListener
-{
-    void OnCheatSpawnSquadMember(string id);
-    void OnCheatSetBossTimer(float seconds);
-}
-
 /// <summary>
 /// 게임 플레이 상태의 오케스트레이터.
 /// GameController를 생성·관리하고, Unity Update()로 매 프레임 구동한다.
-/// 게임 종료(패배/승리) 시 재시작 팝업을 표시하고 PlayPage를 재생성해 루프한다.
+/// PlayPage Canvas에 UICamera를 연결한다.
 /// </summary>
-public class InPlayState : SceneState, ICheatListener
+public class InPlayState : SceneState
 {
-    [SerializeField] private PlayerInput       playerInput;
-    [SerializeField] private MonsterData[]     initialSquadData;
-    [SerializeField] private MonsterData[]     initialMonsterData;
-    [SerializeField] private MonsterData[]     monsterSquadSpawnTable;
+    [SerializeField] private PlayerInput   playerInput;
+    [SerializeField] private MonsterData[] initialSquadData;
+    [SerializeField] private MonsterData[] initialMonsterData;
+    [SerializeField] private MonsterData[] monsterSquadSpawnTable;
     [Header("보스")]
     [SerializeField] private BossMonsterData[] bossPool;
     [SerializeField] private BossSpawnConfig   bossSpawnConfig;
     [Header("치트 — 숫자키 1·2·3…으로 해당 인덱스의 스쿼드 멤버를 플레이어 주변에 스폰")]
-    [SerializeField] private MonsterData[]     cheatSquadTypes;
-
-    private enum GameResult { Win, Lose }
+    [SerializeField] private MonsterData[] cheatSquadTypes;
 
     // SceneState는 MonoBehaviour이므로 Update()가 매 프레임 호출된다.
     // 이전 상태(Init, Load, EnterPage) 동안에는 null이므로 no-op으로 안전하다.
     private GameController gameController;
-    private PlayPage       playPage;
-    private PlayStates     playStates;
+    private PlayPage playPage;
+    private PlayStates playStates;
 
     protected override async UniTask OnExecuteAsync()
     {
         playStates = (PlayStates)StateMachine;
-        GlobalNotifier.Subscribe(this);
-        var destroyCt = this.GetCancellationTokenOnDestroy();
+        playPage = Facade.PageChanger.CurrentPage as PlayPage;
 
-        try
+        if (playPage == null)
         {
-            while (true)
-            {
-                playPage = Facade.PageChanger.CurrentPage as PlayPage;
-                if (playPage == null)
-                {
-                    Facade.Logger?.Log("[InPlayState] PlayPage를 찾을 수 없습니다.", LogLevel.Warning);
-                    break;
-                }
-
-                var result = await RunSessionAsync(destroyCt);
-
-                // 승패 팝업 (버튼 하나 — 재시작)
-                bool isWin = result == GameResult.Win;
-                var param = new CommonPopupParam(
-                    isWin ? "승리!" : "패배",
-                    isWin ? "보스를 처치했습니다!" : "쓰러졌습니다.",
-                    hasTwoButtons: false,
-                    firstButtonText: "재시작");
-                await Facade.PopupManager.ShowAsync<bool>("Popups/CommonPopup", param);
-
-                // PlayPage 재생성 → 재시작 루프
-                await Facade.PageChanger.ChangePageAsync("PlayPage");
-            }
+            Facade.Logger?.Log("[InPlayState] PlayPage를 찾을 수 없습니다.", LogLevel.Warning);
+            return;
         }
-        catch (OperationCanceledException)
-        {
-            // 정상 종료 (씬 전환 또는 오브젝트 파괴)
-        }
-    }
 
-    protected override void OnLeave()
-    {
-        GlobalNotifier.Unsubscribe(this);
-    }
-
-    /// <summary>한 게임 세션을 실행하고 승패 결과를 반환한다.</summary>
-    private async UniTask<GameResult> RunSessionAsync(CancellationToken ct)
-    {
         // Canvas에 UICamera 연결 (Screen Space - Camera)
         playPage.Canvas.worldCamera = playStates.UICamera;
 
@@ -107,7 +62,7 @@ public class InPlayState : SceneState, ICheatListener
         gameController = new GameController(
             playPage.PlayerView,
             playerInput,
-            obstacleGrid,
+            playPage.WorldMap.MapGenerator.ObstacleGrid,
             Camera.main,
             monsterSquadSpawnTable,
             playPage.WorldMap.UnitRoot,
@@ -152,7 +107,7 @@ public class InPlayState : SceneState, ICheatListener
         GameSaveManager.OnSaveRequested += TrySave;
         try
         {
-            return await WaitForGameEndAsync(gameController, ct);
+            await UniTask.WaitUntil(() => false, cancellationToken: this.GetCancellationTokenOnDestroy());
         }
         finally
         {
@@ -160,25 +115,6 @@ public class InPlayState : SceneState, ICheatListener
             cameraShake?.Dispose();
             gameController.Cleanup();
             gameController = null;
-        }
-    }
-
-    /// <summary>OnPlayerDied 또는 OnBossDefeated 이벤트를 기다려 결과를 반환한다.</summary>
-    private static async UniTask<GameResult> WaitForGameEndAsync(GameController gc, CancellationToken ct)
-    {
-        var tcs = new UniTaskCompletionSource<GameResult>();
-        Action onDied     = () => tcs.TrySetResult(GameResult.Lose);
-        Action onDefeated = () => tcs.TrySetResult(GameResult.Win);
-        gc.OnPlayerDied   += onDied;
-        gc.OnBossDefeated += onDefeated;
-        try
-        {
-            return await tcs.Task.AttachExternalCancellation(ct);
-        }
-        finally
-        {
-            gc.OnPlayerDied   -= onDied;
-            gc.OnBossDefeated -= onDefeated;
         }
     }
 
@@ -196,6 +132,8 @@ public class InPlayState : SceneState, ICheatListener
                 gameController.Squad.Members,
                 gameController.ActiveMonsters);
         }
+
+        HandleCheatInput();
     }
 
     private void TrySave()
@@ -206,25 +144,21 @@ public class InPlayState : SceneState, ICheatListener
         GameSaveManager.Save(data);
     }
 
-    #region ICheatListener
-
-    public void OnCheatSpawnSquadMember(string id)
+    private void HandleCheatInput()
     {
-        SpawnSquadMember(id);
-    }
+        if (gameController == null) return;
+        if (cheatSquadTypes == null || cheatSquadTypes.Length == 0) return;
 
-    public void OnCheatSetBossTimer(float seconds)
-    {
-        gameController?.CheatSetBossTimer(seconds);
-    }
-
-    #endregion
-
-    private void SpawnSquadMember(string id)
-    {
-        var monstarData = Facade.DB.Get<MonsterData>(id);
-        var playerPos   = (Vector2)gameController.Player.Transform.position;
-        var spawnPos    = playerPos + (Vector2)Random.insideUnitCircle.normalized * 2f;
-        gameController.CheatSpawnSquadMember(monstarData, spawnPos);
+        int count = Mathf.Min(cheatSquadTypes.Length, 9);
+        for (int i = 0; i < count; i++)
+        {
+            if (!Input.GetKeyDown(KeyCode.Alpha1 + i)) continue;
+            var data = cheatSquadTypes[i];
+            if (data == null) continue;
+            var playerPos = (Vector2)gameController.Player.Transform.position;
+            var spawnPos  = playerPos + (Vector2)Random.insideUnitCircle.normalized * 2f;
+            gameController.CheatSpawnSquadMember(data, spawnPos);
+            break;
+        }
     }
 }

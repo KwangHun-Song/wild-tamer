@@ -29,11 +29,6 @@ public class GameController
     public Notifier Notifier { get; } = new();
     public GamePhase Phase { get; private set; } = GamePhase.Play;
 
-    /// <summary>플레이어 사망 → 게임 오버 시 발생.</summary>
-    public event System.Action OnPlayerDied;
-    /// <summary>보스 처치 → 게임 승리 시 발생.</summary>
-    public event System.Action OnBossDefeated;
-
     public GameController(
         PlayerView playerView,
         PlayerInput playerInput,
@@ -183,7 +178,6 @@ public class GameController
     private void HandleGameOver()
     {
         GameSaveManager.Delete();
-        OnPlayerDied?.Invoke();
     }
 
     private void HandleBossSpawned(BossMonster boss)
@@ -201,7 +195,6 @@ public class GameController
     private void HandleBossDied(BossMonster boss)
     {
         squadSpawner?.SetSuspended(false);
-        OnBossDefeated?.Invoke();
     }
 
     /// <summary>GameLoop.OnDestroy()에서 호출. 이벤트 구독을 해제하여 메모리 누수를 방지한다.</summary>
@@ -288,9 +281,6 @@ public class GameController
 
         bossSpawnSystem?.RestoreTimers(data.bossElapsedTime, data.bossRespawnTimer);
     }
-
-    /// <summary>치트: 보스 스폰까지 남은 시간을 seconds로 설정한다.</summary>
-    public void CheatSetBossTimer(float seconds) => bossSpawnSystem?.CheatSetBossTimer(seconds);
 
     /// <summary>치트: 플레이어 주변에 스쿼드 멤버를 즉시 스폰한다.</summary>
     public void CheatSpawnSquadMember(MonsterData data, Vector2 position)

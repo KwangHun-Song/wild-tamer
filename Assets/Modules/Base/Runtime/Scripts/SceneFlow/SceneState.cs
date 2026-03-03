@@ -18,7 +18,6 @@ namespace Base
         }
 
         protected abstract UniTask OnExecuteAsync();
-        protected internal virtual void OnLeave() { }
 
         internal UniTask ExecuteAsync()
         {
