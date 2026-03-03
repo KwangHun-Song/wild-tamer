@@ -103,23 +103,14 @@ public class BossMonsterView : MonsterView
         originalMoveSpeed  = Movement.MoveSpeed;
         Movement.MoveSpeed = data.chargeSpeed;
 
-        float elapsed   = 0f;
-        float duration  = data.chargeDistance / data.chargeSpeed;
-        float hitRadius = (data.chargeHitWidth > 0f ? data.chargeHitWidth : data.chargeWidth) * 0.5f;
-        var   hitUnits  = new List<IUnit>();
+        var   startPos = (Vector2)transform.position;
+        float elapsed  = 0f;
+        float duration = data.chargeDistance / data.chargeSpeed;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             Movement.Move(dir);
-
-            foreach (var u in unitGrid.Query((Vector2)transform.position, hitRadius))
-            {
-                if (u == owner || u.Team == owner.Team || !u.IsAlive) continue;
-                if (!hitUnits.Contains(u))
-                    hitUnits.Add(u);
-            }
-
             yield return null;
         }
 
@@ -127,9 +118,38 @@ public class BossMonsterView : MonsterView
         Movement.MoveSpeed = originalMoveSpeed;
         isCharging = false;
 
+        // 돌진 완료 후 경로 전체를 라인 판정으로 한 번에 처리
+        float halfWidth = (data.chargeHitWidth > 0f ? data.chargeHitWidth : data.chargeWidth) * 0.5f;
+        var   hitUnits  = CollectLineHits(startPos, dir, data.chargeDistance, halfWidth, owner, unitGrid);
+
         onHit?.Invoke(hitUnits);
         chargeCompleteCallback?.Invoke();
         chargeCompleteCallback = null;
+    }
+
+    private static List<IUnit> CollectLineHits(Vector2 origin, Vector2 dir, float length, float halfWidth,
+                                               IUnit owner, SpatialGrid<IUnit> unitGrid)
+    {
+        var result = new List<IUnit>();
+
+        // 경로 전체를 감싸는 외접원으로 브로드 페이즈
+        var midPoint    = origin + dir * (length * 0.5f);
+        float queryRadius = Mathf.Sqrt(length * length * 0.25f + halfWidth * halfWidth);
+
+        foreach (var u in unitGrid.Query(midPoint, queryRadius))
+        {
+            if (u == owner || u.Team == owner.Team || !u.IsAlive) continue;
+
+            var   toUnit = (Vector2)u.Transform.position - origin;
+            float along  = Vector2.Dot(toUnit, dir);
+            if (along < 0f || along > length) continue;
+
+            var perp = toUnit - dir * along;
+            if (perp.magnitude <= halfWidth)
+                result.Add(u);
+        }
+
+        return result;
     }
 
     // ── P6 투사체 발사 ───────────────────────────────────────────────

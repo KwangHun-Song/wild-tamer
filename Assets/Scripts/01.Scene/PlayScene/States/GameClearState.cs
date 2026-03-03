@@ -13,10 +13,10 @@ public class GameClearState : SceneState
     protected override async UniTask OnExecuteAsync()
     {
         var param = new CommonPopupParam(
-            "승리!",
-            "보스를 처치했습니다!",
+            "Clear!",
+            "You have cleared the game!",
             hasTwoButtons: false,
-            firstButtonText: "재시작");
+            firstButtonText: "Restart");
         await Facade.PopupManager.ShowAsync<bool>("Popups/CommonPopup", param);
         StateMachine.RequestRestart();
     }

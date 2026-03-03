@@ -4,7 +4,7 @@ using UnityEngine;
 public class SpatialGrid<T> where T : class
 {
     private readonly float cellSize;
-    private readonly Dictionary<Vector2Int, List<T>> cells = new();
+    private readonly Dictionary<Vector2Int, List<(T item, Vector2 pos)>> cells = new();
 
     public SpatialGrid(float cellSize)
     {
@@ -18,28 +18,31 @@ public class SpatialGrid<T> where T : class
 
     public void Insert(T item, Vector2 position)
     {
-        Vector2Int cell = WorldToCell(position);
-        if (!cells.ContainsKey(cell))
+        var cell = WorldToCell(position);
+        if (!cells.TryGetValue(cell, out var list))
         {
-            cells[cell] = new List<T>();
+            list = new List<(T, Vector2)>();
+            cells[cell] = list;
         }
-        cells[cell].Add(item);
+        list.Add((item, position));
     }
 
     public List<T> Query(Vector2 center, float radius)
     {
-        List<T> result = new List<T>();
+        var result = new List<T>();
         int range = Mathf.CeilToInt(radius / cellSize);
-        Vector2Int centerCell = WorldToCell(center);
+        float sqRadius = radius * radius;
+        var centerCell = WorldToCell(center);
 
         for (int x = centerCell.x - range; x <= centerCell.x + range; x++)
         {
             for (int y = centerCell.y - range; y <= centerCell.y + range; y++)
             {
-                Vector2Int cell = new Vector2Int(x, y);
-                if (cells.TryGetValue(cell, out List<T> items))
+                if (!cells.TryGetValue(new Vector2Int(x, y), out var items)) continue;
+                foreach (var (item, pos) in items)
                 {
-                    result.AddRange(items);
+                    if ((pos - center).sqrMagnitude <= sqRadius)
+                        result.Add(item);
                 }
             }
         }

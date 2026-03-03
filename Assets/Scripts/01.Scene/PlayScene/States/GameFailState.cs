@@ -13,10 +13,10 @@ public class GameFailState : SceneState
     protected override async UniTask OnExecuteAsync()
     {
         var param = new CommonPopupParam(
-            "패배",
-            "쓰러졌습니다.",
+            "Defeat",
+            "You have been defeated.",
             hasTwoButtons: false,
-            firstButtonText: "재시작");
+            firstButtonText: "Restart");
         await Facade.PopupManager.ShowAsync<bool>("Popups/CommonPopup", param);
         StateMachine.RequestRestart();
     }

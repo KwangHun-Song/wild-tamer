@@ -83,10 +83,13 @@ public class InPlayState : SceneState, ICheatListener
         CameraShake cameraShake = null;
         if (quarterViewCamera != null)
         {
-            var shakeData = Facade.DB.Get<CameraShakeData>("CameraShakeData");
-            var intensity = shakeData != null ? shakeData.intensity : 0.1f;
-            var duration  = shakeData != null ? shakeData.duration  : 0.2f;
-            cameraShake = new CameraShake(quarterViewCamera, gameController.Player, intensity, duration, gameController.Notifier);
+            var shakeData     = Facade.DB.Get<CameraShakeData>("CameraShakeData");
+            var intensity     = shakeData != null ? shakeData.intensity     : 0.1f;
+            var duration      = shakeData != null ? shakeData.duration      : 0.2f;
+            var bossIntensity = shakeData != null ? shakeData.bossIntensity : 0.35f;
+            var bossDuration  = shakeData != null ? shakeData.bossDuration  : 0.45f;
+            cameraShake = new CameraShake(quarterViewCamera, gameController.Player, intensity, duration,
+                                          gameController.Notifier, bossIntensity, bossDuration);
         }
 
         // HP 바 바인딩

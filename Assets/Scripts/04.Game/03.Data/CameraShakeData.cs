@@ -8,9 +8,11 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Data/CameraShakeData")]
 public class CameraShakeData : ScriptableObject
 {
-    [Header("흔들림 강도 — 카메라가 이동하는 최대 거리 (단위: 월드)")]
+    [Header("일반 피격 흔들림")]
     public float intensity = 0.1f;
+    public float duration  = 0.2f;
 
-    [Header("흔들림 지속 시간 — 효과가 지속되는 시간 (초)")]
-    public float duration = 0.2f;
+    [Header("보스 패턴 피격 흔들림 (더 강하게)")]
+    public float bossIntensity = 0.35f;
+    public float bossDuration  = 0.45f;
 }
