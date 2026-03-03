@@ -289,6 +289,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b96d48354783984a8b79ab4c5e84f17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &584321011 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1002549594611566851, guid: 4d6765da9db2877409a5eab21a9f3065, type: 3}
+  m_PrefabInstance: {fileID: 7079643120088457199}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d348b859b5865b448dd5c476eaa3bd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &869663254
 GameObject:
   m_ObjectHideFlags: 0
@@ -719,7 +730,7 @@ PrefabInstance:
     - target: {fileID: 2847561394128374956, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
       propertyPath: virtualJoystick
       value: 
-      objectReference: {fileID: 1002549594611566851, guid: 4d6765da9db2877409a5eab21a9f3065, type: 3}
+      objectReference: {fileID: 584321011}
     - target: {fileID: 5027260176176937609, guid: a03a6df9ecff83f4a80c1fba63fd0afe, type: 3}
       propertyPath: m_Name
       value: PlayStates
