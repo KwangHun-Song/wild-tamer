@@ -7,18 +7,22 @@ using UnityEngine;
 /// </summary>
 public class ZoneIndicatorView : MonoBehaviour
 {
-    [SerializeField] private SpriteRenderer sr;
-
     private static readonly Color WarningColor = new Color(1f, 0.85f, 0f, 0.5f);
     private static readonly Color ActiveColor  = new Color(1f, 0.15f, 0.15f, 0.85f);
+
+    private SpriteRenderer[] srs;
+
+    private void Awake()
+    {
+        srs = GetComponentsInChildren<SpriteRenderer>();
+    }
 
     /// <summary>지정 위치·스케일로 인디케이터를 활성화한다.</summary>
     public void Show(Vector2 worldPos, float scaleX, float scaleY)
     {
         transform.position   = new Vector3(worldPos.x, worldPos.y, worldPos.y);
         transform.localScale = new Vector3(scaleX, scaleY, 1f);
-        sr.DOKill();
-        sr.color = WarningColor;
+        foreach (var sr in srs) { sr.DOKill(); sr.color = WarningColor; }
         gameObject.SetActive(true);
     }
 
@@ -31,14 +35,19 @@ public class ZoneIndicatorView : MonoBehaviour
     /// <summary>경고색 → 빨간색 0.3초 DOTween. 활성화 직전 호출.</summary>
     public void FlashActive()
     {
-        sr.DOKill();
-        sr.DOColor(ActiveColor, 0.3f);
+        foreach (var sr in srs) { sr.DOKill(); sr.DOColor(ActiveColor, 0.3f); }
     }
 
     /// <summary>DOFade 0 후 비활성화.</summary>
     public void Hide()
     {
-        sr.DOKill();
-        sr.DOFade(0f, 0.2f).OnComplete(() => gameObject.SetActive(false));
+        for (int i = 0; i < srs.Length; i++)
+        {
+            srs[i].DOKill();
+            if (i == 0)
+                srs[i].DOFade(0f, 0.2f).OnComplete(() => gameObject.SetActive(false));
+            else
+                srs[i].DOFade(0f, 0.2f);
+        }
     }
 }

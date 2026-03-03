@@ -12,6 +12,7 @@ public class BossSpawnSystem
     private readonly EntitySpawner      entitySpawner;
     private readonly BossWarningView    warningView;
     private readonly BossHpBarView      hpBarView;
+    private readonly BossTimerView      timerView;
     private readonly SpatialGrid<IUnit> unitGrid;
     private readonly ObstacleGrid       obstacleGrid;
     private readonly Transform          playerTransform;
@@ -33,6 +34,7 @@ public class BossSpawnSystem
                            EntitySpawner      entitySpawner,
                            BossWarningView    warningView,
                            BossHpBarView      hpBarView,
+                           BossTimerView      timerView,
                            SpatialGrid<IUnit> unitGrid,
                            ObstacleGrid       obstacleGrid,
                            Transform          playerTransform,
@@ -42,6 +44,7 @@ public class BossSpawnSystem
         this.entitySpawner   = entitySpawner;
         this.warningView     = warningView;
         this.hpBarView       = hpBarView;
+        this.timerView       = timerView;
         this.unitGrid        = unitGrid;
         this.obstacleGrid    = obstacleGrid;
         this.playerTransform = playerTransform;
@@ -56,6 +59,9 @@ public class BossSpawnSystem
         elapsedTime  += deltaTime;
         respawnTimer -= deltaTime;
 
+        if (elapsedTime < SpawnTime)
+            timerView?.SetTime(SpawnTime - elapsedTime);
+
         if (elapsedTime >= SpawnTime && respawnTimer <= 0f)
             StartSpawnSequence();
     }
@@ -63,6 +69,7 @@ public class BossSpawnSystem
     private void StartSpawnSequence()
     {
         respawnTimer = float.MaxValue;
+        timerView?.Hide();
         var data = bossPool[UnityEngine.Random.Range(0, bossPool.Length)];
 
         if (warningView != null)

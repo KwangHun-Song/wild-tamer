@@ -102,8 +102,8 @@ MonoBehaviour:
   bossPool:
   - {fileID: 11400000, guid: d0d33d4bb52c80d4d98db32cbb772b1f, type: 2}
   - {fileID: 11400000, guid: 32b10a718e41e884db8ddccb539fd594, type: 2}
-  bossWarningView: {fileID: 0}
-  bossHpBarView: {fileID: 0}
+  bossWarningView: {fileID: 8185868718404147417, guid: 02164d51d7989d940815646c9a3cb45f, type: 3}
+  bossHpBarView: {fileID: 2797965454379895166, guid: d31aaece45c453447a159bcb7f97b1f8, type: 3}
   cheatSquadTypes:
   - {fileID: 11400000, guid: a075ca3e4b6b5914587420ab1291ec9f, type: 2}
   - {fileID: 11400000, guid: 09cefa7de91d0d34a8fa927404ce3314, type: 2}

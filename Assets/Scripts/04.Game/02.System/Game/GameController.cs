@@ -37,7 +37,8 @@ public class GameController
         Transform unitRoot = null,
         BossMonsterData[] bossPool = null,
         BossWarningView bossWarningView = null,
-        BossHpBarView bossHpBarView = null)
+        BossHpBarView bossHpBarView = null,
+        BossTimerView bossTimerView = null)
     {
         this.playerInput = playerInput;
         this.obstacleGrid = obstacleGrid;
@@ -86,7 +87,7 @@ public class GameController
         if (bossPool != null && bossPool.Length > 0)
         {
             bossSpawnSystem = new BossSpawnSystem(
-                bossPool, entitySpawner, bossWarningView, bossHpBarView,
+                bossPool, entitySpawner, bossWarningView, bossHpBarView, bossTimerView,
                 unitGrid, obstacleGrid, Player.Transform, Notifier);
         }
     }

@@ -71,7 +71,8 @@ public class InPlayState : SceneState, ISettingButtonListener
             playPage.WorldMap.UnitRoot,
             bossPool,
             bossWarningView,
-            bossHpBarView);
+            bossHpBarView,
+            playPage.BossTimerView);
 
         // 카메라 셰이크 (플레이어 피격 시)
         CameraShake cameraShake = null;
