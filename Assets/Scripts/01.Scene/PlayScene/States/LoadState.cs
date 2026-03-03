@@ -13,6 +13,10 @@ public class LoadState : SceneState
 
     private static async UniTaskVoid WarmupPopupsAsync()
     {
-        await Resources.LoadAsync<GameObject>("Popups/CommonPopup").ToUniTask();
+        await UniTask.WhenAll(
+            Resources.LoadAsync<GameObject>("Popups/CommonPopup").ToUniTask(),
+            Resources.LoadAsync<GameObject>("Popups/SettingPopup").ToUniTask(),
+            Resources.LoadAsync<GameObject>("Popups/CollectionPopup").ToUniTask()
+        );
     }
 }
