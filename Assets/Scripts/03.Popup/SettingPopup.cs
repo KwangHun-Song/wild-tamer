@@ -43,4 +43,31 @@ public class SettingPopup : Popup
     {
         GlobalNotifier.Notify<ICheatListener>(l => l.OnCheatSetBossTimer(10f));
     }
+
+    // 워리어 66마리 소환
+    public void OnClickSpawnWarrior66()
+    {
+        for (int i = 0; i < 66; i++)
+        {
+            GlobalNotifier.Notify<ICheatListener>(l => l.OnCheatSpawnSquadMember("MonsterData_Warrior"));
+        }
+    }
+
+    // 궁수 66마리 소환
+    public void OnClickSpawnArcher66()
+    {
+        for (int i = 0; i < 66; i++)
+        {
+            GlobalNotifier.Notify<ICheatListener>(l => l.OnCheatSpawnSquadMember("MonsterData_Archer"));
+        }
+    }
+
+    // 랜서 66마리 소환
+    public void OnClickSpawnLancer66()
+    {
+        for (int i = 0; i < 66; i++)
+        {
+            GlobalNotifier.Notify<ICheatListener>(l => l.OnCheatSpawnSquadMember("MonsterData_Lancer"));
+        }
+    }
 }
