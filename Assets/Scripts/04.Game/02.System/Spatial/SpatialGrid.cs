@@ -114,19 +114,47 @@ public class SpatialGrid<T> where T : class
     }
 
     /// <summary>
-    /// (cx, cy) 기준 ±range 셀 내 모든 아이템을 candidatePool에 추가하고
+    /// (cx, cy) 기준 ±range 셀 내 후보 아이템을 candidatePool에 추가하고
     /// 슬롯 정보 (start, count)를 반환한다.
-    /// 정확한 거리 필터링은 호출자(Query)가 각 유닛의 실제 위치로 수행한다.
+    ///
+    /// 코너 컬링 전략 — 셀 간 AABB 최솟값 거리 사용:
+    ///   유닛 개별 위치 대신 "홈 셀과 후보 셀 사이의 최단 거리"로 컬링한다.
+    ///   이 거리 > 보수적 반경이면 홈 셀의 어떤 유닛도 해당 후보 셀이 필요 없다고 보장된다.
+    ///
+    ///   셀 간 X 거리 = max(0, |x - cx| - 1) × cellSize
+    ///     인접 셀(|Δx|=1): 0  (셀 경계가 맞닿음)
+    ///     두 칸(|Δx|=2):   cellSize
+    ///     N칸(|Δx|=N):    (N-1) × cellSize
+    ///
+    ///   효과: range ≥ 4 (radius ≥ 4×cellSize) 부터 코너 셀 배제 시작.
+    ///   소범위 쿼리(range=1~2)는 배제되는 셀이 없어 동작은 같고 계산 비용만 소폭 추가.
+    ///   탐지 범위처럼 radius가 큰 쿼리에서 TryGetValue 추가 절감.
     /// </summary>
     private (int start, int count) CollectCandidates(int cx, int cy, int range)
     {
         int start = candidatePool.Count;
 
-        // AABB 범위(정사각형)를 순회하며 존재하는 셀의 아이템을 풀에 추가
+        // 보수적 반경: range × cellSize (실제 radius ≤ range × cellSize)
+        // 셀 간 거리 비교에 사용 — 유닛이 셀 내 어디 있든 항상 안전
+        float sqConservRadius = (float)(range * range) * (cellSize * cellSize);
+
         for (int x = cx - range; x <= cx + range; x++)
         {
+            // 홈 셀과 후보 셀의 X 방향 최솟값 거리
+            // 인접(|Δx|=1)이면 0, 두 칸 떨어지면 cellSize, ...
+            float cdx = Mathf.Max(0, Mathf.Abs(x - cx) - 1) * cellSize;
+            float sqDx = cdx * cdx;
+
+            // X만으로 이미 보수적 반경 초과 → 이 열 전체 스킵
+            if (sqDx > sqConservRadius) continue;
+
             for (int y = cy - range; y <= cy + range; y++)
             {
+                float cdy = Mathf.Max(0, Mathf.Abs(y - cy) - 1) * cellSize;
+
+                // 셀 간 AABB 거리² > 보수적 반경² → 홈 셀의 어떤 유닛도 이 셀 불필요 → 스킵
+                if (sqDx + cdy * cdy > sqConservRadius) continue;
+
                 // 해당 셀에 아이템이 없으면 스킵
                 if (!cells.TryGetValue(PackKey(x, y), out var items)) continue;
 
