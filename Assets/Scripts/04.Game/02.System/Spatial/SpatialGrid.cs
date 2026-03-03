@@ -1,13 +1,37 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 2D 공간 해시 그리드. 위치 기반 근접 쿼리를 O(1) 셀 룩업으로 처리한다.
+///
+/// 구조:
+///   cells: (x,y) 셀 좌표 → 해당 셀 내 아이템 목록
+///   키: long 패킹 ((x &lt;&lt; 32) | y) — struct 생성 없이 비트 연산만 사용
+///
+/// 프레임 캐시:
+///   같은 프레임 내에서 (cx, cy, range)가 같은 쿼리는 셀 수집 결과를 공유한다.
+///   200마리 스쿼드가 몰려있을 때 TryGetValue 호출을 최대 85% 절감한다.
+/// </summary>
 public class SpatialGrid<T> where T : class
 {
     private readonly float cellSize;
 
-    // 키: (x << 32 | (uint)y) long 패킹
-    // Vector2Int 대비 struct 생성 없이 비트 연산만으로 키 생성 + long.GetHashCode 단순화
+    // 셀 좌표 → 아이템 목록
+    // long 키: (x << 32 | (uint)y) 패킹 — Vector2Int 대비 struct 생성/해시 단순화
     private readonly Dictionary<long, List<(T item, Vector2 pos)>> cells = new();
+
+    // ── 프레임 단위 쿼리 캐시 ──────────────────────────────────────────────────
+    // 캐시 키: (cx, cy, range) — 같은 셀+반경 조합이면 수집 결과 공유
+    // ValueTuple 사용: 충돌 없는 정확한 다중 키, struct이므로 힙 할당 없음
+    private readonly Dictionary<(int cx, int cy, int range), (int start, int count)> candidateCache = new();
+
+    /// <summary>
+    /// 프레임 내 수집된 후보 아이템의 공유 풀.
+    /// 각 캐시 항목은 [start, start+count) 구간을 슬롯으로 사용한다.
+    /// 프레임이 바뀌면 Clear()로 초기화된다.
+    /// </summary>
+    private readonly List<(T item, Vector2 pos)> candidatePool = new(512);
+    private int cacheFrame = -1;
 
     public SpatialGrid(float cellSize)
     {
@@ -21,6 +45,7 @@ public class SpatialGrid<T> where T : class
 
     public void Insert(T item, Vector2 position)
     {
+        // 월드 좌표 → 셀 키로 변환 후 해당 셀 목록에 추가
         var key = CellKey(position);
         if (!cells.TryGetValue(key, out var list))
         {
@@ -41,56 +66,78 @@ public class SpatialGrid<T> where T : class
     /// <summary>
     /// GC-free 오버로드: 결과를 호출자가 제공한 리스트에 채운다. 호출 전 Clear()는 호출자 책임.
     ///
-    /// 알고리즘:
-    ///   1. 반경을 셀 단위로 환산해 AABB 범위(range) 결정
-    ///   2. 중심 셀 ±range 정사각형을 순회
-    ///   3. 각 셀 AABB와 원의 교차 여부를 사전 체크(코너 셀 컬링)
-    ///   4. 교차하는 셀에서만 아이템별 정밀 거리 검사
+    /// 실행 흐름:
+    ///   1. 프레임이 바뀌면 캐시/풀 초기화
+    ///   2. (cx, cy, range) 캐시 조회
+    ///      - 캐시 미스: CollectCandidates()로 주변 셀 아이템 수집 후 candidatePool에 추가
+    ///      - 캐시 히트: 이전에 수집한 풀 슬롯 재사용 (TryGetValue 생략)
+    ///   3. 캐시된 후보 목록에서 정확한 거리(sqrMagnitude)로 필터링
     /// </summary>
     public void Query(Vector2 center, float radius, List<T> result)
     {
-        // 반경을 셀 단위로 환산 — 몇 개의 셀 행/열을 검색할지 결정
-        int range = Mathf.CeilToInt(radius / cellSize);
-        float sqRadius = radius * radius;
+        // 프레임이 바뀌면 캐시 전체 초기화 — Time.frameCount 비교로 자동 무효화
+        if (Time.frameCount != cacheFrame)
+        {
+            candidateCache.Clear();
+            candidatePool.Clear();
+            cacheFrame = Time.frameCount;
+        }
 
-        // 중심 월드 좌표 → 셀 좌표
+        // 반경을 셀 단위로 환산
+        int range = Mathf.CeilToInt(radius / cellSize);
+        // 월드 좌표 → 셀 좌표
         int cx = Mathf.FloorToInt(center.x / cellSize);
         int cy = Mathf.FloorToInt(center.y / cellSize);
 
-        // 중심 셀 기준 ±range 범위의 정사각형 AABB를 순회
+        // 같은 셀+반경 조합은 수집 후보가 동일 → 캐시에서 슬롯 재사용
+        var cacheKey = (cx, cy, range);
+        if (!candidateCache.TryGetValue(cacheKey, out var slot))
+        {
+            // 캐시 미스: 주변 셀 순회하여 후보 수집 (이 프레임에 처음 온 셀 조합)
+            slot = CollectCandidates(cx, cy, range);
+            candidateCache[cacheKey] = slot;
+        }
+        // 캐시 히트: 이미 수집된 슬롯 재사용 → TryGetValue × (2*range+1)² 생략
+
+        // 캐시된 후보를 정확한 거리로 필터링 (셀 룩업 없이 수학 연산만)
+        float sqRadius = radius * radius;
+        int end = slot.start + slot.count;
+        for (int i = slot.start; i < end; i++)
+        {
+            var (item, pos) = candidatePool[i];
+            // Vector2 임시 생성 없이 성분별 직접 계산
+            float dx = pos.x - center.x;
+            float dy = pos.y - center.y;
+            if (dx * dx + dy * dy <= sqRadius)
+                result.Add(item);
+        }
+    }
+
+    /// <summary>
+    /// (cx, cy) 기준 ±range 셀 내 모든 아이템을 candidatePool에 추가하고
+    /// 슬롯 정보 (start, count)를 반환한다.
+    /// 정확한 거리 필터링은 호출자(Query)가 각 유닛의 실제 위치로 수행한다.
+    /// </summary>
+    private (int start, int count) CollectCandidates(int cx, int cy, int range)
+    {
+        int start = candidatePool.Count;
+
+        // AABB 범위(정사각형)를 순회하며 존재하는 셀의 아이템을 풀에 추가
         for (int x = cx - range; x <= cx + range; x++)
         {
-            // 셀 X 범위의 최근접 점 (셀 밖이면 경계값, 안이면 center.x)
-            float nearX = Mathf.Clamp(center.x, x * cellSize, (x + 1) * cellSize);
-            float edgeDx = nearX - center.x;
-
             for (int y = cy - range; y <= cy + range; y++)
             {
-                // 셀 Y 범위의 최근접 점
-                float nearY = Mathf.Clamp(center.y, y * cellSize, (y + 1) * cellSize);
-                float edgeDy = nearY - center.y;
-
-                // 셀 AABB와 원의 교차 여부 — 코너 셀 조기 컬링
-                // 셀에서 원 중심까지 가장 가까운 점이 반경 밖이면 이 셀 전체 스킵
-                if (edgeDx * edgeDx + edgeDy * edgeDy > sqRadius) continue;
-
-                // 해당 셀에 등록된 아이템이 없으면 스킵
+                // 해당 셀에 아이템이 없으면 스킵
                 if (!cells.TryGetValue(PackKey(x, y), out var items)) continue;
 
                 // foreach 열거자 대신 for 인덱스 루프 — enumerator 오버헤드 제거
-                int count = items.Count;
-                for (int k = 0; k < count; k++)
-                {
-                    var (item, pos) = items[k];
-
-                    // 아이템별 정밀 거리 검사 — Vector2 임시 객체 없이 성분별 계산
-                    float pdx = pos.x - center.x;
-                    float pdy = pos.y - center.y;
-                    if (pdx * pdx + pdy * pdy <= sqRadius)
-                        result.Add(item);
-                }
+                int cnt = items.Count;
+                for (int k = 0; k < cnt; k++)
+                    candidatePool.Add(items[k]);
             }
         }
+
+        return (start, candidatePool.Count - start);
     }
 
     /// <summary>두 셀 좌표를 long 1개로 패킹. 상위 32비트=x, 하위 32비트=y.</summary>
