@@ -7,7 +7,7 @@ using UnityEngine;
 /// GameController를 생성·관리하고, Unity Update()로 매 프레임 구동한다.
 /// PlayPage Canvas에 UICamera를 연결한다.
 /// </summary>
-public class InPlayState : SceneState, ISettingButtonListener
+public class InPlayState : SceneState
 {
     [SerializeField] private PlayerInput   playerInput;
     [SerializeField] private MonsterData[] initialSquadData;
@@ -28,15 +28,13 @@ public class InPlayState : SceneState, ISettingButtonListener
     protected override async UniTask OnExecuteAsync()
     {
         playStates = (PlayStates)StateMachine;
-        playPage = playStates.PageChanger.CurrentPage as PlayPage;
+        playPage = Facade.PageChanger.CurrentPage as PlayPage;
 
         if (playPage == null)
         {
             Facade.Logger?.Log("[InPlayState] PlayPage를 찾을 수 없습니다.", LogLevel.Warning);
             return;
         }
-
-        playStates.Notifier.Subscribe(this);
 
         // Canvas에 UICamera 연결 (Screen Space - Camera)
         playPage.Canvas.worldCamera = playStates.UICamera;
@@ -102,13 +100,18 @@ public class InPlayState : SceneState, ISettingButtonListener
             gameController.SpawnTestEntities(initialSquadData, initialMonsterData, spawnOrigin);
         }
 
+        // 양 경로 공통: 현재 스쿼드 멤버를 컬렉션에 등록 (중복 무시)
+        foreach (var member in gameController.Squad.Members)
+            UserData.AddTamedMonster(member.Data.name);
+
+        GameSaveManager.OnSaveRequested += TrySave;
         try
         {
             await UniTask.WaitUntil(() => false, cancellationToken: this.GetCancellationTokenOnDestroy());
         }
         finally
         {
-            playStates.Notifier.Unsubscribe(this);
+            GameSaveManager.OnSaveRequested -= TrySave;
             cameraShake?.Dispose();
             gameController.Cleanup();
             gameController = null;
@@ -117,7 +120,7 @@ public class InPlayState : SceneState, ISettingButtonListener
 
     private void Update()
     {
-        if (playStates.PopupManager.IsAnyPopupOpen()) return;
+        if (Facade.PopupManager.IsAnyPopupOpen()) return;
 
         gameController?.Update();
 
@@ -131,16 +134,6 @@ public class InPlayState : SceneState, ISettingButtonListener
         }
 
         HandleCheatInput();
-    }
-
-    private void OnApplicationPause(bool paused)
-    {
-        if (paused) TrySave();
-    }
-
-    private void OnApplicationFocus(bool focused)
-    {
-        if (!focused) TrySave();
     }
 
     private void TrySave()
@@ -167,18 +160,5 @@ public class InPlayState : SceneState, ISettingButtonListener
             gameController.CheatSpawnSquadMember(data, spawnPos);
             break;
         }
-    }
-
-    public void OnSettingButtonClicked()
-    {
-        OpenSettingPopupAsync().Forget();
-    }
-
-    private async UniTaskVoid OpenSettingPopupAsync()
-    {
-        if (playStates.PopupManager.IsPopupOpen("Popups/CommonPopup")) return;
-        var param = new CommonPopupParam("Settings", "The game will be paused.", hasTwoButtons: false, firstButtonText: "Resume");
-        bool result = await playStates.PopupManager.ShowAsync<bool>("Popups/CommonPopup", param);
-        Facade.Logger?.Log($"[InPlayState] 설정 팝업 닫힘: {result}");
     }
 }

@@ -18,10 +18,11 @@ MonoBehaviour:
   activeDuration: 0.5
   cooldown: 7
   damage: 40
-  range: 1.5
+  range: 1
   width: 1
   chargeDistance: 7
   chargeWidth: 1.5
+  chargeHitWidth: 0
   chargeSpeed: 9
   projectileSpeed: 3
   projectileCount: 3

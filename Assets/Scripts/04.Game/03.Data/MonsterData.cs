@@ -14,6 +14,7 @@ public class MonsterData : ScriptableObject
     public float moveSpeed;
     public float squadMoveSpeed;
     public float radius = 0.3f;
+    public Sprite portrait;
     public GameObject prefab;
     public GameObject squadPrefab;
     public FlockSettingsData flockSettings;

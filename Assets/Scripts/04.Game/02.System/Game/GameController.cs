@@ -230,7 +230,7 @@ public class GameController
             var m = Squad.Members[i];
             members[i] = new SquadMemberSaveData
             {
-                monsterId = m.Data.id,
+                monsterId = m.Data.name,
                 offsetX   = m.Transform.position.x - playerPos.x,
                 offsetY   = m.Transform.position.y - playerPos.y,
                 currentHp = m.Health.CurrentHp
@@ -264,7 +264,9 @@ public class GameController
         {
             foreach (var ms in data.squadMembers)
             {
-                var monsterData = Facade.DB.Get<MonsterData>(ms.monsterId);
+                // 에셋명으로 먼저 조회, 실패 시 id 필드로 폴백 (구 세이브 데이터 호환)
+                if (!Facade.DB.TryGet<MonsterData>(ms.monsterId, out var monsterData))
+                    monsterData = Facade.DB.GetAll<MonsterData>().FirstOrDefault(d => d.id == ms.monsterId);
                 if (monsterData == null)
                 {
                     UnityEngine.Debug.LogWarning($"[GameController] MonsterData '{ms.monsterId}' 조회 실패. 멤버 스킵.");

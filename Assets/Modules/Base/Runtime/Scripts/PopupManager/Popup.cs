@@ -6,7 +6,7 @@ namespace Base
 {
     public abstract class Popup : MonoBehaviour, IPopup
     {
-        [SerializeField] private Button curtain;
+        [SerializeField] protected Button curtain;
 
         private const int SortingOrderInterval = 1000;
 
@@ -67,6 +67,11 @@ namespace Base
                     curtain = curtainObject.GetComponent<Button>();
                 }
             }
+        }
+
+        public void OnClickCloseButton()
+        {
+            Close(false);
         }
     }
 }

@@ -31,20 +31,8 @@ public class PlayPage : Page
     public BossWarningView BossWarningView => bossWarningView;
     public BossHpBarView BossHpBarView => bossHpBarView;
 
-    public override UniTask ShowAsync(object param = null)
+    public void OnClickSettingButton()
     {
-        settingButton.onClick.AddListener(OnSettingButtonClicked);
-        return base.ShowAsync(param);
-    }
-
-    public override void Hide()
-    {
-        settingButton.onClick.RemoveListener(OnSettingButtonClicked);
-        base.Hide();
-    }
-
-    private void OnSettingButtonClicked()
-    {
-        Notifier?.Notify<ISettingButtonListener>(l => l.OnSettingButtonClicked());
+        Facade.PopupManager.ShowAsync<SettingPopup>("Popups/SettingPopup").Forget();
     }
 }

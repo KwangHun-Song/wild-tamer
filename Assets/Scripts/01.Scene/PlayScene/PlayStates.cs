@@ -7,13 +7,17 @@ public class PlayStates : SceneStateMachine
     [SerializeField] private Transform popupRoot;
     [SerializeField] private Camera uiCamera;
 
-    public IPageChanger PageChanger { get; private set; }
-    public IPopupManager PopupManager { get; private set; }
     public Camera UICamera => uiCamera;
 
     private void Awake()
     {
-        PageChanger = new PageChanger(pageRoot, Notifier);
-        PopupManager = new PopupManager(popupRoot);
+        Facade.PageChanger = new PageChanger(pageRoot, Notifier);
+        Facade.PopupManager = new PopupManager(popupRoot);
+    }
+
+    private void OnDestroy()
+    {
+        Facade.PageChanger = null;
+        Facade.PopupManager = null;
     }
 }

@@ -12,7 +12,6 @@ public class CommonPopup : Popup
     [SerializeField] private TextMeshProUGUI contentText;
     [SerializeField] private Button okButton;
     [SerializeField] private Button cancelButton;
-    [SerializeField] private Button closeButton;
 
     public override UniTask ShowAsync(object enterParam = null)
     {
@@ -21,7 +20,6 @@ public class CommonPopup : Popup
             titleText.text = param.Title;
             contentText.text = param.Content;
             cancelButton.gameObject.SetActive(param.HasTwoButtons);
-            closeButton.gameObject.SetActive(!param.HasTwoButtons);
             okButton.GetComponentInChildren<TextMeshProUGUI>().text = param.FirstButtonText;
             cancelButton.GetComponentInChildren<TextMeshProUGUI>().text = param.SecondButtonText;
         }
@@ -32,7 +30,6 @@ public class CommonPopup : Popup
 
         okButton.onClick.AddListener(OnOkClicked);
         cancelButton.onClick.AddListener(OnCancelClicked);
-        closeButton.onClick.AddListener(OnCloseClicked);
 
         return base.ShowAsync(enterParam);
     }
@@ -41,11 +38,9 @@ public class CommonPopup : Popup
     {
         okButton.onClick.RemoveListener(OnOkClicked);
         cancelButton.onClick.RemoveListener(OnCancelClicked);
-        closeButton.onClick.RemoveListener(OnCloseClicked);
         base.Close(leaveParam);
     }
 
     private void OnOkClicked() => Close(true);
     private void OnCancelClicked() => Close(false);
-    private void OnCloseClicked() => Close(false);
 }

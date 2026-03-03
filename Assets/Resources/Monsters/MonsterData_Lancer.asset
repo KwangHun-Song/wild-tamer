@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MonsterData_Lancer
   m_EditorClassIdentifier: 
   id: lancer
-  displayName: "\uCC3D\uBCD1"
+  displayName: Lancer
   grade: 0
   maxHp: 60
   attackDamage: 3
@@ -23,6 +23,7 @@ MonoBehaviour:
   moveSpeed: 1.5
   squadMoveSpeed: 2
   radius: 0.3
+  portrait: {fileID: 21300000, guid: ddd20bbae6771e34ea837564b2731f38, type: 3}
   prefab: {fileID: 7956779084935424389, guid: 085ed7b241cf452428656ebb5f6812a0, type: 3}
   squadPrefab: {fileID: 7956779084935424389, guid: 7f57536cd17e4f24c935cc3fd8315571, type: 3}
   flockSettings: {fileID: 11400000, guid: b972d8f7bbbe4fb428b1f077ee7cd148, type: 2}

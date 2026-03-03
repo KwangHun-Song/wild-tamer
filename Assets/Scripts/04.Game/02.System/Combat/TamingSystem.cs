@@ -35,6 +35,7 @@ public class TamingSystem : IOnUnitDeathListener, IDisposable
         m.OnReadyToSpawnTamed -= HandleTamingSpawn;
         var member = spawner.SpawnSquadMember(m.Data, m.TamingSpawnPos);
         squad.AddMember(member);
+        UserData.AddTamedMonster(m.Data.name);
         member.View.PlayCreateAnimation();
         notifier.Notify<IOnTamingListener>(l => l.OnTamingSuccess(m, member));
     }
